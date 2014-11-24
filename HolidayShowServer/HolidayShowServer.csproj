@@ -33,10 +33,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CodeSmith.Data">
-      <HintPath>..\Templates\LinqToSql\Common\v4.0\CodeSmith.Data.dll</HintPath>
+      <HintPath>..\References\CodeSmith.Data.dll</HintPath>
     </Reference>
     <Reference Include="CodeSmith.Data.LinqToSql">
-      <HintPath>..\Templates\LinqToSql\Common\v4.0\CodeSmith.Data.LinqToSql.dll</HintPath>
+      <HintPath>..\References\CodeSmith.Data.LinqToSql.dll</HintPath>
     </Reference>
     <Reference Include="CommandLine">
       <HintPath>..\References\CommandLine.dll</HintPath>

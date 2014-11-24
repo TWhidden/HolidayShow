@@ -1,175 +1,284 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HolidayShowLib
 {
-    public abstract class ByteParserBase
+    public abstract class ByteParserBase 
     {
         /// <summary>
         ///  Used to syncronize the buffer list.
         /// </summary>
-        private object _byteListLock = new object();
+        private readonly object _byteListLock = new object();
         /// <summary>
-        /// Byte message buffer container.
+        /// Buffer size to start the memory stream.  This is only to start, and the stream will add to it as it needs.
         /// </summary>
-        private List<byte> _messageBuffer = new List<byte>();
+        private const int STARTING_BUFFER_SIZE = 2048;
+
+        /// <summary>
+        /// Stream to hold the data as its received from the medium.
+        /// </summary>
+        private readonly MemoryStream _messageBuffer = new MemoryStream(STARTING_BUFFER_SIZE);
 
         /// <summary>
         /// Contains a list of possible parsing protocols - Handy if more than one protocols comes across the line.
         /// </summary>
         protected readonly List<ParserProtocolContainer> Parsers = new List<ParserProtocolContainer>();
 
+        private readonly List<BytePositions> ParserResults = new List<BytePositions>();
+
+        private bool _isDisposed;
+
 
         public void BytesReceived(byte[] byteBuffer)
         {
+            if (ParserResults.Count != Parsers.Count)
+            {
+                //Clear for safety
+                ParserResults.Clear();
+
+                // Initilize the parsers
+                for (var p = 0; p < Parsers.Count; p++)
+                {
+                    var parser = Parsers[p];
+                    ParserResults.Add(new BytePositions(parser));
+                }
+            }
+
             // It may be considered that here we should not block, and return to the caller asap, and add data to the list async, but in order
             lock (_byteListLock)
             {
-                _messageBuffer.AddRange(byteBuffer);
+                // Write the data to the memory stream
+                _messageBuffer.Write(byteBuffer, 0, byteBuffer.Length);
+#if DEBUG
+                buffersReceived++;
+#endif
             }
 
+            // Initiate a buffer search
             SearchBuffer();
         }
 
+        [DebuggerDisplay("Start={Start};End={End};EndOnly={EndParserOnly}")]
+        private class BytePositions
+        {
+            public BytePositions(ParserProtocolContainer parser)
+            {
+                this.Parser = parser;
 
+                EndParserOnly = parser.StartingBytes.Length == 0 && parser.EndingBytes.Length > 0;
+                Start = EndParserOnly ? 0 : -1;  // If its an end-only, we want the starting position to be the first element of the stream all the time.
+                End = -1;
+            }
+
+            public ParserProtocolContainer Parser { get; private set; }
+            public int Start { get; set; }
+            public int End { get; set; }
+
+            public bool EndParserOnly { get; private set; }
+
+            public void Reset()
+            {
+                Start = EndParserOnly ? 0 : -1;  // If its an end-only, we want the starting position to be the first element of the stream all the time.
+                End = -1;
+            }
+        }
+
+#if DEBUG
+
+        private long buffersReceived;
+        private long bufferSearches;
+        private long buffersReturned;
+
+#endif
 
         private void SearchBuffer()
         {
+  
+            int searchAgain = 0;
+            var stopWatch = Stopwatch.StartNew();
+
+        top:
+
+#if DEBUG
+            bufferSearches++;
+#endif
+
             bool searchBufferAgain = false;
             lock (_byteListLock)
             {
-
                 try
                 {
-                    // Try and find the lowest parser values
 
-                    var lowestIndex = -1;
-                    var byteStart = -1;
-                    var byteEnd = -1;
-
-                    for (var i = 0; i < Parsers.Count; i++)
+                    for (var i = 0; i < ParserResults.Count; i++)
                     {
-                        // Select the parser on this itteration
-                        var parser = Parsers[i];
+                        // Get the parser results, and reset the values between each pass
+                        var p = ParserResults[i];
+                        var parser = p.Parser;
+                        p.Reset();
 
-                        // Find the first position of the byte sequence
-                        var start = FindPosition(_messageBuffer, parser.StartingBytes);
-                        if (start == -1)
-                            continue;
-                        // Since a start was found, find the next position, after the start with the ending sequence
-                        var end = FindPosition(start, _messageBuffer, parser.EndingBytes);
-                        if (end == -1)
-                            continue;
+                        // There may be no initial byte[], and we are only splitting on a sequence of end bytes.  
+                        // This feature is new in DataEvents 5.14.0501.0 and greater.  
+                        if (!p.EndParserOnly)
+                        {
+                            p.Start = FindPosition(parser.StartingBytes);
 
-                        // Since both a start and stop was found, check to see if anything has been set yet
-                        if (byteStart == -1)
-                        {
-                            byteStart = start;
-                            byteEnd = end;
-                            lowestIndex = i;
-                        }
-                        else
-                        {
-                            // Since this has been set in a previous itteration, see if this starting point
-                            // is less then the previously set starting point. If it is, update the index.
-                            if (start < byteStart)
+                            if (p.Start == -1)
                             {
-                                byteStart = start;
-                                byteEnd = end;
-                                lowestIndex = i;
+                                continue;
                             }
                         }
 
+                        // Offset the end find by the last start found, and the starting bytes length
+                        var startingPositition = p.Start + parser.StartingBytes.Length;
+
+                        // Since a start was found, find the next position, after the start with the ending sequence
+                        p.End = FindPosition(startingPositition, parser.EndingBytes);
                     }
 
-                    if (lowestIndex != -1)
+                    // First look for a full packet, at the lowest index start index found
+                    var lowestParser = ParserResults.Where(x => x.End != -1).OrderBy(x => x.Start).FirstOrDefault();
+
+                    // If no full packet is found, find the lowest parser where the start of the packet was found
+                    if (lowestParser == null)
+                    {
+                        lowestParser = ParserResults.Where(x => x.Start > -1).OrderBy(x => x.Start).FirstOrDefault();
+                    }
+
+                    // If the lowest parser is still null, lets see if there is a EndOnly parser
+                    if (lowestParser == null)
+                    {
+                        lowestParser = ParserResults.Where(x => x.EndParserOnly && x.End > 0).OrderBy(x => x.Start).FirstOrDefault();
+                    }
+
+                    if (
+                        lowestParser == null ||
+                        (!lowestParser.EndParserOnly && lowestParser.Start != 0 && lowestParser.End == -1)  // Look for any start that is found, without and end... and is not an EndOnly Parser
+                        )
+                    {
+                        var newLength = 0;
+                        var newStart = 0;
+
+                        if (lowestParser != null && lowestParser.Start != -1)
+                        {
+                            newStart = lowestParser.Start;
+                            newLength = (int)_messageBuffer.Length - newStart;
+                        }
+
+                        // Move the data left
+                        Buffer.BlockCopy(_messageBuffer.GetBuffer(), newStart, _messageBuffer.GetBuffer(), 0, newLength);
+
+                        _messageBuffer.SetLength(newLength);
+                        _messageBuffer.Position = newLength;
+
+                        // nothing left to do, exit function
+#if DEBUG
+                        // goto end for debug parse output.
+                        goto end;
+#else
+                        return;
+#endif
+                    }
+
+                    if (lowestParser.Start != -1 && lowestParser.End != -1)
                     {
                         // The lowest index has a start / end buffer that 
-                        var parser = Parsers[lowestIndex];
+                        var parser = lowestParser.Parser;
 
                         // The final byte index with the sequence value added in.
-                        var realEnd = byteEnd + parser.EndingBytes.Length;
+                        var realEnd = lowestParser.End + parser.EndingBytes.Length;
 
                         // Sets the length of the expected data - the entire packet
-                        var messagelength = realEnd - byteStart;
+                        var messagelength = realEnd - lowestParser.Start;
 
                         // Selects the data that we are expecting - starting bytes to end of ending sequence bytes
-                        var bytesRead = _messageBuffer.Select(x => x).Skip(byteStart).Take(messagelength).ToArray();
+                        //var bytesRead = _messageBuffer.Select(x => x).Skip(byteStart).Take(messagelength).ToArray();
+                        var bytesRead = new byte[messagelength];
+                        Buffer.BlockCopy(_messageBuffer.GetBuffer(), lowestParser.Start, bytesRead, 0, messagelength);
 
                         // Sends off for processing
                         ProcessPacket(bytesRead, parser);
+#if DEBUG
+                        buffersReturned++;
+#endif
 
                         // truncates the messageBuffer
-                        _messageBuffer = _messageBuffer.Select(x => x).Skip(realEnd).Take(_messageBuffer.Count - realEnd).ToList();
+                        var length = (int)_messageBuffer.Length - realEnd;
+                        if (length != 0)
+                        {
+                            // Reset the stream to the new end
+                            Buffer.BlockCopy(_messageBuffer.GetBuffer(), realEnd, _messageBuffer.GetBuffer(), 0, length);
+                        }
+
+                        _messageBuffer.SetLength(length);
+                        _messageBuffer.Position = length;
 
                         // If there is more bytes to look for, search again (2 would mean a min of two bytes + a data byte at a min)
-                        if (_messageBuffer.Count > 3)
+                        if (length > 3)
                             searchBufferAgain = true;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(string.Format("Error in Byte parser: {0}", ex.Message), ex);
-                    _messageBuffer.Clear();
+                       _messageBuffer.Position = 0;
                 }
             }
 
             // outside the lock to prevent a deadlock.
             if (searchBufferAgain)
             {
+                searchAgain++;
                 //_loggerService.Debug("SearchAgain!");
-                SearchBuffer(); // do this until the entire buffer is processed
+                goto top; // do this until the entire buffer is processed
             }
+
+
+#if DEBUG
+            end:
+            Console.WriteLine("{0}; ReSearch {1}; Received: {2}; Searches: {3}; Returned: {4}", stopWatch.Elapsed, searchAgain, buffersReceived, bufferSearches, buffersReturned);
+#endif
         }
 
         public abstract void ProcessPacket(byte[] bytes, ParserProtocolContainer parser);
 
-        protected static int FindPosition(int startingPos, List<byte> stream, byte[] byteSequence)
+        private static bool NextBytesMatch(int pos, byte[] searchBytes, Byte[] byteSequence)
         {
-            if (byteSequence.Length > stream.Count)
+            for (int i = 0; i < byteSequence.Length; i++)
+            {
+                if (searchBytes[pos + i] != byteSequence[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+        private int FindPosition(int startingPos, byte[] byteSequence)
+        {
+            if ((byteSequence.Length + startingPos) > _messageBuffer.Length)
                 return -1;
 
-            var buffer = new byte[byteSequence.Length];
+            var memoryBuffer = _messageBuffer.GetBuffer();
+            var membufferlen = _messageBuffer.Length;
 
-            using (var bufStream = new BufferedStream(new MemoryStream(stream.Skip(startingPos).ToArray()), byteSequence.Length))
+            for (int i = startingPos; i < membufferlen; i++)
             {
-                int i;
-                while ((i = bufStream.Read(buffer, 0, byteSequence.Length)) == byteSequence.Length)
-                {
-                    if (byteSequence.SequenceEqual(buffer))
-                        return (int)(bufStream.Position - byteSequence.Length) + startingPos;
-                    else
-                        bufStream.Position -= byteSequence.Length - PadLeftSequence(buffer, byteSequence);
-                }
+                if (NextBytesMatch(i, memoryBuffer, byteSequence))
+                    return i;
             }
 
             return -1;
         }
 
-        protected static int PadLeftSequence(byte[] bytes, byte[] seqBytes)
+
+        private int FindPosition(byte[] byteSequence)
         {
-            int i = 1;
-            while (i < bytes.Length)
-            {
-                int n = bytes.Length - i;
-                byte[] aux1 = new byte[n];
-                byte[] aux2 = new byte[n];
-                Array.Copy(bytes, i, aux1, 0, n);
-                Array.Copy(seqBytes, aux2, n);
-                if (aux1.SequenceEqual(aux2))
-                    return i;
-                i++;
-            }
-            return i;
+            return FindPosition(0, byteSequence);
         }
 
-        protected static int FindPosition(List<byte> stream, byte[] byteSequence)
-        {
-            return FindPosition(0, stream, byteSequence);
-        }
     }
 }
