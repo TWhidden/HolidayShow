@@ -109,43 +109,45 @@ namespace HolidayShowLib
 					p->EndSet(FindPosition(startingPositition, parser->EndingBytesGet()));
 				}
 
+                // Presort the list vector 
 				std::sort(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& a, const BytePositionPtr& b)
 				{
 					return a->StartGet() < b->StartGet();
 				});
 
-				auto lowestParser = *std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
+             
+				auto lowestParser = std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
 				{
 					return p->EndGet() != -1;
-				});
+				});  
 
-				if (lowestParser)
-				{
-					lowestParser = *std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
+                if (lowestParser == _parserResults.end())
+                {
+					lowestParser = std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
 					{
 						return p->StartGet() > -1;
 					});
 				}
 
-				if (lowestParser)
+				if (lowestParser == _parserResults.end())
 				{
-					lowestParser = *std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
+					lowestParser = std::find_if(std::begin(_parserResults), std::end(_parserResults), [](const BytePositionPtr& p)
 					{
 						return p->EndParserOnlyGet() && p->EndGet() > 0;
 					});
 				}
 
 
-				if (lowestParser == nullptr ||
-					(!lowestParser->EndParserOnlyGet() && lowestParser->StartGet() != 0 && lowestParser->EndGet() == -1)  // Look for any start that is found, without and end... and is not an EndOnly Parser
+				if (lowestParser  == _parserResults.end() ||
+					(!lowestParser[0]->EndParserOnlyGet() && lowestParser[0]->StartGet() != 0 && lowestParser[0]->EndGet() == -1)  // Look for any start that is found, without and end... and is not an EndOnly Parser
 					)
 				{
 					auto newLength = 0;
 					auto newStart = 0;
 
-					if (lowestParser != nullptr && lowestParser->StartGet() != -1)
+					if (lowestParser != std::end(_parserResults) && lowestParser[0]->StartGet() != -1)
 					{
-						newStart = lowestParser->StartGet();
+						newStart = lowestParser[0]->StartGet();
 						newLength = (int)_messageBuffer.size() - newStart;
 					}
 
@@ -157,23 +159,26 @@ namespace HolidayShowLib
 					return;
 				}
 
-				if (lowestParser->StartGet() != -1 && lowestParser->EndGet() != -1)
+				if (lowestParser[0]->StartGet() != -1 && lowestParser[0]->EndGet() != -1)
 				{
 					// The lowest index has a start / end buffer that 
-					auto parser = lowestParser->ParserGet();
+					auto parser = lowestParser[0]->ParserGet();
 
 					// The final byte index with the sequence value added in.
-					auto realEnd = lowestParser->EndGet() + parser->EndingBytesGet().size();
+					auto realEnd = lowestParser[0]->EndGet() + parser->EndingBytesGet().size();
+
+                    // starting byte location
+                    auto realStart = lowestParser[0]->StartGet();
 
 					// Sets the length of the expected data - the entire packet
-					auto messagelength = realEnd - lowestParser->StartGet();
+					auto messagelength = realEnd - realStart;
 
 					// Selects the data that we are expecting - starting bytes to end of ending sequence bytes
 					//var bytesRead = _messageBuffer.Select(x => x).Skip(byteStart).Take(messagelength).ToArray();
 					//auto bytesRead = new byte[messagelength];
-					ByteBuffer bytesRead(messagelength);
+					ByteBuffer bytesRead;
 
-					bytesRead.insert(std::begin(bytesRead), std::begin(_messageBuffer) + lowestParser->StartGet(), std::begin(_messageBuffer) + lowestParser->StartGet() + messagelength);
+					bytesRead.insert(std::begin(bytesRead), std::begin(_messageBuffer) + realStart, std::begin(_messageBuffer) + realStart + messagelength);
 
 					//Buffer.BlockCopy(_messageBuffer.GetBuffer(), lowestParser.Start, bytesRead, 0, messagelength);
 

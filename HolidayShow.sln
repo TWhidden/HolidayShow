@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolidayShow.Data", "HolidayShow.Data\HolidayShow.Data.csproj", "{9E26D44B-5773-438D-A095-B88F776500F5}"
 EndProject
@@ -14,6 +14,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolidayShowEditor", "HolidayShowEditor\HolidayShowEditor.csproj", "{3317302D-A243-4B17-91FB-FC6EA444F1A1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HolidayShowEndpointNative", "HolidayShowEndpointNative\HolidayShowEndpointNative.vcxproj", "{CDABF6A3-1634-4CEC-B5F9-178B0DD0826E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96E4FA21-E710-46A1-8BBA-559B83547462} = {96E4FA21-E710-46A1-8BBA-559B83547462}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HolidayShowLibNative", "HolidayShowLibNative\HolidayShowLibNative.vcxproj", "{96E4FA21-E710-46A1-8BBA-559B83547462}"
 EndProject

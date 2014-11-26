@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Client.h"
+#include <iostream>
+using namespace std;
 
 namespace HolidayShowEndpoint
 {
@@ -17,6 +19,10 @@ namespace HolidayShowEndpoint
 
 	void Client::ProcessPacket(HolidayShowLib::ByteBuffer& byteBuffer, std::shared_ptr<HolidayShowLib::ParserProtocolContainer>& parser)
 	{
+        std::string str(std::begin(byteBuffer), std::end(byteBuffer));
+
+        cout << "\"" << str << "\"";
+
 
 	}
 
