@@ -26,13 +26,13 @@ namespace HolidayShowLib
 		{
 			std::shared_ptr<ParserProtocolContainer> _parser;
 
-			int _start;
-			int _end;
-			bool _endParserOnly;
+			int _start = -1;
+			int _end = 1;
+			bool _endParserOnly = false;
 			
 		public:
 
-			BytePositions(std::shared_ptr<ParserProtocolContainer>& parser)
+			BytePositions(std::shared_ptr<ParserProtocolContainer>& parser) 
 			{
 				_parser = parser;
 				_endParserOnly = parser->StartingBytesGet().size() == 0 && parser->EndingBytesGet().size() > 0;
@@ -97,7 +97,7 @@ namespace HolidayShowLib
 			_parser.push_back(std::move(parser));
 		}
 
-		void BytesReceived(ByteBuffer byteBuffer);
+		void BytesReceived(ByteBuffer& byteBuffer);
 
 		virtual void ProcessPacket(ByteBuffer& byteBuffer, std::shared_ptr<ParserProtocolContainer>& parser) = 0;
 

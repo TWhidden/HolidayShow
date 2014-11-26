@@ -16,10 +16,11 @@ namespace HolidayShowLib
 	class ProtocolHelper
 	{
 
-		const char SOH = 0x02;
-		const char EOH = 0x03;
-		
 	public:
+
+		static const char SOH = 0x02;
+		static const char EOH = 0x03;
+
 		ProtocolHelper() = default;
 		~ProtocolHelper() = default;
 

@@ -45,7 +45,7 @@ namespace HolidayShowLib
 	{
 	}
 
-	void ByteParserBase::BytesReceived(ByteBuffer byteBuffer)
+	void ByteParserBase::BytesReceived(ByteBuffer& byteBuffer)
 	{
 		if (_parser.size() != _parserResults.size())
 		{

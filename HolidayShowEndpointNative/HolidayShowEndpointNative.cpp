@@ -10,6 +10,7 @@
 #include <functional>
 
 #include "ProtocolHelper.h"
+#include "Client.h"
 using namespace std;
 using namespace HolidayShowLib;
 
@@ -23,6 +24,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	auto byeBuffer  = h.Wrap(m);
 
 	auto message = h.UnWrap(byeBuffer);
+
+
+	HolidayShowEndpoint::Client c;
+
+
+	c.BytesAdd(byeBuffer);
+
+
+
 	
 	return 0;
 }
