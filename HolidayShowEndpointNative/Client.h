@@ -3,14 +3,21 @@
 #include <TcpSocket.h>
 #include <ISocketHandler.h>
 
+using namespace std;
+
 namespace HolidayShowEndpoint
 {
 
 	class Client : public HolidayShowLib::ByteParserBase, public TcpSocket
 	{
+	private:
+		HolidayShowLib::ProtocolHelper _protocolHelper;
+
+		string _address;
+		int _port;
 
 	public:
-		Client(ISocketHandler&);
+		Client(ISocketHandler&, string address, int port);
 
 		virtual ~Client();
 
@@ -19,6 +26,10 @@ namespace HolidayShowEndpoint
 		void BytesAdd(HolidayShowLib::ByteBuffer& newBytes);
 
 		void OnRawData(const char *buf, size_t len) override;
+		
+		void OnConnect() override;
+
+		void Start();
 	};
 
 };

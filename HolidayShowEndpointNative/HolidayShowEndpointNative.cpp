@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-#include "Person.h"
 #include <stdio.h>
 #include <winsock2.h>
 #include <iostream>
@@ -20,37 +19,27 @@ using namespace HolidayShowLib;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ProtocolHelper h;
+	//ProtocolHelper h;
 
-	ProtocolMessage m(MessageTypeIdEnum::DeviceId);
+	//ProtocolMessage m(MessageTypeIdEnum::);
 
-	auto byeBuffer  = h.Wrap(m);
+	//auto byeBuffer  = h.Wrap(m);
 
-	auto message = h.UnWrap(byeBuffer);
+	//auto message = h.UnWrap(byeBuffer);
 
 	SocketHandler ss;
 	//"GET / HTTP/1.0\r\n\r\n"
 	
 	SocketHandler socketHandler;
 	
-	HolidayShowEndpoint::Client c(socketHandler);
-	//c.SetDeleteByHandler();
-	c.SetReconnect(true);
-	c.Open("74.125.20.105", 80);
-	c.Send("GET / HTTP/1.0\r\n\r\n");
-	socketHandler.Add(&c);   // See below
-	socketHandler.Select(1, 1);
-	auto count = socketHandler.GetCount();
-	cout << count << endl;
+	HolidayShowEndpoint::Client c(socketHandler,"10.64.128.75", 5555);
+	c.Start();
 	
-	while (count)
+	// Pump the messages
+	while (true)
 	{
-		cout << count << endl;
-		socketHandler.Select(1, 1);
-		count = socketHandler.GetCount();
+		socketHandler.Select(1, 0);
 	}
-
-	std::getchar();
 
 	return 0;
 }

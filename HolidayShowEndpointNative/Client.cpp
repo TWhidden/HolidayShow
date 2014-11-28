@@ -3,6 +3,7 @@
 #include <iostream>
 #include <TcpSocket.h>
 #include <ISocketHandler.h>
+#include "ProtocolHelper.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4786)
@@ -13,20 +14,34 @@
 #define RSIZE TCP_BUFSIZE_READ
 
 using namespace std;
+using namespace HolidayShowLib;
 
 namespace HolidayShowEndpoint
 {
-	Client::Client(ISocketHandler& h) : TcpSocket(h)
+	Client::Client(ISocketHandler& socketHandler, string address, int port) : TcpSocket(socketHandler)
 	{
-		HolidayShowLib::ByteBufferPattern start = { static_cast<uint8_t>(HolidayShowLib::ProtocolHelper::SOH) };
-		HolidayShowLib::ByteBufferPattern end = { static_cast<uint8_t>(HolidayShowLib::ProtocolHelper::EOH) };
-		auto parser1 = std::make_shared<HolidayShowLib::ParserProtocolContainer>(start, end, 1);
+		SetDeleteByHandler();
+
+		_address = address;
+		_port = port;
+
+		ByteBufferPattern start = { static_cast<uint8_t>(ProtocolHelper::SOH) };
+		ByteBufferPattern end = { static_cast<uint8_t>(ProtocolHelper::EOH) };
+		auto parser1 = std::make_shared<ParserProtocolContainer>(start, end, 1);
 		ParserAdd(parser1);
+		socketHandler.Add(this);
+		SetReconnect(true);
+		
 	}
 
 	Client::~Client()
 	{
+		
 	}
+
+
+
+	
 
 	void Client::ProcessPacket(HolidayShowLib::ByteBuffer& byteBuffer, std::shared_ptr<HolidayShowLib::ParserProtocolContainer>& parser)
 	{
@@ -52,5 +67,30 @@ namespace HolidayShowEndpoint
 
 		// 
 		HolidayShowLib::ByteParserBase::BytesReceived(bb);
+	}
+
+	void Client::OnConnect()
+	{
+		Socket::OnConnect();
+
+		MessageParts parts;
+		parts["ID"] = "1";
+		parts["PINSAVAIL"] = "10";
+		ProtocolMessage p(MessageTypeIdEnum::DeviceId, parts);
+
+		auto initBytes = _protocolHelper.Wrap(p);
+
+		const char* c = reinterpret_cast<char const*>(initBytes.data());
+
+		auto size = initBytes.size();
+
+		SendBuf(c, size, 0);
+	}
+
+	void Client::Start()
+	{
+		auto open = Open(_address, _port);
+
+
 	}
 };

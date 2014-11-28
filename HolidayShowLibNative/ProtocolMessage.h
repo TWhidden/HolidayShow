@@ -14,15 +14,15 @@ namespace HolidayShowLib
 		MessageTypeIdEnum _messageEvent;
 		MessageParts _messageParts;
 
-		const char* PINID = "PINID";
-		const char* DEVID = "ID";
-		const char* DURATION = "DURATION";
-		const char* PINON = "PINON";
-		const char* PINSAVAIL = "PINSAVAIL";
-		const char* AUDIOFILE = "AUDIOFILE";
-
-
 	public:
+
+		std::string PINID = "PINID";
+		std::string DEVID = "ID";
+		std::string DURATION = "DURATION";
+		std::string PINON = "PINON";
+		std::string PINSAVAIL = "PINSAVAIL";
+		std::string AUDIOFILE = "AUDIOFILE";
+
 		ProtocolMessage(MessageTypeIdEnum e);
 		ProtocolMessage(MessageTypeIdEnum e, MessageParts& parts);
 		~ProtocolMessage();

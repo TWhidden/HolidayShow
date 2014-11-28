@@ -9,7 +9,7 @@ namespace HolidayShowEndpoint
 {
     public class InputParams
     {
-        [Option('s', "server", HelpText = "Server Address", DefaultValue = "10.64.128.150")]
+        [Option('s', "server", HelpText = "Server Address", DefaultValue = "10.64.128.75")]
         public string ServerAddress { get; set; }
 
         [Option('p', "port", HelpText = "Server Port", DefaultValue = 5555)]
