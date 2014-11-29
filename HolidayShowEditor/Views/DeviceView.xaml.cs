@@ -1,4 +1,7 @@
-﻿namespace HolidayShowEditor.Views
+﻿using HolidayShowEditor.ViewModels;
+using Microsoft.Practices.Unity;
+
+namespace HolidayShowEditor.Views
 {
     /// <summary>
     /// Interaction logic for DeviceView.xaml
@@ -8,6 +11,8 @@
         public DeviceView()
         {
             InitializeComponent();
+            var vm = Bootstrapper.ShellContainer.Resolve<IDeviceViewModel>();
+            SetViewModel(vm);
         }
 
         public void SetViewModel(object viewModel)

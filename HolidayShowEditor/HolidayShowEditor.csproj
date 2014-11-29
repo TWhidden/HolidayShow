@@ -43,6 +43,9 @@
     <Reference Include="CodeSmith.Data.LinqToSql">
       <HintPath>..\References\CodeSmith.Data.LinqToSql.dll</HintPath>
     </Reference>
+    <Reference Include="FirstFloor.ModernUI">
+      <HintPath>..\packages\ModernUI.WPF.1.0.6\lib\net45\FirstFloor.ModernUI.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Practices.Prism, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>ReferencedAssemblies\Microsoft.Practices.Prism.dll</HintPath>

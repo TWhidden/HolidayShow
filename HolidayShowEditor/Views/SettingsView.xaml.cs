@@ -1,4 +1,6 @@
-﻿
+﻿using HolidayShowEditor.ViewModels;
+using Microsoft.Practices.Unity;
+
 namespace HolidayShowEditor.Views
 {
     /// <summary>
@@ -9,6 +11,9 @@ namespace HolidayShowEditor.Views
         public SettingsView()
         {
             InitializeComponent();
+
+            var vm = Bootstrapper.ShellContainer.Resolve<ISettingsViewModel>();
+            SetViewModel(vm);
         }
 
         public void SetViewModel(object viewModel)

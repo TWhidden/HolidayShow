@@ -2,7 +2,8 @@
 
 namespace HolidayShowEditor.ViewModels
 {
-    public interface IAudioFilesViewModel : IViewModel, IHeaderedViewModel
+    //public interface IAudioFilesViewModel : IViewModel, IHeaderedViewModel
+    public interface IAudioFilesViewModel : IHeaderedViewModel
     {
     }
 }

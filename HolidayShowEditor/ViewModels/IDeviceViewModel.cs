@@ -1,6 +1,6 @@
 ﻿namespace HolidayShowEditor.ViewModels
 {
-    public interface IDeviceViewModel : IViewModel
+    public interface IDeviceViewModel // : IViewModel
     {
     }
 }

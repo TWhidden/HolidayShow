@@ -13,7 +13,8 @@ using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEditor.ViewModels
 {
-    public class SetsViewModel : ViewAttachedViewModelBase<ISetsView>, ISetsViewModel
+    //public class SetsViewModel : ViewAttachedViewModelBase<ISetsView>, ISetsViewModel
+    public class SetsViewModel : ViewModelBase, ISetsViewModel
     {
         private readonly IDbDataContext _dataContext;
         private Sets _setSelected;

@@ -1,6 +1,8 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
 using HolidayShowEditor.Services;
@@ -8,14 +10,28 @@ using HolidayShowEditor.Views;
 
 namespace HolidayShowEditor.ViewModels
 {
-    public class SettingsViewModel : ViewAttachedViewModelBase<ISettingsView>, ISettingsViewModel
+    //public class SettingsViewModel : ViewAttachedViewModelBase<ISettingsView>, ISettingsViewModel
+    public class SettingsViewModel : ViewModelBase, ISettingsViewModel
     {
         private readonly IDbDataContext _dbDataContext;
+        private System.Threading.Timer _refreshAndKeepAlive;
+
+        private void Refresh()
+        {
+            OnPropertyChanged(() => CurrentPlaybackOption);
+            OnPropertyChanged(() => SetList);
+            OnPropertyChanged(() => DelayBetweenSets);
+        }
 
         public SettingsViewModel(IDbDataContext dbDataContext )
         {
             _dbDataContext = dbDataContext;
             HeaderInfo = "Settings";
+
+            _refreshAndKeepAlive = new Timer((x) =>
+            {
+                Refresh();
+            }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         }
 
         private object _headerInfo;

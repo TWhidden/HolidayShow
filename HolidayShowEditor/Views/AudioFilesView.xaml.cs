@@ -1,4 +1,7 @@
-﻿namespace HolidayShowEditor.Views
+﻿using HolidayShowEditor.ViewModels;
+using Microsoft.Practices.Unity;
+
+namespace HolidayShowEditor.Views
 {
     /// <summary>
     /// Interaction logic for AudioFilesView.xaml
@@ -8,6 +11,9 @@
         public AudioFilesView()
         {
             InitializeComponent();
+
+            var vm = Bootstrapper.ShellContainer.Resolve<IAudioFilesViewModel>();
+            SetViewModel(vm);
         }
 
         public void SetViewModel(object viewModel)

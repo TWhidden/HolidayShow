@@ -87,8 +87,34 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Arg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgException.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgTraits.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLine.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineInterface.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineOutput.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Constraint.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\DocBookOutput.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\HelpVisitor.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\IgnoreRestVisitor.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiSwitchArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\OptionalUnlabeledTracker.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StandardTraits.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StdOutput.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\SwitchArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledMultiArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledValueArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValueArg.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValuesConstraint.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\VersionVisitor.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Visitor.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\XorHandler.h" />
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="AudioContainer.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="GpioPins.h" />
+    <ClInclude Include="LibGpio.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -96,6 +122,7 @@
     <ClCompile Include="AudioContainer.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="HolidayShowEndpointNative.cpp" />
+    <ClCompile Include="LibGpio.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

@@ -16,7 +16,8 @@ using Microsoft.WindowsAPICodePack.Shell;
 
 namespace HolidayShowEditor.ViewModels
 {
-    public class AudioFilesViewModel : ViewAttachedViewModelBase<IAudioFilesView>, IAudioFilesViewModel
+    //public class AudioFilesViewModel : ViewAttachedViewModelBase<IAudioFilesView>, IAudioFilesViewModel
+    public class AudioFilesViewModel : ViewModelBase, IAudioFilesViewModel
     {
         private readonly IDbDataContext _dbDataContext;
         private AudioOptions _audioFileSelected;

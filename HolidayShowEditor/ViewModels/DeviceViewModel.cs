@@ -11,7 +11,8 @@ using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEditor.ViewModels
 {
-    public class DeviceViewModel : ViewAttachedViewModelBase<IDeviceView>, IDeviceViewModel, IHeaderedViewModel 
+    //public class DeviceViewModel : ViewAttachedViewModelBase<IDeviceView>, IDeviceViewModel, IHeaderedViewModel 
+    public class DeviceViewModel : ViewModelBase, IDeviceViewModel, IHeaderedViewModel 
     {
         private readonly IDbDataContext _dataContext;
         private Devices _deviceSelected = null;

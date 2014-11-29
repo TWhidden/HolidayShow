@@ -8,6 +8,13 @@ namespace HolidayShowLib
 {
 	typedef std::map<std::string, std::string> MessageParts;
 
+	static const std::string PINID = "PINID";
+	static const std::string DEVID = "ID";
+	static const std::string DURATION = "DURATION";
+	static const std::string PINON = "PINON";
+	static const std::string PINSAVAIL = "PINSAVAIL";
+	static const std::string AUDIOFILE = "AUDIOFILE";
+
 	class ProtocolMessage
 	{
 
@@ -15,13 +22,6 @@ namespace HolidayShowLib
 		MessageParts _messageParts;
 
 	public:
-
-		std::string PINID = "PINID";
-		std::string DEVID = "ID";
-		std::string DURATION = "DURATION";
-		std::string PINON = "PINON";
-		std::string PINSAVAIL = "PINSAVAIL";
-		std::string AUDIOFILE = "AUDIOFILE";
 
 		ProtocolMessage(MessageTypeIdEnum e);
 		ProtocolMessage(MessageTypeIdEnum e, MessageParts& parts);

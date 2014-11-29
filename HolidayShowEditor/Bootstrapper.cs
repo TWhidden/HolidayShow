@@ -15,10 +15,18 @@ namespace HolidayShowEditor
 {
     class Bootstrapper : UnityBootstrapper
     {
+
+        public static IUnityContainer ShellContainer;
         protected override void ConfigureContainer()
         {
             base.ConfigureContainer();
 
+        }
+
+        protected override IUnityContainer CreateContainer()
+        {
+            ShellContainer = base.CreateContainer();
+            return ShellContainer;
         }
 
 

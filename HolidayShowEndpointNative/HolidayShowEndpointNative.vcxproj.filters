@@ -30,6 +30,84 @@
     <ClInclude Include="AudioContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Arg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgTraits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Constraint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\DocBookOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\HelpVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\IgnoreRestVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiSwitchArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\OptionalUnlabeledTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StandardTraits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StdOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\SwitchArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledMultiArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledValueArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValueArg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValuesConstraint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\VersionVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Visitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\XorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ZshCompletionOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LibGpio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpioPins.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -42,6 +120,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AudioContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LibGpio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

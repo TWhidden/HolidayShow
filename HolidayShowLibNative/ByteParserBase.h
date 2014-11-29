@@ -8,6 +8,8 @@ namespace HolidayShowLib
 {
 	class ParserProtocolContainer;
 
+	typedef std::shared_ptr<ParserProtocolContainer> ParserContainer;
+
 	class ByteParserBase
 	{
 		/// Used to syncronize the buffer list.
@@ -20,7 +22,7 @@ namespace HolidayShowLib
 		std::vector<uint8_t> _messageBuffer;
 
 		/// Contains a list of possible parsing protocols - Handy if more than one protocols comes across the line.
-		std::vector<std::shared_ptr<ParserProtocolContainer>> _parser;
+		std::vector<ParserContainer> _parser;
 
 		class BytePositions
 		{
@@ -32,7 +34,7 @@ namespace HolidayShowLib
 			
 		public:
 
-			BytePositions(std::shared_ptr<ParserProtocolContainer>& parser) 
+			BytePositions(ParserContainer& parser)
 			{
 				_parser = parser;
 				_endParserOnly = parser->StartingBytesGet().size() == 0 && parser->EndingBytesGet().size() > 0;
@@ -41,7 +43,7 @@ namespace HolidayShowLib
 			}
 			~BytePositions() = default;
 
-			std::shared_ptr<ParserProtocolContainer> ParserGet()
+			ParserContainer ParserGet()
 			{
 				return _parser;
 			}
@@ -80,7 +82,7 @@ namespace HolidayShowLib
 
 		typedef std::shared_ptr<BytePositions> BytePositionPtr;
 
-		std::vector<std::shared_ptr<BytePositions>> _parserResults;
+		std::vector<BytePositionPtr> _parserResults;
 
 		void SearchBuffer();
 
@@ -92,14 +94,14 @@ namespace HolidayShowLib
 		ByteParserBase();
 		virtual ~ByteParserBase();
 
-		void ParserAdd(std::shared_ptr<ParserProtocolContainer>& parser)
+		void ParserAdd(ParserContainer& parser)
 		{
 			_parser.push_back(std::move(parser));
 		}
 
 		void BytesReceived(ByteBuffer& byteBuffer);
 
-		virtual void ProcessPacket(ByteBuffer& byteBuffer, std::shared_ptr<ParserProtocolContainer>& parser) = 0;
+		virtual void ProcessPacket(ByteBuffer& byteBuffer, ParserContainer& parser) = 0;
 
 	};
 

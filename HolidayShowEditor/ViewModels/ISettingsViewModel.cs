@@ -2,7 +2,7 @@
 
 namespace HolidayShowEditor.ViewModels
 {
-    public interface ISettingsViewModel : IViewModel, IHeaderedViewModel
+    public interface ISettingsViewModel : IHeaderedViewModel//, IViewModel
     {
     }
 }

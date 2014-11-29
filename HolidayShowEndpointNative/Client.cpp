@@ -4,6 +4,7 @@
 #include <TcpSocket.h>
 #include <ISocketHandler.h>
 #include "ProtocolHelper.h"
+#include "GpioPins.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4786)
@@ -12,18 +13,40 @@
 // the constant TCP_BUFSIZE_READ is the maximum size of the standard input
 // buffer of TcpSocket
 #define RSIZE TCP_BUFSIZE_READ
+#include "LibGpio.h"
 
 using namespace std;
 using namespace HolidayShowLib;
 
 namespace HolidayShowEndpoint
 {
-	Client::Client(ISocketHandler& socketHandler, string address, int port) : TcpSocket(socketHandler)
+	void Client::SendProtocolMessage(HolidayShowLib::ProtocolMessage& message)
+	{
+		auto initBytes = _protocolHelper.Wrap(message);
+
+		const char* c = reinterpret_cast<char const*>(initBytes.data());
+
+		auto size = initBytes.size();
+
+		SendBuf(c, size, 0);
+	}
+
+	void Client::AllOff()
+	{
+		for (BroadcomPinNumber &p : _pins)
+		{
+			_libGpio.OutputValue(p, false);
+		}
+	}
+
+	Client::Client(ISocketHandler& socketHandler, string address, int port, int deviceId, PinMap &pins) : TcpSocket(socketHandler)
 	{
 		SetDeleteByHandler();
 
 		_address = address;
 		_port = port;
+		_deviceId = deviceId;
+		_pins = pins;
 
 		ByteBufferPattern start = { static_cast<uint8_t>(ProtocolHelper::SOH) };
 		ByteBufferPattern end = { static_cast<uint8_t>(ProtocolHelper::EOH) };
@@ -39,24 +62,64 @@ namespace HolidayShowEndpoint
 		
 	}
 
-
-
-	
-
-	void Client::ProcessPacket(HolidayShowLib::ByteBuffer& byteBuffer, std::shared_ptr<HolidayShowLib::ParserProtocolContainer>& parser)
+	void Client::ProcessPacket(HolidayShowLib::ByteBuffer& byteBuffer, ParserContainer& parser)
 	{
-        std::string str(std::begin(byteBuffer), std::end(byteBuffer));
+		std::string str(std::begin(byteBuffer), std::end(byteBuffer));
 
-        cout << "\"" << str << "\"";
+		try{
 
+			//cout << "\"" << str << "\"";
+			auto message = _protocolHelper.UnWrap(byteBuffer);
+			if (message == nullptr) return;
 
+			auto messageEvent = message->MessageEventGet();
+			auto messageParts = message->MessagePartsGet();
+
+			if (messageEvent == MessageTypeIdEnum::Unknown) return;
+
+			if (messageEvent == MessageTypeIdEnum::KeepAlive)
+			{
+				ProtocolMessage p(MessageTypeIdEnum::KeepAlive);
+				SendProtocolMessage(p);
+			}
+			else if (messageEvent == MessageTypeIdEnum::Reset)
+			{
+				AllOff();
+			}
+			else if (messageEvent == MessageTypeIdEnum::EventControl)
+			{
+				if (messageParts.count(PINID) &&
+					messageParts.count(DURATION) &&
+					messageParts.count(PINON))
+				{
+					int pinId = std::stoi(messageParts[PINID]);
+
+					int durration = std::stoi(messageParts[DURATION]);
+
+					int on = std::stoi(messageParts[PINON]);
+
+					auto adjustedFor0PinId = pinId - 1;
+
+					if (adjustedFor0PinId < 0) return;
+
+					if (adjustedFor0PinId > _pins.size()) return;
+
+					std::cout << "Pin " << adjustedFor0PinId << " start" << endl;
+
+					//_libGpio->OutputValue(_pins[adjustedFor0PinId], on == 1);
+				}
+
+				if (messageParts.count(AUDIOFILE))
+				{
+
+				}
+			}
+		}
+		catch (exception &e)
+		{
+
+		}
 	}
-
-	void Client::BytesAdd(HolidayShowLib::ByteBuffer& newBytes)
-	{
-		HolidayShowLib::ByteParserBase::BytesReceived(newBytes);
-	}
-
 
 	void Client::OnRawData(const char* buf, size_t len)
 	{
@@ -74,18 +137,14 @@ namespace HolidayShowEndpoint
 		Socket::OnConnect();
 
 		MessageParts parts;
-		parts["ID"] = "1";
-		parts["PINSAVAIL"] = "10";
+		parts[DEVID] = std::to_string(_deviceId);
+		parts[PINSAVAIL] = std::to_string(_pins.size());
 		ProtocolMessage p(MessageTypeIdEnum::DeviceId, parts);
 
-		auto initBytes = _protocolHelper.Wrap(p);
-
-		const char* c = reinterpret_cast<char const*>(initBytes.data());
-
-		auto size = initBytes.size();
-
-		SendBuf(c, size, 0);
+		SendProtocolMessage(p);
 	}
+
+
 
 	void Client::Start()
 	{
