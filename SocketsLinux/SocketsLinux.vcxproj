@@ -111,6 +111,7 @@
     <ClInclude Include="..\Sockets-2.3.9.9\ResolvServer.h" />
     <ClInclude Include="..\Sockets-2.3.9.9\ResolvSocket.h" />
     <ClInclude Include="..\Sockets-2.3.9.9\SctpSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Semaphore.hh" />
     <ClInclude Include="..\Sockets-2.3.9.9\SmtpdSocket.h" />
     <ClInclude Include="..\Sockets-2.3.9.9\Socket.h" />
     <ClInclude Include="..\Sockets-2.3.9.9\SocketAddress.h" />
@@ -166,6 +167,7 @@
     <ClCompile Include="..\Sockets-2.3.9.9\ResolvServer.cpp" />
     <ClCompile Include="..\Sockets-2.3.9.9\ResolvSocket.cpp" />
     <ClCompile Include="..\Sockets-2.3.9.9\SctpSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Semaphore.cpp" />
     <ClCompile Include="..\Sockets-2.3.9.9\SmtpdSocket.cpp" />
     <ClCompile Include="..\Sockets-2.3.9.9\Socket.cpp" />
     <ClCompile Include="..\Sockets-2.3.9.9\SocketHandler.cpp" />

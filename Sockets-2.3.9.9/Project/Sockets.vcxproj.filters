@@ -241,8 +241,6 @@
     <ClInclude Include="..\HttpdCookies.h">
       <Filter>Webserver framework</Filter>
     </ClInclude>
-    <ClInclude Include="..\Semaphore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="..\Semaphore.hh" />
   </ItemGroup>
 </Project>

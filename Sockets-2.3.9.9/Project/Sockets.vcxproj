@@ -183,7 +183,7 @@
     <ClInclude Include="..\HttpBaseSocket.h" />
     <ClInclude Include="..\HttpdCookies.h" />
     <ClInclude Include="..\Parse.h" />
-    <ClInclude Include="..\Semaphore.h" />
+    <ClInclude Include="..\Semaphore.hh" />
     <ClInclude Include="..\sockets-config.h" />
     <ClInclude Include="..\socket_include.h" />
     <ClInclude Include="..\SSLInitializer.h" />
