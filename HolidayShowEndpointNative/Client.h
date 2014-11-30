@@ -6,6 +6,7 @@
 #include "LibGpio.h"
 
 using namespace std;
+using namespace SocketsGee;
 
 namespace HolidayShowEndpoint
 {

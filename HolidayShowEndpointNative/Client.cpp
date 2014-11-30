@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <cstring>
 #include "Client.h"
 #include <iostream>
 #include <TcpSocket.h>

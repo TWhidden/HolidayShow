@@ -1,6 +1,15 @@
+
+#ifdef _WIN32
 #include "stdafx.h"
+#endif
+
+#include <cstring>
+#include <iostream>
+#include <stdio.h>
 #include "ByteParserBase.h"
 #include <algorithm>
+
+using namespace std;
 
 namespace HolidayShowLib
 {

@@ -1,0 +1,376 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source files">
+      <UniqueIdentifier>{5b1dd2f6-f6ad-4277-b316-d238f97d74b2}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header files">
+      <UniqueIdentifier>{16c39c9e-a686-4e60-9300-2700084213a4}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource files">
+      <UniqueIdentifier>{5c5ced80-ce7b-491a-92df-d307430ad4a8}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Make files">
+      <UniqueIdentifier>{3d890c33-1a85-4fd3-b740-480bd8f4271f}</UniqueIdentifier>
+      <Extensions>*.mak</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+    <None Include="debug.mak">
+      <Filter>Make files</Filter>
+    </None>
+    <None Include="release.mak">
+      <Filter>Make files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Sockets-2.3.9.9\ajp13.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Ajp13Socket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\AjpBaseSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Base64.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Debug.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Event.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\EventHandler.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\EventTime.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Exception.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\File.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\FileStream.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpBaseSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpClientSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdCookies.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpDebugSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdForm.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpGetSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpPostSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpPutSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpRequest.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpResponse.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HTTPSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpTransaction.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IBase.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IEventHandler.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IEventOwner.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IFile.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IFileUpload.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IHttpServer.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IModel.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IMutex.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Ipv4Address.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Ipv6Address.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\ISocketHandler.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\IStream.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Json.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\ListenSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Lock.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\MemFile.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Mutex.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Parse.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\ResolvServer.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\ResolvSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SctpSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SmtpdSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Socket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\socket_include.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketAddress.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandler.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandlerEp.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandlerThread.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\sockets-config.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketStream.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketThread.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\SSLInitializer.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\StdLog.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\StdoutLog.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\StreamSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\StreamWriter.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\TcpSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Thread.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\UdpSocket.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sockets-2.3.9.9\Utility.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Sockets-2.3.9.9\Ajp13Socket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\AjpBaseSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Base64.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Debug.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Event.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\EventHandler.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\EventTime.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Exception.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\File.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\FileStream.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpBaseSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpClientSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdCookies.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpDebugSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdForm.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpGetSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpPostSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpPutSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpRequest.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpResponse.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HTTPSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpTransaction.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\IEventOwner.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Ipv4Address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Ipv6Address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Json.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Lock.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\MemFile.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Mutex.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Parse.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\ResolvServer.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\ResolvSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SctpSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SmtpdSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Socket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\socket_include.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandler.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandlerEp.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandlerThread.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketStream.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketThread.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\SSLInitializer.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\StdoutLog.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\StreamSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\StreamWriter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\TcpSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Thread.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\UdpSocket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sockets-2.3.9.9\Utility.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

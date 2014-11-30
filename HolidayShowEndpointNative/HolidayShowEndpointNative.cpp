@@ -1,9 +1,14 @@
 // HolidayShowEndpointNative.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+	#include "stdafx.h"
+
+#ifdef _WIN32
+	#include <winsock2.h>
+#endif
+
 #include <stdio.h>
-#include <winsock2.h>
+
 #include <iostream>
 #include <memory>
 #include <functional>
@@ -18,11 +23,7 @@
 #include <tclap/CmdLine.h>
 
 
-using namespace std;
-using namespace HolidayShowLib;
-
-
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
 	// Wrap everything in a try block.  Do this every time, 
 	// because exceptions will be thrown for problems.
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
 		}
 	catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
-		std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+		cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
 	}
 
 	return 0;

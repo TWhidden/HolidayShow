@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "AudioContainer.h"
-#include <ostream>
-
 
 AudioContainer::AudioContainer(std::string fileLocation)
 {

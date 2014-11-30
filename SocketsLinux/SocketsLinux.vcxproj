@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C43116AE-CDDE-4DD4-8E4F-AC2FFEE71C2C}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeIncludeSearchPath>c:\sysgcc\linaro\arm-linux-gnueabihf\include\c++\4.9.2;c:\sysgcc\linaro\arm-linux-gnueabihf\include\c++\4.9.2\arm-linux-gnueabihf;c:\sysgcc\linaro\arm-linux-gnueabihf\include\c++\4.9.2\backward;c:\sysgcc\linaro\lib\gcc\arm-linux-gnueabihf\4.9.2\include;c:\sysgcc\linaro\lib\gcc\arm-linux-gnueabihf\4.9.2\include-fixed;c:\sysgcc\linaro\arm-linux-gnueabihf\include;c:\sysgcc\linaro\arm-linux-gnueabihf\libc\usr\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(ProjectDir)\gcc_Debug.h;$(VISUALGDB_DIR)\gcc_compat.h;$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeBuildCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /build "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /clean "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /rebuild "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeReBuildCommandLine>
+    <NMakeOutput>$(ProjectDir)SocketsLinux-Debug.vgdbsettings</NMakeOutput>
+    <IncludePath />
+    <ReferencePath />
+    <LibraryPath />
+    <NMakePreprocessorDefinitions>__VisualGDB_CFG_Debug;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeIncludeSearchPath>c:\sysgcc\raspberry\arm-linux-gnueabihf\include\c++\4.6;c:\sysgcc\raspberry\arm-linux-gnueabihf\include\c++\4.6\arm-linux-gnueabihf;c:\sysgcc\raspberry\arm-linux-gnueabihf\include\c++\4.6\backward;c:\sysgcc\raspberry\lib\gcc\arm-linux-gnueabihf\4.6\include;c:\sysgcc\raspberry\lib\gcc\arm-linux-gnueabihf\4.6\include-fixed;c:\sysgcc\raspberry\arm-linux-gnueabihf\include;c:\sysgcc\raspberry\arm-linux-gnueabihf\sysroot\usr\include\arm-linux-gnueabihf;c:\sysgcc\raspberry\arm-linux-gnueabihf\sysroot\usr\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(ProjectDir)\gcc_Release.h;$(VISUALGDB_DIR)\gcc_compat.h;$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakePreprocessorDefinitions>__VisualGDB_CFG_Release;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeBuildCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /build "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /clean "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /rebuild "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeReBuildCommandLine>
+    <NMakeOutput>$(ProjectDir)SocketsLinux-Release.vgdbsettings</NMakeOutput>
+    <IncludePath />
+    <ReferencePath />
+    <LibraryPath />
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="debug.mak" />
+    <None Include="Makefile" />
+    <None Include="release.mak" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Sockets-2.3.9.9\ajp13.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Ajp13Socket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\AjpBaseSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Base64.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Debug.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Event.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\EventHandler.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\EventTime.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Exception.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\File.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\FileStream.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpBaseSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpClientSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdCookies.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpDebugSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdForm.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpdSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpGetSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpPostSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpPutSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpRequest.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpResponse.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HTTPSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\HttpTransaction.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IBase.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IEventHandler.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IEventOwner.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IFile.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IFileUpload.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IHttpServer.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IModel.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IMutex.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Ipv4Address.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Ipv6Address.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\ISocketHandler.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\IStream.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Json.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\ListenSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Lock.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\MemFile.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Mutex.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Parse.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\ResolvServer.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\ResolvSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SctpSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SmtpdSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Socket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketAddress.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandler.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandlerEp.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketHandlerThread.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\sockets-config.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketStream.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SocketThread.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\socket_include.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\SSLInitializer.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\StdLog.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\StdoutLog.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\StreamSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\StreamWriter.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\TcpSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Thread.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\UdpSocket.h" />
+    <ClInclude Include="..\Sockets-2.3.9.9\Utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Sockets-2.3.9.9\Ajp13Socket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\AjpBaseSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Base64.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Debug.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Event.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\EventHandler.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\EventTime.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Exception.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\File.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\FileStream.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpBaseSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpClientSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdCookies.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpDebugSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdForm.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpdSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpGetSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpPostSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpPutSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpRequest.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpResponse.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HTTPSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\HttpTransaction.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\IEventOwner.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Ipv4Address.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Ipv6Address.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Json.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Lock.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\MemFile.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Mutex.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Parse.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\ResolvServer.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\ResolvSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SctpSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SmtpdSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Socket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandler.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandlerEp.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketHandlerThread.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketStream.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SocketThread.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\socket_include.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\SSLInitializer.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\StdoutLog.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\StreamSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\StreamWriter.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\TcpSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Thread.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\UdpSocket.cpp" />
+    <ClCompile Include="..\Sockets-2.3.9.9\Utility.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

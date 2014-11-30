@@ -2,10 +2,15 @@
 #include "LibGpio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <direct.h>
 #include <string>
 #include <sstream>
 #include "GpioPins.h"
+
+#ifdef _WIN32
+#include <direct.h>
+#else
+#define _SH_DENYNO      0x40    /* deny none mode */
+#endif
 
 
 namespace HolidayShowEndpoint
@@ -19,7 +24,13 @@ namespace HolidayShowEndpoint
 
 		if (!PathExist(path))
 		{
+#ifdef _WIN32
 			_mkdir(path);
+#else
+			mkdir(path, S_IRWXU);
+#endif
+
+			
 		}
 	}
 
@@ -113,7 +124,12 @@ namespace HolidayShowEndpoint
 		
 		auto s = gpioPath.str();
 
+#if _WIN32
 		auto file = _fsopen(s.c_str(), "w", _SH_DENYNO);
+#else
+		auto file = fopen(s.c_str(), "w");
+#endif
+		
 		if (value)
 		{
 			fputs("1", file);
@@ -151,9 +167,13 @@ namespace HolidayShowEndpoint
 
 		std::ostringstream gpioPath;
 		gpioPath << this->GetGpioPath() << "\\gpio" << static_cast<int>(pinNumber) << "\\value";
-		auto path = gpioPath.str().c_str();
+		std::string s = gpioPath.str();
 
-		auto file = _fsopen(path, "r", _SH_DENYNO);
+#if _WIN32
+		auto file = _fsopen(s.c_str(), "r", _SH_DENYNO);
+#else
+		auto file = fopen(s.c_str(), "r");
+#endif
 
 		char innerValue;
 		auto read = fgets(&innerValue, 1, file);
@@ -279,7 +299,15 @@ namespace HolidayShowEndpoint
 		std::cout << "Export Path: " << exportPath.str() << std::endl;
 		if (!PathExist(exportPath.str().c_str()))
 		{
-			_mkdir(exportPath.str().c_str());
+			std::string path = exportPath.str();
+
+			#ifdef _WIN32
+				_mkdir(path.c_str());
+			#else
+				mkdir(path.c_str(), S_IRWXU);
+			#endif
+
+			
 
 			// Create the file
 			OutputValue(pinNumber, false);
@@ -294,7 +322,12 @@ namespace HolidayShowEndpoint
 
 		std::string s = gpioPath.str();
 
+#if _WIN32
 		auto file = _fsopen(s.c_str(), "w", _SH_DENYNO);
+#else
+		auto file = fopen(s.c_str(), "w");
+#endif
+
 		if (direction == Direction::Input)
 		{
 			fputs("in", file);
