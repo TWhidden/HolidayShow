@@ -5,7 +5,7 @@
 
 #VisualGDB: AutoSourceFiles		#<--- remove this line to disable auto-updating of SOURCEFILES and EXTERNAL_LIBS
 
-TARGETNAME := LibSocketsLinux.a
+TARGETNAME := LibHolidayShowLibNativeLinux.a
 #TARGETTYPE can be APP, STATIC or SHARED
 TARGETTYPE := STATIC
 
@@ -23,7 +23,7 @@ error:
 	$(error Invalid configuration, please check your inputs)
 endif
 
-SOURCEFILES := Ajp13Socket.cpp AjpBaseSocket.cpp Base64.cpp Debug.cpp Event.cpp EventHandler.cpp EventTime.cpp Exception.cpp File.cpp FileStream.cpp HttpBaseSocket.cpp HttpClientSocket.cpp HttpdCookies.cpp HttpDebugSocket.cpp HttpdForm.cpp HttpdSocket.cpp HttpGetSocket.cpp HttpPostSocket.cpp HttpPutSocket.cpp HttpRequest.cpp HttpResponse.cpp HTTPSocket.cpp HttpTransaction.cpp IEventOwner.cpp Ipv4Address.cpp Ipv6Address.cpp Json.cpp Lock.cpp MemFile.cpp Mutex.cpp Parse.cpp ResolvServer.cpp ResolvSocket.cpp SctpSocket.cpp Semaphore.cpp SmtpdSocket.cpp Socket.cpp SocketHandler.cpp SocketHandlerEp.cpp SocketHandlerThread.cpp SocketStream.cpp SocketThread.cpp socket_include.cpp SSLInitializer.cpp StdoutLog.cpp StreamSocket.cpp StreamWriter.cpp TcpSocket.cpp Thread.cpp UdpSocket.cpp Utility.cpp
+SOURCEFILES := ByteParserBase.cpp ProtocolHelper.cpp ProtocolMessage.cpp
 EXTERNAL_LIBS := 
 EXTERNAL_LIBS_COPIED := $(foreach lib, $(EXTERNAL_LIBS),$(BINARYDIR)/$(notdir $(lib)))
 

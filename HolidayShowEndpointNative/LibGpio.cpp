@@ -72,7 +72,7 @@ namespace HolidayShowEndpoint
 	void LibGpio::SetupChannel(BroadcomPinNumber pinNumber, Direction direction)
 	{
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "\\gpio" << static_cast<int>(pinNumber);
+		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber);
 		/*auto outputName = std::wstring::Format(L"gpio{0}", static_cast<int>(pinNumber));
 		auto gpioPath = Path::Combine(this->GetGpioPath(), outputName);*/
 		auto path = gpioPath.str();
@@ -120,7 +120,7 @@ namespace HolidayShowEndpoint
 		}
 
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "\\gpio" << static_cast<int>(pinNumber) << "\\value";
+		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/value";
 		
 		auto s = gpioPath.str();
 
@@ -166,7 +166,7 @@ namespace HolidayShowEndpoint
 
 
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "\\gpio" << static_cast<int>(pinNumber) << "\\value";
+		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/value";
 		std::string s = gpioPath.str();
 
 #if _WIN32
@@ -318,7 +318,7 @@ namespace HolidayShowEndpoint
 	void LibGpio::SetDirection(BroadcomPinNumber pinNumber, Direction direction)
 	{
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "\\gpio" << static_cast<int>(pinNumber) << "\\direction";
+		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/direction";
 
 		std::string s = gpioPath.str();
 

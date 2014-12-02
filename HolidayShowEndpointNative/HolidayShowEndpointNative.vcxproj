@@ -39,7 +39,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>1c16d462</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>99d0773b</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -54,7 +54,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\HolidayShowLibNative;..\Sockets-2.3.9.9</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\HolidayShowLibNative;..\Sockets-2.3.9.9;tclap.1.2.1.1\build\native\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -87,33 +87,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Arg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgException.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ArgTraits.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLine.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineInterface.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\CmdLineOutput.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Constraint.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\DocBookOutput.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\HelpVisitor.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\IgnoreRestVisitor.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\MultiSwitchArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\OptionalUnlabeledTracker.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StandardTraits.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\StdOutput.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\SwitchArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledMultiArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\UnlabeledValueArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValueArg.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ValuesConstraint.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\VersionVisitor.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\Visitor.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\XorHandler.h" />
-    <ClInclude Include="..\packages\tclap.1.2.1.1\build\native\include\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="AudioContainer.h" />
     <ClInclude Include="Client.h" />
-    <ClInclude Include="GpioPins.h" />
     <ClInclude Include="LibGpio.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -128,17 +103,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\tclap.1.2.1.1\build\native\tclap.targets" Condition="Exists('..\packages\tclap.1.2.1.1\build\native\tclap.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\tclap.1.2.1.1\build\native\tclap.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\tclap.1.2.1.1\build\native\tclap.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
