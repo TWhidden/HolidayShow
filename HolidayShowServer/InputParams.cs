@@ -13,7 +13,7 @@ namespace HolidayShowServer
         //public string ServerAddress { get; set; }
 
         [Option('p', "port", HelpText = "Server Port", DefaultValue = 5555)]
-        public ushort ServerPort { get; set; }
+        public int ServerPort { get; set; }
 
         //[Option('d', "deviceid", Required = true, HelpText = "This device ID")]
         //public int DeviceId { get; set; }

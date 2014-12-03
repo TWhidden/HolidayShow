@@ -12,6 +12,7 @@ namespace HolidayShowEndpoint
 {
 	typedef vector<BroadcomPinNumber> PinMap;
 
+
 	class Client : public HolidayShowLib::ByteParserBase, public TcpSocket
 	{
 	private:

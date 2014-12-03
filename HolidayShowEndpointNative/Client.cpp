@@ -21,14 +21,19 @@ using namespace HolidayShowLib;
 
 namespace HolidayShowEndpoint
 {
+	// Sends a HolidayShow ProtocolMessage object over the wire
 	void Client::SendProtocolMessage(HolidayShowLib::ProtocolMessage& message)
 	{
+		// get the bytes associated to this message
 		auto initBytes = _protocolHelper.Wrap(message);
 
+		// change data over to support SendBuf Api call.
 		const char* c = reinterpret_cast<char const*>(initBytes.data());
 
+		// Get the size of the buffer
 		auto size = initBytes.size();
 
+		// Send it to the TcpClient base class for processing
 		SendBuf(c, size, 0);
 	}
 
@@ -42,19 +47,24 @@ namespace HolidayShowEndpoint
 
 	Client::Client(ISocketHandler& socketHandler, string address, int port, int deviceId, PinMap &pins) : TcpSocket(socketHandler)
 	{
+		// Set Socket Options
+		socketHandler.Add(this);
 		SetDeleteByHandler();
+		SetConnectTimeout(1);
+		SetConnectionRetry(2000);
+		SetReconnect(true);
 
+		// set private vars
 		_address = address;
 		_port = port;
 		_deviceId = deviceId;
 		_pins = pins;
 
+		// Create search buffer pattern and add to ByteParserBase as a registered parser
 		ByteBufferPattern start = { static_cast<uint8_t>(ProtocolHelper::SOH) };
 		ByteBufferPattern end = { static_cast<uint8_t>(ProtocolHelper::EOH) };
-		auto parser1 = std::make_shared<ParserProtocolContainer>(start, end, 1);
+		auto parser1 = make_shared<ParserProtocolContainer>(start, end, 1);
 		ParserAdd(parser1);
-		socketHandler.Add(this);
-		SetReconnect(true);
 		
 	}
 
@@ -63,9 +73,9 @@ namespace HolidayShowEndpoint
 		
 	}
 
-	void Client::ProcessPacket(HolidayShowLib::ByteBuffer& byteBuffer, ParserContainer& parser)
+	void Client::ProcessPacket(ByteBuffer& byteBuffer, ParserContainer& parser)
 	{
-		std::string str(std::begin(byteBuffer), std::end(byteBuffer));
+		string str(std::begin(byteBuffer), std::end(byteBuffer));
 
 		try{
 
@@ -153,4 +163,5 @@ namespace HolidayShowEndpoint
 
 
 	}
+
 };

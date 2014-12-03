@@ -32,7 +32,7 @@ namespace HolidayShowServer
             }
 
             // Setup the listeners
-            _server = new TcpServer(result.Value.ServerPort);
+            _server = new TcpServer((ushort)result.Value.ServerPort);
             _server.OnClientConnected += _server_OnClientConnected;
             _server.Start();
 

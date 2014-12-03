@@ -16,6 +16,13 @@
 namespace HolidayShowEndpoint
 {
 
+#if defined(WIN32) || defined(_WIN32) 
+#define PATH_SEPARATOR "\\" 
+#else 
+#define PATH_SEPARATOR "/" 
+#endif 
+
+
 	LibGpio::LibGpio()
 	{
 		auto gpioPath = GetGpioPath();
@@ -72,18 +79,27 @@ namespace HolidayShowEndpoint
 	void LibGpio::SetupChannel(BroadcomPinNumber pinNumber, Direction direction)
 	{
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber);
+		gpioPath << this->GetGpioPath() << PATH_SEPARATOR << "gpio" << static_cast<int>(pinNumber);
 		/*auto outputName = std::wstring::Format(L"gpio{0}", static_cast<int>(pinNumber));
 		auto gpioPath = Path::Combine(this->GetGpioPath(), outputName);*/
 		auto path = gpioPath.str();
+		auto c = path.c_str();
 
 		std::cout << "SetupChannel: " << path << std::endl;
 		// If already exported, unexport it before continuing
-		if (PathExist(path.c_str()))
+		if (PathExist(c))
 		{
 			std::cout << "Unexport path!" << std::endl;
 			this->UnExport(pinNumber);
 			std::cout << "Done!" << std::endl;
+		} else
+		{
+#ifdef _WIN32
+			_mkdir(c);
+#else
+			mkdir(c, S_IRWXU);
+#endif
+
 		}
 
 		// Now export the channel
@@ -120,7 +136,7 @@ namespace HolidayShowEndpoint
 		}
 
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/value";
+		gpioPath << this->GetGpioPath() << PATH_SEPARATOR << "gpio" << static_cast<int>(pinNumber) << PATH_SEPARATOR << "value";
 		
 		auto s = gpioPath.str();
 
@@ -166,7 +182,7 @@ namespace HolidayShowEndpoint
 
 
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/value";
+		gpioPath << this->GetGpioPath() << PATH_SEPARATOR << "gpio" << static_cast<int>(pinNumber) << PATH_SEPARATOR << "value";
 		std::string s = gpioPath.str();
 
 #if _WIN32
@@ -253,7 +269,21 @@ namespace HolidayShowEndpoint
 	{
 		std::cout << "Unexporting Pin: " << static_cast<int>(pinNumber) << std::endl;
 
+		std::ostringstream gpioPath;
+		gpioPath << this->GetGpioPath() << PATH_SEPARATOR << "unexport";
 
+		std::ostringstream pin;
+		pin << static_cast<int>(pinNumber);
+		auto pinStr = pin.str();
+
+
+		#if _WIN32
+		auto file = _fsopen(pinStr.c_str(), "a", _SH_DENYNO);
+		#else
+		auto file = fopen(pinStr.c_str(), "a");
+		#endif
+
+		std::cout << "Unexported Pin: " << static_cast<int>(pinNumber) << std::endl;
 //
 ////C# TO C++ CONVERTER NOTE: The following 'using' block is replaced by its C++ equivalent:
 ////		using (var fileStream = new FileStream(Path.Combine(this.GetGpioPath(), "unexport"), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
@@ -318,7 +348,7 @@ namespace HolidayShowEndpoint
 	void LibGpio::SetDirection(BroadcomPinNumber pinNumber, Direction direction)
 	{
 		std::ostringstream gpioPath;
-		gpioPath << this->GetGpioPath() << "/gpio" << static_cast<int>(pinNumber) << "/direction";
+		gpioPath << this->GetGpioPath() << PATH_SEPARATOR << "gpio" << static_cast<int>(pinNumber) << PATH_SEPARATOR << "direction";
 
 		std::string s = gpioPath.str();
 
