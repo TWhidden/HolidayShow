@@ -121,8 +121,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Ajp13Socket.cpp" />
-    <ClCompile Include="..\AjpBaseSocket.cpp" />
     <ClCompile Include="..\Base64.cpp" />
     <ClCompile Include="..\Debug.cpp" />
     <ClCompile Include="..\Event.cpp" />
@@ -131,19 +129,6 @@
     <ClCompile Include="..\Exception.cpp" />
     <ClCompile Include="..\File.cpp" />
     <ClCompile Include="..\FileStream.cpp" />
-    <ClCompile Include="..\HttpBaseSocket.cpp" />
-    <ClCompile Include="..\HttpClientSocket.cpp" />
-    <ClCompile Include="..\HttpdCookies.cpp" />
-    <ClCompile Include="..\HttpDebugSocket.cpp" />
-    <ClCompile Include="..\HttpdForm.cpp" />
-    <ClCompile Include="..\HttpdSocket.cpp" />
-    <ClCompile Include="..\HttpGetSocket.cpp" />
-    <ClCompile Include="..\HttpPostSocket.cpp" />
-    <ClCompile Include="..\HttpPutSocket.cpp" />
-    <ClCompile Include="..\HttpRequest.cpp" />
-    <ClCompile Include="..\HttpResponse.cpp" />
-    <ClCompile Include="..\HTTPSocket.cpp" />
-    <ClCompile Include="..\HttpTransaction.cpp" />
     <ClCompile Include="..\IEventOwner.cpp" />
     <ClCompile Include="..\Ipv4Address.cpp" />
     <ClCompile Include="..\Ipv6Address.cpp" />
@@ -174,14 +159,9 @@
     <ClCompile Include="..\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ajp13.h" />
-    <ClInclude Include="..\Ajp13Socket.h" />
-    <ClInclude Include="..\AjpBaseSocket.h" />
     <ClInclude Include="..\Base64.h" />
     <ClInclude Include="..\Debug.h" />
     <ClInclude Include="..\Exception.h" />
-    <ClInclude Include="..\HttpBaseSocket.h" />
-    <ClInclude Include="..\HttpdCookies.h" />
     <ClInclude Include="..\Parse.h" />
     <ClInclude Include="..\Semaphore.hh" />
     <ClInclude Include="..\sockets-config.h" />

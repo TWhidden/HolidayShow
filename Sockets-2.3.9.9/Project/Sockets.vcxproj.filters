@@ -68,18 +68,6 @@
     <ClCompile Include="..\SSLInitializer.cpp">
       <Filter>Internal</Filter>
     </ClCompile>
-    <ClCompile Include="..\Ajp13Socket.cpp">
-      <Filter>Webserver framework</Filter>
-    </ClCompile>
-    <ClCompile Include="..\AjpBaseSocket.cpp">
-      <Filter>Webserver framework</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpBaseSocket.cpp">
-      <Filter>Webserver framework</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpdCookies.cpp">
-      <Filter>Webserver framework</Filter>
-    </ClCompile>
     <ClCompile Include="..\Socket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -102,39 +90,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\FileStream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpClientSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpDebugSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpdForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpdSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpGetSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpPostSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpPutSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpRequest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpResponse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HTTPSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HttpTransaction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\IEventOwner.cpp">
@@ -225,21 +180,6 @@
     </ClInclude>
     <ClInclude Include="..\SSLInitializer.h">
       <Filter>Internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ajp13.h">
-      <Filter>Webserver framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Ajp13Socket.h">
-      <Filter>Webserver framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\AjpBaseSocket.h">
-      <Filter>Webserver framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HttpBaseSocket.h">
-      <Filter>Webserver framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HttpdCookies.h">
-      <Filter>Webserver framework</Filter>
     </ClInclude>
     <ClInclude Include="..\Semaphore.hh" />
   </ItemGroup>

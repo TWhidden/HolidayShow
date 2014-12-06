@@ -24,7 +24,7 @@ error:
 endif
 
 SOURCEFILES := AudioContainer.cpp Client.cpp HolidayShowEndpointNative.cpp LibGpio.cpp stdafx.cpp
-EXTERNAL_LIBS := ../Sockets-2.3.9.9/$(BINARYDIR)/LibSocketsLinux.a ../HolidayShowLibNative/$(BINARYDIR)/LibHolidayShowLibNativeLinux.a
+EXTERNAL_LIBS := ../Sockets-2.3.9.9/$(BINARYDIR)/libSocketsLinux.a ../HolidayShowLibNative/$(BINARYDIR)/libHolidayShowLibNativeLinux.a
 EXTERNAL_LIBS_COPIED := $(foreach lib, $(EXTERNAL_LIBS),$(BINARYDIR)/$(notdir $(lib)))
 
 CFLAGS += $(COMMONFLAGS)
@@ -163,9 +163,9 @@ $(BINARYDIR)/%.o : %.cxx $(all_make_files) |$(BINARYDIR)
 	$(CC) $(CFLAGS) $(CXXFLAGS) -c $< -o $@ -MD -MF $(@:.o=.dep)
 
 #VisualGDB: GeneratedRules				#<--- All lines below are auto-generated
-$(BINARYDIR)/LibSocketsLinux.a : ../Sockets-2.3.9.9/$(BINARYDIR)/LibSocketsLinux.a
-	$(CP) ../Sockets-2.3.9.9/$(BINARYDIR)/LibSocketsLinux.a $(BINARYDIR)/LibSocketsLinux.a
+$(BINARYDIR)/libSocketsLinux.a : ../Sockets-2.3.9.9/$(BINARYDIR)/libSocketsLinux.a
+	$(CP) ../Sockets-2.3.9.9/$(BINARYDIR)/libSocketsLinux.a $(BINARYDIR)/libSocketsLinux.a
 
-$(BINARYDIR)/LibHolidayShowLibNativeLinux.a : ../HolidayShowLibNative/$(BINARYDIR)/LibHolidayShowLibNativeLinux.a
-	$(CP) ../HolidayShowLibNative/$(BINARYDIR)/LibHolidayShowLibNativeLinux.a $(BINARYDIR)/LibHolidayShowLibNativeLinux.a
+$(BINARYDIR)/libHolidayShowLibNativeLinux.a : ../HolidayShowLibNative/$(BINARYDIR)/libHolidayShowLibNativeLinux.a
+	$(CP) ../HolidayShowLibNative/$(BINARYDIR)/libHolidayShowLibNativeLinux.a $(BINARYDIR)/libHolidayShowLibNativeLinux.a
 
