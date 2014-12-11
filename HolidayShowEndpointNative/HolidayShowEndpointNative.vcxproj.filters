@@ -33,6 +33,9 @@
     <ClInclude Include="LibGpio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DelayExecutionContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LibGpio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DelayExecutionContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

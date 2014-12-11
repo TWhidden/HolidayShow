@@ -43,6 +43,9 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="DelayExecutionContainer.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioContainer.h">
@@ -58,6 +61,9 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelayExecutionContainer.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -23,7 +23,7 @@ error:
 	$(error Invalid configuration, please check your inputs)
 endif
 
-SOURCEFILES := AudioContainer.cpp Client.cpp HolidayShowEndpointNative.cpp LibGpio.cpp stdafx.cpp
+SOURCEFILES := AudioContainer.cpp Client.cpp DelayExecutionContainer.cpp HolidayShowEndpointNative.cpp LibGpio.cpp stdafx.cpp
 EXTERNAL_LIBS := ../Sockets-2.3.9.9/$(BINARYDIR)/libSocketsLinux.a ../HolidayShowLibNative/$(BINARYDIR)/libHolidayShowLibNativeLinux.a
 EXTERNAL_LIBS_COPIED := $(foreach lib, $(EXTERNAL_LIBS),$(BINARYDIR)/$(notdir $(lib)))
 

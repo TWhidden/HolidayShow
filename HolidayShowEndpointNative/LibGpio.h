@@ -29,6 +29,7 @@
 namespace HolidayShowEndpoint
 {
 	
+	static std::map<BroadcomPinNumber, Direction> Directions;
 
 	/// <summary>
 	/// Library for interfacing with the Raspberry Pi GPIO ports. 
@@ -48,7 +49,7 @@ namespace HolidayShowEndpoint
 			/// <summary>
 		/// Stores the configured directions of the GPIO ports
 		/// </summary>
-		std::map<BroadcomPinNumber, Direction> directions;
+		
 
 		/// <summary>
 		/// Gets the class instance 

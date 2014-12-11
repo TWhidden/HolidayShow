@@ -83,10 +83,16 @@ int main(int argc, char** argv)
 		HolidayShowEndpoint::Client tcpClient(socketHandler, serverArg.getValue(), portArg.getValue(), deviceIdArg.getValue(), pinsAvailble);
 		tcpClient.Start();
 	
+
+		timeval tv;
+		tv.tv_usec = 1000;
+		tv.tv_sec = 0;
+
 		// Pump the messages
 		while (true)
 		{
-			socketHandler.Select(1, 0);
+			socketHandler.Select(&tv);
+			tcpClient.ProcessTimers();
 		}
 
 		}

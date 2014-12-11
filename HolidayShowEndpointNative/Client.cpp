@@ -15,12 +15,14 @@
 // buffer of TcpSocket
 #define RSIZE TCP_BUFSIZE_READ
 #include "LibGpio.h"
+#include "DelayExecutionContainer.h"
 
 using namespace std;
 using namespace HolidayShowLib;
 
 namespace HolidayShowEndpoint
 {
+	
 	// Sends a HolidayShow ProtocolMessage object over the wire
 	void Client::SendProtocolMessage(HolidayShowLib::ProtocolMessage& message)
 	{
@@ -41,12 +43,20 @@ namespace HolidayShowEndpoint
 	{
 		for (BroadcomPinNumber &p : _pins)
 		{
-			_libGpio.OutputValue(p, false);
+			_libGpio->OutputValue(p, false);
 		}
+	}
+
+	void Client::RemoveContainer(BroadcomPinNumber pin)
+	{
+
+		_delayedContainers.erase(pin);
 	}
 
 	Client::Client(ISocketHandler& socketHandler, string address, int port, int deviceId, PinMap &pins) : TcpSocket(socketHandler)
 	{
+		_libGpio = make_shared<LibGpio>();
+
 		// Set Socket Options
 		socketHandler.Add(this);
 		SetDeleteByHandler();
@@ -109,15 +119,34 @@ namespace HolidayShowEndpoint
 
 					int on = std::stoi(messageParts[PINON]);
 
-					auto adjustedFor0PinId = pinId - 1;
+					auto adjustedFor0PinId = (pinId - 1);
 
 					if (adjustedFor0PinId < 0) return;
 
 					if (adjustedFor0PinId > _pins.size()) return;
 
-					std::cout << "Pin " << adjustedFor0PinId << " start" << endl;
+					auto pin = _pins[adjustedFor0PinId];
 
-					//_libGpio->OutputValue(_pins[adjustedFor0PinId], on == 1);
+					cout << "Pin " << static_cast<int>(pin) << "  On" << endl;
+
+					_libGpio->OutputValue(pin, on == 1);
+
+					if (durration > 0)
+					{
+						// Destory and remove if map item already exists
+						RemoveContainer(pin);
+				
+						auto a = [=]()
+						{
+							cout << "Pin " << static_cast<int>(pin) << " Off" << endl;
+							_libGpio->OutputValue(pin, false);
+						};
+
+						auto dec = make_shared<DelayExecutionContainer>(milliseconds(durration), a);
+
+						_delayedContainers[pin] = dec;
+						
+					}
 				}
 
 				if (messageParts.count(AUDIOFILE))
@@ -131,6 +160,8 @@ namespace HolidayShowEndpoint
 
 		}
 	}
+
+	
 
 	void Client::OnRawData(const char* buf, size_t len)
 	{
@@ -164,4 +195,28 @@ namespace HolidayShowEndpoint
 
 	}
 
+	void Client::ProcessTimers()
+	{
+
+
+		//for (auto& ref : _delayedContainers)
+		//{
+		//	auto response = ref.second->ExecuteIfReady();
+		//	if (response)
+		//	{
+		//		RemoveContainer(ref.first);
+		//	}
+		//}
+
+
+		for (auto it = _delayedContainers.cbegin(); it != _delayedContainers.cend();)
+		{
+			auto response = it->second->ExecuteIfReady();
+			if (response)
+			{
+				_delayedContainers.erase(it++);
+			}
+		}
+
+	}
 };

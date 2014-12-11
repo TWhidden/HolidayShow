@@ -10,14 +10,20 @@ using namespace SocketsGee;
 
 namespace HolidayShowEndpoint
 {
+	class DelayExecutionContainer;
 	typedef vector<BroadcomPinNumber> PinMap;
+	typedef map<BroadcomPinNumber, shared_ptr<DelayExecutionContainer>> DelayExecutionMap;
+
+
 
 
 	class Client : public HolidayShowLib::ByteParserBase, public TcpSocket
 	{
 	private:
 		HolidayShowLib::ProtocolHelper _protocolHelper;
-		LibGpio _libGpio;
+		
+		shared_ptr<LibGpio> _libGpio;
+		
 		PinMap _pins;
 
 		string _address = "";
@@ -27,6 +33,10 @@ namespace HolidayShowEndpoint
 		void SendProtocolMessage(HolidayShowLib::ProtocolMessage& message);
 
 		void AllOff();
+
+		DelayExecutionMap _delayedContainers;
+
+		void RemoveContainer(BroadcomPinNumber pin);
 
 	public:
 		Client(ISocketHandler&, string address, int port, int deviceId, PinMap& pins);
@@ -40,6 +50,8 @@ namespace HolidayShowEndpoint
 		void OnConnect() override;
 
 		void Start();
+
+		void ProcessTimers();
 	};
 
 };

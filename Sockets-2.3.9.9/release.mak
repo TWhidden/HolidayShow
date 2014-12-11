@@ -5,23 +5,23 @@
 BINARYDIR := Release
 
 #Toolchain
-CC := C:/SysGCC/raspberry/bin/arm-linux-gnueabihf-gcc.exe
-CXX := C:/SysGCC/raspberry/bin/arm-linux-gnueabihf-g++.exe
+CC := gcc
+CXX := g++
 LD := $(CXX)
-AR := C:/SysGCC/raspberry/bin/arm-linux-gnueabihf-ar.exe
-OBJCOPY := C:/SysGCC/raspberry/bin/arm-linux-gnueabihf-objcopy.exe
+AR := ar
+OBJCOPY := objcopy
 
 #Additional flags
 PREPROCESSOR_MACROS := NDEBUG RELEASE
-INCLUDE_DIRS := 
-LIBRARY_DIRS := 
-LIBRARY_NAMES := 
+INCLUDE_DIRS := C:/sysgcc/linaro/arm-linux-gnueabihf/include
+LIBRARY_DIRS := C:/sysgcc/linaro/arm-linux-gnueabihf/libc/usr/lib/arm-linux-gnueabihf
+LIBRARY_NAMES := pthread
 ADDITIONAL_LINKER_INPUTS := 
 MACOS_FRAMEWORKS := 
 LINUX_PACKAGES := 
 
-CFLAGS := -ggdb -ffunction-sections -O3
-CXXFLAGS := -ggdb -ffunction-sections -O3
+CFLAGS := -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -marm -ggdb -ffunction-sections -O3
+CXXFLAGS := -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -marm -ggdb -ffunction-sections -O3
 ASFLAGS := 
 LDFLAGS := -Wl,-gc-sections
 COMMONFLAGS := 

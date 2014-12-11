@@ -124,13 +124,13 @@ namespace HolidayShowEndpoint
 	void LibGpio::OutputValue(BroadcomPinNumber pinNumber, bool value)
 	{
 		// Check that the output is configured
-		if (this->directions.find(pinNumber) == this->directions.end())
+		if (Directions.find(pinNumber) == Directions.end())
 		{
 			std::cout << "Attempt to output value on un-configured pin" << std::endl;
 		}
 
 		// Check that the channel is not being used incorrectly
-		if (this->directions[pinNumber] == Direction::Input)
+		if (Directions[pinNumber] == Direction::Input)
 		{
 			std::cout << "Attempt to output value on pin configured for input" << std::endl;
 		}
@@ -154,6 +154,8 @@ namespace HolidayShowEndpoint
 			fputs("0", file);
 		}
 
+		fclose(file);
+
 	}
 
 	bool LibGpio::ReadValue(RaspberryPinNumber pinNumber)
@@ -169,13 +171,13 @@ namespace HolidayShowEndpoint
 	bool LibGpio::ReadValue(BroadcomPinNumber pinNumber)
 	{
 		// Check that the output is configured
-		if (this->directions.find(pinNumber) == this->directions.end())
+		if (HolidayShowEndpoint::Directions.find(pinNumber) == HolidayShowEndpoint::Directions.end())
 		{
 			std::cout << "Attempt to read value from un-configured pin" << std::endl;
 		}
 
 		// Check that the channel is not being used incorrectly
-		if (this->directions[pinNumber] == Direction::Output)
+		if (HolidayShowEndpoint::Directions[pinNumber] == Direction::Output)
 		{
 			std::cout << "Attempt to read value form pin configured for output" << std::endl;
 		}
@@ -193,6 +195,9 @@ namespace HolidayShowEndpoint
 
 		char innerValue;
 		auto read = fgets(&innerValue, 1, file);
+
+		fclose(file);
+
 		if (read != NULL && innerValue == '1')
 		{
 			return true;
@@ -283,6 +288,8 @@ namespace HolidayShowEndpoint
 		auto file = fopen(pinStr.c_str(), "a");
 		#endif
 
+		fclose(file);
+
 		std::cout << "Unexported Pin: " << static_cast<int>(pinNumber) << std::endl;
 //
 ////C# TO C++ CONVERTER NOTE: The following 'using' block is replaced by its C++ equivalent:
@@ -324,7 +331,7 @@ namespace HolidayShowEndpoint
 		exportDir << "gpio" << static_cast<int>(pinNumber);
 		std::cout << "Export Dir: " << exportDir.str() << std::endl;
 		std::stringstream exportPath;
-		exportPath << this->GetGpioPath() << exportDir.str();
+		exportPath << this->GetGpioPath() << PATH_SEPARATOR << exportDir.str();
 
 		std::cout << "Export Path: " << exportPath.str() << std::endl;
 		if (!PathExist(exportPath.str().c_str()))
@@ -367,7 +374,9 @@ namespace HolidayShowEndpoint
 			fputs("out", file);
 		}
 
-		directions[pinNumber] = direction;
+		fclose(file);
+
+		Directions[pinNumber] = direction;
 		
 	}
 
