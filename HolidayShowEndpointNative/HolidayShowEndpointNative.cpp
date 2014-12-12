@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 	
 
 		timeval tv;
-		tv.tv_usec = 1000;
+		tv.tv_usec = 10000;
 		tv.tv_sec = 0;
 
 		// Pump the messages

@@ -86,6 +86,7 @@ namespace HolidayShowEndpoint
 		auto c = path.c_str();
 
 		std::cout << "SetupChannel: " << path << std::endl;
+
 		// If already exported, unexport it before continuing
 		if (PathExist(c))
 		{

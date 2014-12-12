@@ -127,7 +127,7 @@ namespace HolidayShowEndpoint
 
 					auto pin = _pins[adjustedFor0PinId];
 
-					cout << "Pin " << static_cast<int>(pin) << "  On" << endl;
+					//cout << "Pin " << static_cast<int>(pin) << "  On" << endl;
 
 					_libGpio->OutputValue(pin, on == 1);
 
@@ -138,7 +138,7 @@ namespace HolidayShowEndpoint
 				
 						auto a = [=]()
 						{
-							cout << "Pin " << static_cast<int>(pin) << " Off" << endl;
+							//cout << "Pin " << static_cast<int>(pin) << " Off" << endl;
 							_libGpio->OutputValue(pin, false);
 						};
 
