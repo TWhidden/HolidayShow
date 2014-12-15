@@ -21,6 +21,7 @@
 #include <tclap/SwitchArg.h>
 #include <tclap/ValueArg.h>
 #include <tclap/CmdLine.h>
+#include <thread>
 
 
 int main(int argc, char** argv)
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 		tv.tv_sec = 0;
         tcpClient.SetTcpNodelay(false);
 		// Pump the messages
-		while (true)
+		while (socketHandler.GetCount())
 		{
 			socketHandler.Select(&tv);
 			tv = tcpClient.ProcessTimers();
@@ -98,7 +99,9 @@ int main(int argc, char** argv)
 //#endif
 		}
 
-    }
+		cout << "Socket Count reached 0 - Existing" << endl;
+
+		}
 	catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;

@@ -155,3 +155,19 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+/HolidayShowEndpointNative/VisualGDBCache
+/HolidayShowLibNative/VisualGDBCache/HolidayShowLibNativeLinux-Debug
+/HolidayShowLibNative/VisualGDBCache/HolidayShowLibNativeLinux-Release
+/Sockets-2.3.9.9/Project/R/Sockets.tlog
+/Sockets-2.3.9.9/VisualGDBCache/SocketsLinux-Release
+/HolidayShowEndpointNative/14
+/HolidayShowEndpointNative/15
+/HolidayShowEndpointNative/17
+/HolidayShowEndpointNative/18
+/HolidayShowEndpointNative/22
+/HolidayShowEndpointNative/23
+/HolidayShowEndpointNative/24
+/HolidayShowEndpointNative/25
+/HolidayShowEndpointNative/27
+/HolidayShowEndpointNative/4
+/HolidayShowEndpointNative/release.mak.old
