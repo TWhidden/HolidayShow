@@ -17,6 +17,7 @@
 #include "Client.h"
 #include "LibGpio.h"
 #include "GpioPins.h"
+#include "Utility.h"
 #include <SocketHandler.h>
 #include <tclap/SwitchArg.h>
 #include <tclap/ValueArg.h>
@@ -97,6 +98,7 @@ int main(int argc, char** argv)
 //#if DEBUG
             printf("tv secs: %d usecs %d\n", tv.tv_sec, tv.tv_usec);
 //#endif
+            Utility::Sleep(10);
 		}
 
 		cout << "Socket Count reached 0 - Existing" << endl;
