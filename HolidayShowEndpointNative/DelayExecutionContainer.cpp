@@ -13,12 +13,28 @@ bool HolidayShowEndpoint::DelayExecutionContainer::ExecuteIfReady()
 {
 	if (_executed) return false;
 
-	if ((high_resolution_clock::now() - _startTime) > _executeIn)
-	{
-		_executed = true;
+    auto scheduled_time = _startTime + _executeIn;
+    auto next_ready_val = scheduled_time - high_resolution_clock::now();
 
-		_toExecute();
+    if (next_ready_val <= milliseconds(0))
+    {
+        _executed = true;
 
-		return true;
-	}
+        _toExecute();
+
+        return true;
+    }
+}
+
+std::chrono::milliseconds HolidayShowEndpoint::DelayExecutionContainer::next_ready()
+{
+    auto scheduled_time =  _startTime + _executeIn;
+    auto next_ready_val =  scheduled_time - high_resolution_clock::now();
+    
+    if (next_ready_val < milliseconds(0))
+    {
+        return milliseconds(0);
+    }
+
+    return std::chrono::duration_cast<milliseconds>(next_ready_val);
 }

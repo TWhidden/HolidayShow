@@ -85,17 +85,20 @@ int main(int argc, char** argv)
 	
 
 		timeval tv;
-		tv.tv_usec = 10000;
+		tv.tv_usec = 500000;
 		tv.tv_sec = 0;
-
+        tcpClient.SetTcpNodelay(false);
 		// Pump the messages
 		while (true)
 		{
 			socketHandler.Select(&tv);
-			tcpClient.ProcessTimers();
+			tv = tcpClient.ProcessTimers();
+//#if DEBUG
+            printf("tv secs: %d usecs %d\n", tv.tv_sec, tv.tv_usec);
+//#endif
 		}
 
-		}
+    }
 	catch (TCLAP::ArgException &e)  // catch any exceptions
 	{
 		cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;

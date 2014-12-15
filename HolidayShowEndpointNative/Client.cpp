@@ -195,28 +195,44 @@ namespace HolidayShowEndpoint
 
 	}
 
-	void Client::ProcessTimers()
+    #undef max
+
+    void convert(const std::chrono::milliseconds &ms, timeval &tv)
+    {
+        chrono::microseconds usec = chrono::duration_cast<chrono::microseconds>(ms);
+        if (usec <= chrono::microseconds(0))
+            tv.tv_sec = tv.tv_usec = 0;
+        else
+        {
+            tv.tv_sec = usec.count() / 1000000;
+            tv.tv_usec = usec.count() % 1000000;
+        }
+    }
+
+	timeval  Client::ProcessTimers()
 	{
+        std::chrono::milliseconds next_timer = std::chrono::duration_cast<milliseconds>(std::chrono::microseconds::max());
 
-
-		//for (auto& ref : _delayedContainers)
-		//{
-		//	auto response = ref.second->ExecuteIfReady();
-		//	if (response)
-		//	{
-		//		RemoveContainer(ref.first);
-		//	}
-		//}
-
-
-		for (auto it = _delayedContainers.cbegin(); it != _delayedContainers.cend();)
+		for (auto& it = _delayedContainers.cbegin(); it != _delayedContainers.cend();)
 		{
 			auto response = it->second->ExecuteIfReady();
 			if (response)
 			{
 				_delayedContainers.erase(it++);
 			}
-		}
+            else
+            {
+                auto next_time = it->second->next_ready();
 
+                if (next_time < next_timer)
+                {
+                    next_timer = next_time;
+                }
+            }
+		}
+        timeval tv;
+        convert(next_timer, tv);
+
+        return tv;
 	}
 };

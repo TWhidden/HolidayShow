@@ -51,7 +51,7 @@ namespace HolidayShowEndpoint
 
 		void Start();
 
-		void ProcessTimers();
+		timeval ProcessTimers();
 	};
 
 };
