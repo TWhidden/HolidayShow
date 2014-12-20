@@ -24,16 +24,10 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Client.h">
+    <ClInclude Include="win\exec-stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AudioContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LibGpio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DelayExecutionContainer.h">
+    <ClInclude Include="win\exec-stream-helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,23 +35,14 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HolidayShowEndpointNative.cpp">
+    <ClCompile Include="win\exec-stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client.cpp">
+    <ClCompile Include="win\exec-stream-helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AudioContainer.cpp">
+    <ClCompile Include="win\exec-stream-impl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LibGpio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DelayExecutionContainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

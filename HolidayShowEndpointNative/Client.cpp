@@ -151,6 +151,7 @@ namespace HolidayShowEndpoint
 
 				if (messageParts.count(AUDIOFILE))
 				{
+					auto audioFile = messageParts[AUDIOFILE];
 
 				}
 			}

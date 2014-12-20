@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Performance1.psess = Performance1.psess
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libexecstream", "libexecstream\libexecstream.vcxproj", "{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -124,6 +126,14 @@ Global
 		{74601C69-89F2-464E-B6FE-DBE41EDE3E41}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{74601C69-89F2-464E-B6FE-DBE41EDE3E41}.Release|Win32.ActiveCfg = Release|Win32
 		{74601C69-89F2-464E-B6FE-DBE41EDE3E41}.Release|Win32.Build.0 = Release|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Debug|Win32.Build.0 = Debug|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Release|Win32.ActiveCfg = Release|Win32
+		{ECC9C749-BBC2-4324-B045-11FE7BBCCB20}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

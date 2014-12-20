@@ -5,6 +5,7 @@
 #include "GpioPins.h"
 #include "LibGpio.h"
 
+class AudioContainer;
 using namespace std;
 using namespace SocketsGee;
 
@@ -14,12 +15,15 @@ namespace HolidayShowEndpoint
 	typedef vector<BroadcomPinNumber> PinMap;
 	typedef map<BroadcomPinNumber, shared_ptr<DelayExecutionContainer>> DelayExecutionMap;
 
-
+	typedef vector<AudioContainer> AudioVector;
 
 
 	class Client : public HolidayShowLib::ByteParserBase, public TcpSocket
 	{
 	private:
+
+		//AudioVector _runningAudioFiles;
+
 		HolidayShowLib::ProtocolHelper _protocolHelper;
 		
 		shared_ptr<LibGpio> _libGpio;
