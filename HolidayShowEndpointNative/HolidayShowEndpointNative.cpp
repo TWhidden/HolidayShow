@@ -17,6 +17,7 @@
 #include "Client.h"
 #include "LibGpio.h"
 #include "GpioPins.h"
+#include "Utility.h"
 #include <SocketHandler.h>
 #include <tclap/SwitchArg.h>
 #include <tclap/ValueArg.h>
@@ -85,13 +86,19 @@ int main(int argc, char** argv)
 		tcpClient.Start();
 	
 
-
+		timeval tv;
+		tv.tv_usec = 500000;
+		tv.tv_sec = 0;
+        tcpClient.SetTcpNodelay(false);
 		// Pump the messages
 		while (socketHandler.GetCount())
 		{
-			socketHandler.Select(1,0);
-			tcpClient.ProcessTimers();
-			this_thread::sleep_for(chrono::milliseconds(10));
+			socketHandler.Select(&tv);
+			tv = tcpClient.ProcessTimers();
+//#if DEBUG
+            printf("tv secs: %d usecs %d\n", tv.tv_sec, tv.tv_usec);
+//#endif
+            Utility::Sleep(10);
 		}
 
 		cout << "Socket Count reached 0 - Existing" << endl;

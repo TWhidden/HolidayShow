@@ -26,7 +26,7 @@ namespace HolidayShowEndpoint
 
 		DelayExecutionContainer(milliseconds executeIn, std::function<void()> functionToExecute);
 		
-
+        std::chrono::milliseconds next_ready();
 		bool ExecuteIfReady();
 		
 
