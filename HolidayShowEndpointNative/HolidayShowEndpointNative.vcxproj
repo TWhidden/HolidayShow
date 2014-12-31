@@ -54,13 +54,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\HolidayShowLibNative;..\Sockets-2.3.9.9;tclap.1.2.1.1\build\native\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\HolidayShowLibNative;..\Sockets-2.3.9.9;tclap.1.2.1.1\build\native\include;..\libuvxx\libuv\include;..\libuvxx\libuvxx\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Sockets.lib;HolidayShowLibNative.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Debug;..\lib\D</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Sockets.lib;HolidayShowLibNative.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libuv.lib;libuvxx.lib;Ws2_32.lib;psapi.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Debug;..\lib\D;..\libuvxx\build\msvc\bin\Debug\Win32;..\libuvxx\libuv\build\win32\Debug\Win32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

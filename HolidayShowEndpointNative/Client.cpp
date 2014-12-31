@@ -6,6 +6,7 @@
 #include <ISocketHandler.h>
 #include "ProtocolHelper.h"
 #include "GpioPins.h"
+#include "uvxx.hpp"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4786)
@@ -75,6 +76,14 @@ namespace HolidayShowEndpoint
 		ByteBufferPattern end = { static_cast<uint8_t>(ProtocolHelper::EOH) };
 		auto parser1 = make_shared<ParserProtocolContainer>(start, end, 1);
 		ParserAdd(parser1);
+
+
+
+	/*	uvxx::net::stream_socket s;
+		s.connect_async("10.64.128.75", 5556).then([](uvxx::pplx::task<void> t)
+		{
+			
+		});*/
 		
 	}
 
