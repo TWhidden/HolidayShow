@@ -168,13 +168,22 @@ namespace HolidayShowLib
                         }
 
                         // Move the data left
+#if WINDOWS_UWP
+                        ArraySegment<byte> data;
+                        if (_messageBuffer.TryGetBuffer(out data))
+                        {
+                            Buffer.BlockCopy(data.Array, newStart, data.Array, 0, newLength);
+                        }
+                        
+#else
                         Buffer.BlockCopy(_messageBuffer.GetBuffer(), newStart, _messageBuffer.GetBuffer(), 0, newLength);
+#endif
 
                         _messageBuffer.SetLength(newLength);
                         _messageBuffer.Position = newLength;
 
                         // nothing left to do, exit function
-#if DEBUG
+#if DEBUG && !WINDOWS_UWP
                         // goto end for debug parse output.
                         goto end;
 #else
@@ -196,20 +205,43 @@ namespace HolidayShowLib
                         // Selects the data that we are expecting - starting bytes to end of ending sequence bytes
                         //var bytesRead = _messageBuffer.Select(x => x).Skip(byteStart).Take(messagelength).ToArray();
                         var bytesRead = new byte[messagelength];
-                        Buffer.BlockCopy(_messageBuffer.GetBuffer(), lowestParser.Start, bytesRead, 0, messagelength);
+#if WINDOWS_UWP
 
-                        // Sends off for processing
-                        ProcessPacket(bytesRead, parser);
-#if DEBUG
-                        buffersReturned++;
+                        ArraySegment<byte> bytes;
+                        if (_messageBuffer.TryGetBuffer(out bytes))
+                        {
+                            Buffer.BlockCopy(bytes.Array, lowestParser.Start, bytesRead, 0, messagelength);
+                        }
+
+#else
+
+                        Buffer.BlockCopy(_messageBuffer.GetBuffer(), lowestParser.Start, bytesRead, 0, messagelength);
 #endif
+
+                        if (bytesRead != null)
+                        {
+                            // Sends off for processing
+                            ProcessPacket(bytesRead, parser);
+#if DEBUG
+                            buffersReturned++;
+#endif
+                        }
 
                         // truncates the messageBuffer
                         var length = (int)_messageBuffer.Length - realEnd;
                         if (length != 0)
                         {
+#if WINDOWS_UWP
+                            ArraySegment<byte> data;
+                            if (_messageBuffer.TryGetBuffer(out data))
+                            {
+                                Buffer.BlockCopy(data.Array, realEnd, data.Array, 0, length);
+                            }
                             // Reset the stream to the new end
+                            
+#else
                             Buffer.BlockCopy(_messageBuffer.GetBuffer(), realEnd, _messageBuffer.GetBuffer(), 0, length);
+#endif
                         }
 
                         _messageBuffer.SetLength(length);
@@ -235,7 +267,7 @@ namespace HolidayShowLib
             }
 
 
-#if DEBUG
+#if DEBUG && !WINDOWS_UWP
             end:
             Console.WriteLine("{0}; ReSearch {1}; Received: {2}; Searches: {3}; Returned: {4}", stopWatch.Elapsed, searchAgain, buffersReceived, bufferSearches, buffersReturned);
 #endif
@@ -262,7 +294,17 @@ namespace HolidayShowLib
             if ((byteSequence.Length + startingPos) > _messageBuffer.Length)
                 return -1;
 
+#if WINDOWS_UWP
+            ArraySegment<byte> data;
+            if (!_messageBuffer.TryGetBuffer(out data))
+            {
+                return -1;
+            }
+            var memoryBuffer = data.Array;
+#else
             var memoryBuffer = _messageBuffer.GetBuffer();
+#endif
+
             var membufferlen = _messageBuffer.Length;
 
             for (int i = startingPos; i < membufferlen; i++)
