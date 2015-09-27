@@ -53,16 +53,16 @@ namespace HolidayShowEditor.ViewModels
                 IsDeviceSelected = (value != null);
                 OnPropertyChanged(()=>DeviceSelected);
                 OnPropertyChanged(() => DevicePatterns);
-                OnPropertyChanged(() => DeviceIoPortsList);
+                OnPropertyChanged(() => DeviceIoPorts);
                 
             }
         }
 
-        public List<DeviceIoPorts>  DeviceIoPortsList
+        public List<DeviceIoPorts>  DeviceIoPorts
         {
             get { if (DeviceSelected == null) return null;
 
-                return DeviceSelected.DeviceIoPortsList.Where(x => !x.IsNotVisable).OrderBy(x => x.CommandPin).ToList();
+                return DeviceSelected.DeviceIoPorts.Where(x => !x.IsNotVisable).OrderBy(x => x.CommandPin).ToList();
             }
         }
 
@@ -72,7 +72,7 @@ namespace HolidayShowEditor.ViewModels
             {
                 if (DeviceSelected != null)
                 {
-                    return DeviceSelected.DevicePatternsList.OrderBy(x => x.PatternName).ToList();
+                    return DeviceSelected.DevicePatterns.OrderBy(x => x.PatternName).ToList();
                 }
                 return null;
             }
@@ -84,7 +84,7 @@ namespace HolidayShowEditor.ViewModels
             {
                 if (DevicePatternSelected != null)
                 {
-                    return DevicePatternSelected.DevicePatternSequencesList.OrderBy(x => x.OnAt).ToList();
+                    return DevicePatternSelected.DevicePatternSequences.OrderBy(x => x.OnAt).ToList();
                 }
                 return null;
             }
@@ -134,7 +134,7 @@ namespace HolidayShowEditor.ViewModels
 
         public ICommand CommandDeleteCommand { get; private set; }
 
-        public List<AudioOptions>  AudioOptionsList
+        public List<AudioOptions>  AudioOptions
         {
             get { return _dataContext.Context.AudioOptions.OrderBy(x => x.Name).ToList(); }
         }
@@ -152,11 +152,11 @@ namespace HolidayShowEditor.ViewModels
                 nextCommand = c.AudioOptions.AudioDuration > c.Duration ? +c.AudioOptions.AudioDuration : +c.Duration;
             }
 
-            DevicePatternSelected.DevicePatternSequencesList.Add(new DevicePatternSequences()
+            DevicePatternSelected.DevicePatternSequences.Add(new DevicePatternSequences()
                 {
                     OnAt = nextCommand, 
                     Duration = 1000, 
-                    DeviceIoPorts = DeviceSelected.DeviceIoPortsList.First(x => x.CommandPin == -1),
+                    DeviceIoPorts = DeviceSelected.DeviceIoPorts.First(x => x.CommandPin == -1),
                     AudioOptions = _dataContext.Context.AudioOptions.First(x => x.Name  == "NONE")
                 });
             OnPropertyChanged(() => DevicePatternSequences); // reloads in the ui.
@@ -167,9 +167,9 @@ namespace HolidayShowEditor.ViewModels
         {
             if (DevicePatternSequenceSelected != null)
             {
-                if (DevicePatternSequenceSelected.IsAttached())
-                    _dataContext.Context.DevicePatternSequences.DeleteOnSubmit(DevicePatternSequenceSelected);
-                DevicePatternSelected.DevicePatternSequencesList.Remove(DevicePatternSequenceSelected);
+                //if (DevicePatternSequenceSelected.IsAttached())
+                    _dataContext.Context.DevicePatternSequences.Remove(DevicePatternSequenceSelected);
+                DevicePatternSelected.DevicePatternSequences.Remove(DevicePatternSequenceSelected);
                 DevicePatternSequenceSelected = null;
                 OnPropertyChanged(() => DevicePatternSequences);
             }
@@ -179,9 +179,9 @@ namespace HolidayShowEditor.ViewModels
         {
             if (DevicePatternSelected != null)
             {
-                if (DevicePatternSelected.IsAttached())
-                    _dataContext.Context.DevicePatterns.DeleteOnSubmit(DevicePatternSelected);
-                DeviceSelected.DevicePatternsList.Remove(DevicePatternSelected);
+                //if (DevicePatternSelected.IsAttached())
+                    _dataContext.Context.DevicePatterns.Remove(DevicePatternSelected);
+                DeviceSelected.DevicePatterns.Remove(DevicePatternSelected);
                 OnPropertyChanged(() => DevicePatterns);
                 DevicePatternSelected = null;
             }
@@ -191,13 +191,13 @@ namespace HolidayShowEditor.ViewModels
         private void OnCommandAddNewPattern()
         {
             var pattern = new DevicePatterns {PatternName = "**New Pattern"};
-            DeviceSelected.DevicePatternsList.Add(pattern);
+            DeviceSelected.DevicePatterns.Add(pattern);
             OnPropertyChanged(() => DevicePatterns);
         }
 
         private void OnCommandSave()
         {
-             _dataContext.Context.SubmitChanges();
+             _dataContext.Context.SaveChanges();
         }
     }
 }

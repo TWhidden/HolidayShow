@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Windows.Devices.Gpio;
-using Windows.Networking;
-using HolidayShowEndpoint;
 using HolidayShowEndpointUniversalApp.BaseClasses;
+using HolidayShowEndpointUniversalApp.Containers;
+using HolidayShowEndpointUniversalApp.Services;
 using HolidayShowEndpointUniversalApp.Storage;
+using HolidayShowLibUniversal.Services;
 using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEndpointUniversalApp
 {
     public class MainPageViewModel : ViewModelBase 
     {
-        public DelegateCommand _commandSave;
-        private AppSettings _setting;
+        private readonly IResolverService _resolverService;
+        private DelegateCommand _commandSave;
+        private readonly AppSettings _setting;
         private MainPage _view;
-        private int _deviceId;
-        private Client _client;
+        private ClientLiveControl _protocolClient;
         private List<GpioPin> _availablePins;
 
-        public MainPageViewModel()
+        public MainPageViewModel(MainPage mainPage, IResolverService resolverService)
         {
+            _resolverService = resolverService;
             _setting = AppSettings.Load();
-            
+
+            View = mainPage;
         }
 
         public MainPage View
@@ -82,13 +81,20 @@ namespace HolidayShowEndpointUniversalApp
         {
             DestroyClient();
 
-            if(DeviceId != 0)
-                _client = new Client(new DnsEndPoint(ServerAddress, (int)ServerPort), DeviceId, _availablePins);
+            if (DeviceId != 0)
+            {
+                var endPoint = new DnsEndPoint(ServerAddress, ServerPort);
+                var serverDetails = _resolverService.Resolve<ServerDetails>(endPoint);
+                _resolverService.Register<IServerDetails, IServerDetails>(serverDetails);
+
+                _protocolClient = _resolverService.Resolve<ClientLiveControl>(DeviceId, _availablePins);
+            }
+                
         }
 
         private void DestroyClient()
         {
-            _client?.Disconnect(false);
+            _protocolClient?.Disconnect(false);
         }
 
         public int DeviceId
@@ -124,10 +130,7 @@ namespace HolidayShowEndpointUniversalApp
             }
         }
 
-        public DelegateCommand CommandSave
-        {
-            get { return _commandSave ?? (_commandSave = new DelegateCommand(OnCommandSave)); }
-        }
+        public DelegateCommand CommandSave => _commandSave ?? (_commandSave = new DelegateCommand(OnCommandSave));
 
         private void OnCommandSave()
         {

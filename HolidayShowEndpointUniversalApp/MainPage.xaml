@@ -23,5 +23,15 @@
             </StackPanel>
             <Button Content="SAVE" Command="{Binding CommandSave}"/>
         </StackPanel>
+        <MediaElement Visibility="Collapsed" Name="Media0" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media1" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media2" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media3" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media4" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media5" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media6" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media7" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media8" IsLooping="False"/>
+        <MediaElement Visibility="Collapsed" Name="Media9" IsLooping="False"/>
     </Grid>
 </Page>

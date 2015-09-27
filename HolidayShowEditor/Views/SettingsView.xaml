@@ -28,6 +28,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -63,6 +64,9 @@
 
         <CheckBox IsChecked="{Binding IsAudioEnabled, Mode=TwoWay}" Grid.Row="6" Grid.Column="1"></CheckBox>
 
+        <TextBlock Text="Base File Path:" TextAlignment="Right" Grid.Row="7"/>
+        
+        <TextBox Text="{Binding FileBasePath, Mode=TwoWay}" Grid.Column="1" Grid.Row="7" Width="400" HorizontalAlignment="Left"></TextBox>
 
     </Grid>
 </UserControl>

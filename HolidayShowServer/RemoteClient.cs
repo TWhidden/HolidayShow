@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using HolidayShow.Data;
@@ -90,7 +92,7 @@ namespace HolidayShowServer
         }
 
 
-        public override void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)
+        public async override void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)
         {
             // get the message
             var message = ProtocolHelper.UnWrap(bytes);
@@ -108,14 +110,14 @@ namespace HolidayShowServer
 
 
                     // Update the pins in the database
-                    using (var dc = new HolidayShowDataContext())
+                    using (var dc = new EfHolidayContext())
                     {
                         var device = dc.Devices.FirstOrDefault(x => x.DeviceId == id);
                         if (device == null)
                         {
                             device = new Devices { DeviceId = id, Name = "New Device" };
-                            dc.Devices.InsertOnSubmit(device);
-                            dc.SubmitChanges();
+                            dc.Devices.Add(device);
+                            await dc.SaveChangesAsync();
                         }
                     }
 
@@ -133,12 +135,12 @@ namespace HolidayShowServer
                     if (!parsed) return;
 
                     // Update the pins in the database
-                    using (var dc = new HolidayShowDataContext())
+                    using (var dc = new EfHolidayContext())
                     {
                         var device = dc.Devices.FirstOrDefault(x => x.DeviceId == DeviceId);
                         if (device == null) return;
 
-                        var ports = device.DeviceIoPortsList.ToList();
+                        var ports = device.DeviceIoPorts.ToList();
 
                         for (int i = 1; i <= pinsAvail; i++)
                         {
@@ -146,7 +148,7 @@ namespace HolidayShowServer
                             if (port == null)
                             {
                                 port = new DeviceIoPorts {DeviceId = DeviceId, CommandPin = i, Description = "PIN" + i.ToString()};
-                                dc.DeviceIoPorts.InsertOnSubmit(port);
+                                dc.DeviceIoPorts.Add(port);
                             }
                         }
 
@@ -154,15 +156,50 @@ namespace HolidayShowServer
                         var port1 = ports.FirstOrDefault(x => x.CommandPin == -1);
                         if (port1 == null)
                         {
-                            dc.DeviceIoPorts.InsertOnSubmit(new DeviceIoPorts(){DeviceId =  DeviceId, CommandPin = -1, Description = "NONE", IsNotVisable = true});
+                            dc.DeviceIoPorts.Add(new DeviceIoPorts(){DeviceId =  DeviceId, CommandPin = -1, Description = "NONE", IsNotVisable = true});
                         }
 
-                        dc.SubmitChanges();
+                        await dc.SaveChangesAsync();
                     }
 
                 }
             }
+            if (message.MessageEvent == MessageTypeIdEnum.RequestFile)
+            {
+                if (message.MessageParts.ContainsKey(ProtocolMessage.FILEDOWNLOAD))
+                {
+                    // Read from the settings to find the base path.  This is the read path
+                    using (var dc = new EfHolidayContext())
+                    {
+                        var basePathSetting = await dc.Settings.Where(x=> x.SettingName == SettingKeys.FileBasePath).FirstOrDefaultAsync();
+                        if (basePathSetting == null || String.IsNullOrWhiteSpace(basePathSetting.ValueString) || !Directory.Exists(basePathSetting.ValueString))
+                        {
+                            Console.WriteLine("System Setting {0} does not exist in settings table. Must be set to support file transfers", SettingKeys.FileBasePath);
+                            BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
+                            return;
+                        }
 
+                        var fileRequested = message.MessageParts[ProtocolMessage.FILEDOWNLOAD];
+
+                        var combinedPath = Path.Combine(basePathSetting.ValueString, fileRequested);
+
+                        // See if the requested file exists
+                        if (!File.Exists(combinedPath))
+                        {
+                            Console.WriteLine("File Requsted does not exist at path {0}", combinedPath);
+                            BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
+                            return;
+                        }
+
+                        // Send the message data
+                        var responseMessage = new ProtocolMessage(MessageTypeIdEnum.RequestFile);
+                        responseMessage.MessageParts.Add(ProtocolMessage.AUDIOFILE, fileRequested);
+                        responseMessage.MessageParts.Add(ProtocolMessage.FILEBYTES,
+                            Convert.ToBase64String(File.ReadAllBytes(combinedPath)));
+                        BeginSend(responseMessage);
+                    }
+                }
+            }
         }
 
         public event EventHandler OnConnectionClosed;

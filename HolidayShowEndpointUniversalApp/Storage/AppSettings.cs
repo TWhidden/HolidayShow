@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using HolidayShowLibUniversal;
+using HolidayShowLibUniversal.Helpers;
 
 namespace HolidayShowEndpointUniversalApp.Storage
 {
@@ -24,10 +19,22 @@ namespace HolidayShowEndpointUniversalApp.Storage
             // Validate the file exists, and if it doesnt, add it
             if (!File.Exists(SettingsFilePath))
             {
-                var s = new AppSettings();
-                s.ServerAddress = "127.0.0.0";
-                s.ServerPort = 5555;
+#if !DEBUG
+                var s = new AppSettings
+                {
+                    ServerAddress = "127.0.0.0",
+                    ServerPort = 5555
+                };
                 s.Save();
+#else
+                var s = new AppSettings
+                {
+                    ServerAddress = "10.64.128.245",
+                    ServerPort = 5555,
+                    DeviceId = 5
+                };
+                s.Save();
+#endif
 
             }
 
@@ -35,9 +42,7 @@ namespace HolidayShowEndpointUniversalApp.Storage
 
         public AppSettings()
         {
-            DeviceId = 4;
-            ServerAddress = "10.64.128.75";
-            ServerPort = 5556;
+          
         }
 
         [DataMember]

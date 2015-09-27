@@ -11,9 +11,9 @@ namespace HolidayShowEditor.Services
     {
         public DbDataContext()
         {
-            Context = new HolidayShowDataContext();
+            Context = new EfHolidayContext();
         }
 
-        public HolidayShowDataContext Context { get; private set; }
+        public EfHolidayContext Context { get; private set; }
     }
 }

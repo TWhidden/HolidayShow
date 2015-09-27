@@ -6,6 +6,9 @@
         DeviceId = 1,
         KeepAlive = 2,
         EventControl = 3,
-        Reset = 4
+        Reset = 4,
+        RequestFile = 5,
+        RequestFailed = 6,
+
     }
 }

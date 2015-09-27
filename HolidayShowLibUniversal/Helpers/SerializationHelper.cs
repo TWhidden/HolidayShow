@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace HolidayShowLibUniversal
+namespace HolidayShowLibUniversal.Helpers
 {
     public static class SerializationHelper
     {

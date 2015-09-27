@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HolidayShow.Data
+﻿namespace HolidayShow.Data
 {
     public class SettingKeys
     {
@@ -17,6 +11,7 @@ namespace HolidayShow.Data
         public const string OffAt = "TimeOffAt";
         public const string IsDanagerEnabled = "IsDangerEnabled";
         public const string IsAudioEnabled = "IsAudioEnabled";
+        public const string FileBasePath = "FileBasePath";
     }
 
     public enum SetPlaybackOptionEnum

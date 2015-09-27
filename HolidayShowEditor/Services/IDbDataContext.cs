@@ -4,6 +4,6 @@ namespace HolidayShowEditor.Services
 {
     public interface IDbDataContext
     {
-        HolidayShowDataContext Context { get; }
+        EfHolidayContext Context { get; }
     }
 }

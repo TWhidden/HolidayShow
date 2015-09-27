@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Linq;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
-using HolidayShowEditor.Interfaces;
 using HolidayShowEditor.Services;
-using HolidayShowEditor.Views;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.WindowsAPICodePack.Shell;
 
@@ -30,7 +27,6 @@ namespace HolidayShowEditor.ViewModels
             CommandAudioAdd = new DelegateCommand(OnCommandAudioAdd);
             CommandAudioRemove = new DelegateCommand(OnCommandAudioRemove);
             CommandScanDirectory = new DelegateCommand(OnCommandScanDirectory);
-            AudioFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "AudioFiles");
         }
 
         public object HeaderInfo { get; set; }
@@ -60,43 +56,53 @@ namespace HolidayShowEditor.ViewModels
                     FileName = String.Empty,
                     AudioDuration = 0
                 };
-            _dbDataContext.Context.AudioOptions.InsertOnSubmit(audioFile);
-            _dbDataContext.Context.SubmitChanges();
+            _dbDataContext.Context.AudioOptions.Add(audioFile);
+            _dbDataContext.Context.SaveChanges();
             OnPropertyChanged(() => AudioFilesList);
         }
 
         private void OnCommandAudioRemove()
         {
             if (AudioFileSelected == null) return;
-            _dbDataContext.Context.AudioOptions.DeleteOnSubmit(AudioFileSelected);
-            _dbDataContext.Context.SubmitChanges();
+            _dbDataContext.Context.AudioOptions.Remove(AudioFileSelected);
+            _dbDataContext.Context.SaveChanges();
             AudioFileSelected = null;
             OnPropertyChanged(() => AudioFilesList);
         }
 
-        public string AudioFilesPath
-        {
-            get { return _audioFilesPath; }
-            set { _audioFilesPath = value;
-                OnPropertyChanged(()=>AudioFilesPath);
-            }
-        }
-
         public DelegateCommand CommandScanDirectory { get; private set; }
 
-        private void OnCommandScanDirectory()
+        private async void OnCommandScanDirectory()
         {
             try
             {
-                if (Directory.Exists(AudioFilesPath))
+                // Get the configured base directory
+                var baseDirectory =
+                    await
+                        _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.FileBasePath)
+                            .Select(x => x.ValueString)
+                            .FirstOrDefaultAsync();
+
+                if (string.IsNullOrWhiteSpace(baseDirectory))
+                {
+                    MessageBox.Show("Base Directory not set in Setting section.");
+                    return;
+                }
+
+
+                if (Directory.Exists(baseDirectory))
                 {
                     // get all the audio files
-                    var files = Directory.EnumerateFiles(AudioFilesPath, "*.*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac"));
+                    var files = Directory.EnumerateFiles(baseDirectory, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".m4a"));
                     
 
                     foreach (var file in files)
                     {
-                        var fileName = Path.GetFileName(file);
+                        var fileName = file.Replace(baseDirectory, "");
+                        if (fileName.StartsWith(@"\"))
+                        {
+                            fileName = fileName.Substring(1, fileName.Length - 1);
+                        }
                         ShellFile so = ShellFile.FromFilePath(file);
                         double nanoseconds;
                         double.TryParse(so.Properties.System.Media.Duration.Value.ToString(),
@@ -111,15 +117,16 @@ namespace HolidayShowEditor.ViewModels
                             {
                                 entry = new AudioOptions();
                                 entry.FileName = fileName;
-                                
+                                entry.IsNotVisable = false;
+                                entry.Name = Path.GetFileNameWithoutExtension(file);
                                 entry.AudioDuration = milliseconds;
-                                _dbDataContext.Context.AudioOptions.InsertOnSubmit(entry);
+                                _dbDataContext.Context.AudioOptions.Add(entry);
                             }
                         }
 
                     }
 
-                    _dbDataContext.Context.SubmitChanges();
+                    _dbDataContext.Context.SaveChanges();
                 }
 
                 

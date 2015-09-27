@@ -21,10 +21,9 @@
         <StackPanel Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Center">
             <Button Content="ADD AUDIO FILE" Command="{Binding CommandAudioAdd}" Margin="5"></Button>
             <Button Content="REMOVE AUDIO FILE" Command="{Binding CommandAudioRemove}" Margin="5"></Button>
-            <StackPanel Orientation="Horizontal">
-                <TextBox Text="{Binding AudioFilesPath, Mode=TwoWay}" Width="200"></TextBox>
+            
                 <Button Content="SCAN DIRECTORY" Command="{Binding CommandScanDirectory}"></Button>
-            </StackPanel>
+            
         </StackPanel>
     </Grid>
 </UserControl>

@@ -63,10 +63,10 @@ namespace HolidayShowEditor.ViewModels
                             SettingName = SettingKeys.SetPlaybackOption,
                             ValueString = string.Empty
                         };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueDouble = (double)value;
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
 
                 OnPropertyChanged(() => SetList); // a little hack because I dont want to use IActiveAware at the moment.
             }
@@ -92,10 +92,10 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.DelayBetweenSets,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueDouble = value;
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
 
@@ -120,10 +120,10 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.CurrentSet,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueDouble = value;
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
 
@@ -167,10 +167,10 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.OnAt,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueString = value;
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
 
@@ -194,10 +194,10 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.OffAt,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueString = value;
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
 
@@ -221,10 +221,10 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.IsDanagerEnabled,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueDouble = (value ? 1 : 0);
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
 
@@ -248,11 +248,41 @@ namespace HolidayShowEditor.ViewModels
                         SettingName = SettingKeys.IsAudioEnabled,
                         ValueString = string.Empty
                     };
-                    _dbDataContext.Context.Settings.InsertOnSubmit(option);
+                    _dbDataContext.Context.Settings.Add(option);
                 }
                 option.ValueDouble = (value ? 1 : 0);
-                _dbDataContext.Context.SubmitChanges();
+                _dbDataContext.Context.SaveChanges();
             }
         }
+
+
+        public string FileBasePath
+        {
+            get
+            {
+                var option = _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.FileBasePath)
+                                  .Select(x => x.ValueString)
+                                  .FirstOrDefault();
+                return option;
+            }
+            set
+            {
+                var option = _dbDataContext.Context.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.FileBasePath);
+                if (option == null)
+                {
+                    option = new Settings()
+                    {
+                        SettingName = SettingKeys.FileBasePath,
+                        ValueString = string.Empty
+                    };
+                    _dbDataContext.Context.Settings.Add(option);
+                }
+                option.ValueString = value;
+                _dbDataContext.Context.SaveChanges();
+            }
+        }
+
+
+        
     }
 }

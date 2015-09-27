@@ -99,7 +99,7 @@ CREATE TABLE [dbo].[DevicePatternSequences](
 
 
 CREATE TABLE [dbo].[Devices](
-	[DeviceId] [int] IDENTITY(1,1) NOT NULL,
+	[DeviceId] [int] NOT NULL,
 	[Name] [nvarchar](50) NOT NULL CONSTRAINT [DF_Devices_Name]  DEFAULT ('NONAME'),
  CONSTRAINT [PK_Devices] PRIMARY KEY CLUSTERED 
 (
@@ -208,7 +208,11 @@ ON DELETE CASCADE
 
 ALTER TABLE [dbo].[SetSequences] CHECK CONSTRAINT [FK_SetSequences_Sets]
 
+INSERT INTO AudioOptions (Name, [FileName], AudioDuration, IsNotVisable) 
+			Values ('NONE', '', 0, 1)
+
 INSERT into VERSIONS (VersionNumber, DateUpdated) Values (1, getUtcDate())
+
 
 END
 

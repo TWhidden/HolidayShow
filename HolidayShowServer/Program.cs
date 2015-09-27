@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using CodeSmith.Data.Collections;
 using CommandLine;
 using HolidayShow.Data;
 using HolidayShowLib;
@@ -36,7 +34,7 @@ namespace HolidayShowServer
             _server.OnClientConnected += _server_OnClientConnected;
             _server.Start();
 
-            var t = new Thread((x) => RunServer()) { IsBackground = true, Name = "HolidayServer" };
+            var t = new Thread(x => RunServer()) { IsBackground = true, Name = "HolidayServer" };
             t.Start();
             
 
@@ -63,9 +61,9 @@ namespace HolidayShowServer
             Clients.Remove((RemoteClient)sender);
         }
 
-        private readonly static  List<Timer> _queuedTimers = new List<Timer>();
+        private readonly static  ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
 
-        private static void RunServer()
+        private async static void RunServer()
         {
             var setExecuting = false;
 
@@ -84,7 +82,7 @@ namespace HolidayShowServer
                     continue;
                 }
 
-                using (var dc = new HolidayShowDataContext())
+                using (var dc = new EfHolidayContext())
                 {
                     // check to see if we should be running or not.
                     var schuduleOn = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OnAt);
@@ -92,8 +90,7 @@ namespace HolidayShowServer
                     if (schuduleOn != null && schuduleOff != null && !String.IsNullOrWhiteSpace(schuduleOn.ValueString) &&
                         !String.IsNullOrWhiteSpace(schuduleOff.ValueString))
                     {
-                        var onTime = DateTime.MinValue;
-                        var offTime = DateTime.MinValue;
+                        DateTime onTime;
 
                         var parsed = DateTime.TryParseExact(schuduleOn.ValueString,
                                                             "HH:mm",
@@ -102,7 +99,7 @@ namespace HolidayShowServer
                                                             out onTime);
                         if (parsed)
                         {
-
+                            DateTime offTime;
                             parsed = DateTime.TryParseExact(schuduleOff.ValueString,
                                                             "HH:mm",
                                                             new CultureInfo("en-US"),
@@ -143,14 +140,12 @@ namespace HolidayShowServer
                 {
                     if (!setExecuting)
                     {
-                        _queuedTimers.Clear();
+                        QueuedTimers.Clear();
                         setExecuting = true;
 
-                        int delayBetweenSets = 5000;
-
-                        using (var dc = new HolidayShowDataContext())
+                        using (var dc = new EfHolidayContext())
                         {
-                           
+
 
                             // Get the set we should be running.
                             var option = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
@@ -163,13 +158,11 @@ namespace HolidayShowServer
 
                             var setting = (SetPlaybackOptionEnum) option.ValueDouble;
 
-                            delayBetweenSets = dc.Settings.Where(x => x.SettingName == SettingKeys.DelayBetweenSets).Select(x => (int)x.ValueDouble).FirstOrDefault();
+                            var delayBetweenSets = dc.Settings.Where(x => x.SettingName == SettingKeys.DelayBetweenSets).Select(x => (int)x.ValueDouble).FirstOrDefault();
                             if (delayBetweenSets <= 0) delayBetweenSets = 5000;
 
-                            int setId = 0;
-
+                            int setId;
                             
-
                             switch (setting)
                             {
                                 case SetPlaybackOptionEnum.Off:
@@ -186,7 +179,6 @@ namespace HolidayShowServer
                                     }
                                     setExecuting = false;
                                     goto skipStart;
-                                    break;
                                 case SetPlaybackOptionEnum.PlaybackRandom:
                                     // Get all the sets, random set one.
                                     isOff = false;
@@ -218,13 +210,13 @@ namespace HolidayShowServer
                                     if (currentSet == null)
                                     {
                                         Console.WriteLine("Current set is not set. Setting to random");
-                                        dc.Settings.InsertOnSubmit(new Settings()
+                                        dc.Settings.Add(new Settings()
                                             {
                                                 SettingName = SettingKeys.CurrentSet,
                                                 ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
                                                 ValueString = String.Empty
                                             });
-                                        dc.SubmitChanges();
+                                        await dc.SaveChangesAsync();
                                         goto skipStart;
                                     }
 
@@ -232,13 +224,13 @@ namespace HolidayShowServer
                                     if (set == null)
                                     {
                                         Console.WriteLine("Current set references a set that does not exist. Setting to random.");
-                                        dc.Settings.InsertOnSubmit(new Settings()
+                                        dc.Settings.Add(new Settings()
                                         {
                                             SettingName = SettingKeys.CurrentSet,
                                             ValueDouble = (int)SetPlaybackOptionEnum.PlaybackRandom,
                                             ValueString = String.Empty
                                         });
-                                        dc.SubmitChanges();
+                                        await dc.SaveChangesAsync();
                                         goto skipStart;
                                     }
 
@@ -271,10 +263,10 @@ namespace HolidayShowServer
                                         SettingName = SettingKeys.CurrentSet,
                                         ValueString = String.Empty
                                     };
-                                dc.Settings.InsertOnSubmit(current);
+                                dc.Settings.Add(current);
                             }
                             current.ValueDouble = setId;
-                            dc.SubmitChanges();
+                            await dc.SaveChangesAsync();
 
                             // check if audio and danager is enabled
                             var isAudioEnabled =
@@ -290,21 +282,22 @@ namespace HolidayShowServer
                             // create the work load
                             var list = new List<DeviceInstructions>();
 
-                            foreach (var setSequence in setData.SetSequencesList.OrderBy(x => x.OnAt))
+                            foreach (var setSequence in setData.SetSequences.OrderBy(x => x.OnAt))
                             {
                                 var deviceId = setSequence.DevicePatterns.DeviceId;
                                 var startingOffset = setSequence.OnAt;
 
-                                foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequencesList)
+                                foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequences)
                                 {
                                     var onAt = startingOffset + pattern.OnAt;
 
-                                    var di = new DeviceInstructions(deviceId, MessageTypeIdEnum.EventControl);
+                                    var di = new DeviceInstructions(deviceId, MessageTypeIdEnum.EventControl)
+                                    {
+                                        OnAt = onAt
+                                    };
 
-                                    di.OnAt = onAt;
                                     bool set = false;
-                                    if (pattern.AudioOptions != null &&
-                                        !String.IsNullOrWhiteSpace(pattern.AudioOptions.FileName) && isAudioEnabled)
+                                    if (!String.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName) && isAudioEnabled)
                                     {
                                         di.AudioFileName = pattern.AudioOptions.FileName;
                                         di.AudioDuration = pattern.AudioOptions.AudioDuration;
@@ -335,8 +328,8 @@ namespace HolidayShowServer
                                 {
                                     var di = list[index];
                                     {
-                                        var audioTop = (di.AudioDuration.HasValue ? di.AudioDuration.Value : 0);
-                                        var pinTop = (di.PinDuration.HasValue ? di.PinDuration.Value : 0);
+                                        var audioTop = di.AudioDuration ?? 0;
+                                        var pinTop = di.PinDuration ?? 0;
 
                                         var top = di.OnAt +
                                                   (pinTop > audioTop ? pinTop : audioTop);
@@ -345,33 +338,40 @@ namespace HolidayShowServer
 
                                         Timer timerStart = null;
 
-                                        timerStart = new Timer((x) =>
+                                        timerStart = new Timer(x =>
                                             {
                                                 var item = x as DeviceInstructions;
 
-                                                Console.WriteLine("Sending Instruction: " + item.ToString());
-                                                SendInstruction(item);
+                                                if (item != null)
+                                                {
+                                                    Console.WriteLine("Sending Instruction: " + item.ToString());
+                                                    SendInstruction(item);
+                                                }
 
-                                                lock (_queuedTimers)
+                                        
+                                                if (timerStart != null)
                                                 {
                                                     timerStart.Dispose();
-                                                    if (_queuedTimers.Contains(timerStart))
-                                                        _queuedTimers.Remove(timerStart);
+                                                    if (QueuedTimers.ContainsKey(timerStart))
+                                                    {
+                                                        bool t;
+                                                        QueuedTimers.TryRemove(timerStart, out t);
+                                                    }
                                                 }
+                                                
                                             },
                                                                di,
                                                                TimeSpan.FromMilliseconds(di.OnAt),
                                                                TimeSpan.FromMilliseconds(-1));
 
                                         // Tracks the timer, just incase we need to cancel everything.
-                                        lock (_queuedTimers)
-                                            _queuedTimers.Add(timerStart);
+                                        QueuedTimers.TryAdd(timerStart, true);
                                     }
                                     if (index == list.Count - 1)
                                     {
                                         // setup the timer to say the set is not executing.
                                         Timer stoppedTimer = null;
-                                        stoppedTimer = new Timer((x) =>
+                                        stoppedTimer = new Timer(x =>
                                             {
                                                 setExecuting = false;
                                                 stoppedTimer.Dispose();
@@ -381,8 +381,7 @@ namespace HolidayShowServer
                                                                                            delayBetweenSets),
                                                                  TimeSpan.FromMilliseconds(-1));
 
-                                        lock (_queuedTimers)
-                                            _queuedTimers.Add(stoppedTimer);
+                                            QueuedTimers.TryAdd(stoppedTimer, true);
                                     }
                                 }
                             }
@@ -452,9 +451,9 @@ namespace HolidayShowServer
             DeviceCommand = deviceCommand;
         }
 
-        public MessageTypeIdEnum DeviceCommand { get; private set; }
+        public MessageTypeIdEnum DeviceCommand { get; }
 
-        public int DeviceId { get; private set; }
+        public int DeviceId { get; }
 
         public int OnAt { get; set; }
 
@@ -468,7 +467,7 @@ namespace HolidayShowServer
 
         public override string ToString()
         {
-            return string.Format("Dev: {0}; OnAt: {1}, CommandPin{2}", DeviceId, OnAt, CommandPin);
+            return $"Dev: {DeviceId}; OnAt: {OnAt}, CommandPin{CommandPin}";
         }
     }
 

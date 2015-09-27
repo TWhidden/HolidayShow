@@ -56,7 +56,7 @@
         <StackPanel Orientation="Vertical" Visibility="{Binding IsDeviceSelected, Converter={StaticResource VisibilityConverter}}" Grid.Column="1">
             <TextBox Text="{Binding DeviceSelected.Name, Mode=TwoWay}" Width="100" MaxLength="50"></TextBox>
 
-            <ListBox Background="{x:Null}" ItemsSource="{Binding DeviceIoPortsList}" ItemTemplate="{StaticResource DeviceIoSelectionTemplate}"></ListBox>
+            <ListBox Background="{x:Null}" ItemsSource="{Binding DeviceIoPorts}" ItemTemplate="{StaticResource DeviceIoSelectionTemplate}"></ListBox>
 
             
         </StackPanel>
@@ -102,7 +102,7 @@
                                 
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.DeviceSelected.DeviceIoPortsList, ElementName=LayoutRoot}" SelectedItem="{Binding DeviceIoPorts, Mode=TwoWay}" DisplayMemberPath="Description"></ComboBox>
+                                        <ComboBox ItemsSource="{Binding DataContext.DeviceSelected.DeviceIoPorts, ElementName=LayoutRoot}" SelectedItem="{Binding DeviceIoPorts, Mode=TwoWay}" DisplayMemberPath="Description"></ComboBox>
                                         
                                     </DataTemplate>    
                                 </DataGridTemplateColumn.CellEditingTemplate>
@@ -119,7 +119,7 @@
 
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.AudioOptionsList, ElementName=LayoutRoot}" SelectedItem="{Binding AudioOptions, Mode=TwoWay}" DisplayMemberPath="DisplayName"></ComboBox>
+                                        <ComboBox ItemsSource="{Binding DataContext.AudioOptions, ElementName=LayoutRoot}" SelectedItem="{Binding AudioOptions, Mode=TwoWay}" DisplayMemberPath="DisplayName"></ComboBox>
 
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>

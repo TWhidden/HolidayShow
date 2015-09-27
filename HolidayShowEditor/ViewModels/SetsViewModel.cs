@@ -61,7 +61,7 @@ namespace HolidayShowEditor.ViewModels
         public List<SetSequences> SetSequences { get
         {
             if (SetSelected == null) return null;
-            return SetSelected.SetSequencesList.OrderBy(x => x.OnAt).ToList();
+            return SetSelected.SetSequences.OrderBy(x => x.OnAt).ToList();
         } }
 
         public SetSequences SetSequenceSelected
@@ -82,7 +82,7 @@ namespace HolidayShowEditor.ViewModels
 
         private void OnCommandSave()
         {
-            _dataContext.Context.SubmitChanges();
+            _dataContext.Context.SaveChanges();
         }
 
         public List<DevicePatterns> DevicePatternsList { get
@@ -106,8 +106,8 @@ namespace HolidayShowEditor.ViewModels
                     OnAt = topNumber + 1000,
                 };
 
-            SetSelected.SetSequencesList.Add(newSetSequence);
-            _dataContext.Context.SubmitChanges();
+            SetSelected.SetSequences.Add(newSetSequence);
+            _dataContext.Context.SaveChanges();
             OnPropertyChanged(()=>SetSequences);
         }
 
@@ -115,9 +115,9 @@ namespace HolidayShowEditor.ViewModels
         {
             if (SetSequenceSelected == null) return;
 
-            _dataContext.Context.SetSequences.DeleteOnSubmit(SetSequenceSelected);
-            SetSelected.SetSequencesList.Remove(SetSequenceSelected);
-            _dataContext.Context.SubmitChanges();
+            _dataContext.Context.SetSequences.Remove(SetSequenceSelected);
+            SetSelected.SetSequences.Remove(SetSequenceSelected);
+            _dataContext.Context.SaveChanges();
             OnPropertyChanged(()=>SetSequences);
         }
 
@@ -129,8 +129,8 @@ namespace HolidayShowEditor.ViewModels
                     SetName = "**New Set",
                 };
 
-            _dataContext.Context.Sets.InsertOnSubmit(set);
-            _dataContext.Context.SubmitChanges();
+            _dataContext.Context.Sets.Add(set);
+            _dataContext.Context.SaveChanges();
             OnPropertyChanged(() => Sets);
         }
 
@@ -138,8 +138,8 @@ namespace HolidayShowEditor.ViewModels
         {
             if (SetSelected != null)
             {
-                _dataContext.Context.Sets.DeleteOnSubmit(SetSelected);
-                _dataContext.Context.SubmitChanges();
+                _dataContext.Context.Sets.Remove(SetSelected);
+                _dataContext.Context.SaveChanges();
                 OnPropertyChanged(() => Sets);
                 SetSelected = null;
             }
@@ -180,11 +180,11 @@ namespace HolidayShowEditor.ViewModels
                     OnAt = topNumber + (PatternExecuteIn * i),
                 };
 
-                SetSelected.SetSequencesList.Add(newSetSequence);
+                SetSelected.SetSequences.Add(newSetSequence);
             
             }
 
-            _dataContext.Context.SubmitChanges();
+            _dataContext.Context.SaveChanges();
 
             OnPropertyChanged(()=>SetSequences);
         }

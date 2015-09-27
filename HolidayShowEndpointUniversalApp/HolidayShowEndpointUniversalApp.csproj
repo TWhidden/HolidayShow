@@ -100,12 +100,20 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="BaseClasses\ViewModelBase.cs" />
-    <Compile Include="Containers\Client.cs" />
+    <Compile Include="Containers\FileDownloadClient.cs" />
+    <Compile Include="Containers\FileDownloadContainer.cs" />
+    <Compile Include="Containers\ProtocolClient.cs" />
+    <Compile Include="Containers\ClientLiveControl.cs" />
+    <Compile Include="Controllers\AudioRequestController.cs" />
+    <Compile Include="Controllers\AudioInstanceController.cs" />
+    <Compile Include="Controllers\AudioManagerController.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPageViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IServerDetails.cs" />
+    <Compile Include="Services\ServerDetails.cs" />
     <Compile Include="Storage\AppSettings.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +154,7 @@
       <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
