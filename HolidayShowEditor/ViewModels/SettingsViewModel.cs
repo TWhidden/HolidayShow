@@ -6,11 +6,9 @@ using System.Threading;
 using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
 using HolidayShowEditor.Services;
-using HolidayShowEditor.Views;
 
 namespace HolidayShowEditor.ViewModels
 {
-    //public class SettingsViewModel : ViewAttachedViewModelBase<ISettingsView>, ISettingsViewModel
     public class SettingsViewModel : ViewModelBase, ISettingsViewModel
     {
         private readonly IDbDataContext _dbDataContext;
@@ -28,7 +26,7 @@ namespace HolidayShowEditor.ViewModels
             _dbDataContext = dbDataContext;
             HeaderInfo = "Settings";
 
-            _refreshAndKeepAlive = new Timer((x) =>
+            _refreshAndKeepAlive = new Timer(x =>
             {
                 Refresh();
             }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));

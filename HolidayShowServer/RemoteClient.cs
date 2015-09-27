@@ -181,6 +181,8 @@ namespace HolidayShowServer
 
                         var fileRequested = message.MessageParts[ProtocolMessage.FILEDOWNLOAD];
 
+                        Console.WriteLine("File Requested {0}", fileRequested);
+
                         var combinedPath = Path.Combine(basePathSetting.ValueString, fileRequested);
 
                         // See if the requested file exists
@@ -206,6 +208,7 @@ namespace HolidayShowServer
 
         protected virtual void InvokeOnConnectionClosed()
         {
+            Console.WriteLine("Connction Closed.");
             EventHandler handler = OnConnectionClosed;
             if (handler != null) handler(this, EventArgs.Empty);
         }

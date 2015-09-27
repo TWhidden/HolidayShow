@@ -43,6 +43,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
             {
                 _tcs.SetResult(false);
             }
+
+            Disconnect(false);
         }
 
         protected override void NewConnectionEstablished()
@@ -59,6 +61,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
         protected override void ErrorDetected(Exception ex)
         {
             _tcs.SetResult(false);
+            Disconnect(false);
         }
 
         protected override void ResetReceived()

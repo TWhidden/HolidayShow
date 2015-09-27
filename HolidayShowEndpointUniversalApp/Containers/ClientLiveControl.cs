@@ -153,7 +153,14 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 {
                     var managerController = _resolverService.Resolve<IAudioManagerController>();
                     var controller = await managerController.RequestAndPlay(audioFile);
-                    RunningAudioFiles.Add(controller);
+                    if(controller != null)
+                    {
+                        controller.OnStop += ((s, e) =>
+                        {
+                            RunningAudioFiles.Remove(controller);
+                        });
+                        RunningAudioFiles.Add(controller);
+                    }
                 }
 
             }

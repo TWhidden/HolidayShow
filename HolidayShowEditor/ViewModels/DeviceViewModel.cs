@@ -151,14 +151,16 @@ namespace HolidayShowEditor.ViewModels
 
                 nextCommand = c.AudioOptions.AudioDuration > c.Duration ? +c.AudioOptions.AudioDuration : +c.Duration;
             }
+            var ioPort = DeviceSelected.DeviceIoPorts.First(x => x.CommandPin == -1);
+            var audio = _dataContext.Context.AudioOptions.First(x => x.Name == "NONE");
 
             DevicePatternSelected.DevicePatternSequences.Add(new DevicePatternSequences()
                 {
                     OnAt = nextCommand, 
                     Duration = 1000, 
-                    DeviceIoPorts = DeviceSelected.DeviceIoPorts.First(x => x.CommandPin == -1),
-                    AudioOptions = _dataContext.Context.AudioOptions.First(x => x.Name  == "NONE")
-                });
+                    DeviceIoPorts = ioPort,
+                    AudioOptions = audio
+            });
             OnPropertyChanged(() => DevicePatternSequences); // reloads in the ui.
 
         }

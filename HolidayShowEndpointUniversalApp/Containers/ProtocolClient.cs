@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using HolidayShowEndpointUniversalApp.Services;
@@ -18,7 +17,6 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         protected ProtocolClient(IServerDetails endPoint)
         {
-            CreateClientSocket();
             Parsers.Add(new ParserProtocolContainer(new byte[]{0x02}, new byte[]{0x03}, 1));
 
             _socketConnectArgs = new SocketAsyncEventArgs {RemoteEndPoint = endPoint.EndPoint };
@@ -32,7 +30,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
             _socketSendArgs = new SocketAsyncEventArgs();
             _socketSendArgs.Completed += SocketSendCompleted;
 
-            CreateConnection();
+            CreateClientSocket();
 
         }
 
@@ -41,20 +39,17 @@ namespace HolidayShowEndpointUniversalApp.Containers
             _client?.Dispose();
 
             _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        }
-
-
-        private void CreateConnection()
-        {
             _client.ConnectAsync(_socketConnectArgs);
         }
 
+
         private void SocketSendCompleted(object sender, SocketAsyncEventArgs e)
         {
-
+            if (_client.Connected) return;
+            Disconnect();
         }
 
-        private async void SocketConnectionCompleted(object sender, SocketAsyncEventArgs e)
+        private void SocketConnectionCompleted(object sender, SocketAsyncEventArgs e)
         {
             try
             {
@@ -70,10 +65,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 // let the implemented class know the connection is ready
                 NewConnectionEstablished();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //Console.WriteLine("Could not connect.. trying again...");
-                await Task.Delay(1000);
                 Disconnect();
             }
         }
@@ -82,7 +76,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
         {
             try
             {
-                if (e.BytesTransferred == 0)
+                if (e.BytesTransferred == 0 || !_client.Connected)
                 {
                     Disconnect();
                     return;
@@ -126,13 +120,16 @@ namespace HolidayShowEndpointUniversalApp.Containers
             _client.SendAsync(_socketSendArgs);
         }
 
-        public void Disconnect(bool recreate = true)
+        public async void Disconnect(bool recreate = true)
         {
             if(_client.Connected)
                 _client.Shutdown(SocketShutdown.Both);
 
-            if(recreate)
+            if (recreate)
+            {
+                await Task.Delay(1000);
                 CreateClientSocket();
+            }
         }
 
         public override void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)

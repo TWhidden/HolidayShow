@@ -95,6 +95,7 @@ namespace HolidayShowEditor.ViewModels
                     // get all the audio files
                     var files = Directory.EnumerateFiles(baseDirectory, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".m4a"));
                     
+                    List<string> availableFIles = new List<string>();
 
                     foreach (var file in files)
                     {
@@ -103,6 +104,7 @@ namespace HolidayShowEditor.ViewModels
                         {
                             fileName = fileName.Substring(1, fileName.Length - 1);
                         }
+                        availableFIles.Add(fileName);
                         ShellFile so = ShellFile.FromFilePath(file);
                         double nanoseconds;
                         double.TryParse(so.Properties.System.Media.Duration.Value.ToString(),
@@ -125,8 +127,29 @@ namespace HolidayShowEditor.ViewModels
                         }
 
                     }
+                    
+                    await _dbDataContext.Context.SaveChangesAsync();
 
-                    _dbDataContext.Context.SaveChanges();
+                    // Cleanup and remove (later may disable) the audio file that are missing
+                    // Ask the user if they would like to remove the missing files 
+                    var onesToRemove =
+                        _dbDataContext.Context.AudioOptions.Where(
+                            dbFile => availableFIles.All(aviailableFile => aviailableFile != dbFile.FileName) && !dbFile.IsNotVisable).ToList();
+
+                    var countToRemove = onesToRemove.Count;
+
+                    if (countToRemove > 0)
+                    {
+                        var messageBoxConfirm = MessageBox.Show($"Remove missing {countToRemove} entries?",
+                            $"Removing {countToRemove} will also modify patterns that use them",
+                            MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.OK);
+                        if (messageBoxConfirm == MessageBoxResult.OK)
+                        {
+                            _dbDataContext.Context.AudioOptions.RemoveRange(onesToRemove);
+                            await _dbDataContext.Context.SaveChangesAsync();
+                        }
+
+                    }
                 }
 
                 
