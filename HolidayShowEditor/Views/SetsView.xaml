@@ -59,7 +59,24 @@
 
             </DataGridTemplateColumn>
 
-           
+                <DataGridTemplateColumn Header="Effect">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DeviceEffects.EffectName}"></TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.EffectsList, ElementName=LayoutRoot, Mode=OneWay}" SelectedItem="{Binding DeviceEffects, Mode=TwoWay}" DisplayMemberPath="EffectName"></ComboBox>
+
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+
+
+                </DataGridTemplateColumn>
+
+
 
 
             </DataGrid.Columns>

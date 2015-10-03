@@ -26,14 +26,15 @@ namespace HolidayShow.Data
         }
     
         public virtual DbSet<AudioOptions> AudioOptions { get; set; }
-        public virtual DbSet<DeviceEffects> DeviceEffects { get; set; }
         public virtual DbSet<DeviceIoPorts> DeviceIoPorts { get; set; }
         public virtual DbSet<DevicePatterns> DevicePatterns { get; set; }
         public virtual DbSet<DevicePatternSequences> DevicePatternSequences { get; set; }
         public virtual DbSet<Devices> Devices { get; set; }
         public virtual DbSet<Sets> Sets { get; set; }
-        public virtual DbSet<SetSequences> SetSequences { get; set; }
         public virtual DbSet<Settings> Settings { get; set; }
         public virtual DbSet<Versions> Versions { get; set; }
+        public virtual DbSet<DeviceEffects> DeviceEffects { get; set; }
+        public virtual DbSet<EffectInstructionsAvailable> EffectInstructionsAvailable { get; set; }
+        public virtual DbSet<SetSequences> SetSequences { get; set; }
     }
 }

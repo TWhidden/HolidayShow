@@ -130,6 +130,7 @@
     <Compile Include="Services\IDbDataContext.cs" />
     <Compile Include="ViewModels\AudioFilesViewModel.cs" />
     <Compile Include="ViewModels\DeviceViewModel.cs" />
+    <Compile Include="ViewModels\EffectsViewModel.cs" />
     <Compile Include="ViewModels\IAudioFilesViewModel.cs" />
     <Compile Include="ViewModels\IDeviceViewModel.cs" />
     <Compile Include="ViewModels\ISetsViewModel.cs" />

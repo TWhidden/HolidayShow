@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using CodeSmith.Data.Collections;
 using CommandLine;
 using HolidayShow.Data;
 using HolidayShowLib;
@@ -280,53 +280,107 @@ namespace HolidayShowServer
                                   .FirstOrDefault();
 
                             // create the work load
-                            var list = new List<DeviceInstructions>();
+                            var deviceInstructions = new List<DeviceInstructions>();
 
                             foreach (var setSequence in setData.SetSequences.OrderBy(x => x.OnAt))
                             {
-                                var deviceId = setSequence.DevicePatterns.DeviceId;
+
+                                var deviceId = setSequence.DevicePatterns?.DeviceId;
+
                                 var startingOffset = setSequence.OnAt;
 
-                                foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequences)
+                                if (deviceId.HasValue)
                                 {
-                                    var onAt = startingOffset + pattern.OnAt;
-
-                                    var di = new DeviceInstructions(deviceId, MessageTypeIdEnum.EventControl)
+                                    foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequences)
                                     {
-                                        OnAt = onAt
-                                    };
+                                        var onAt = startingOffset + pattern.OnAt;
 
-                                    bool set = false;
-                                    if (!String.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName) && isAudioEnabled)
-                                    {
-                                        di.AudioFileName = pattern.AudioOptions.FileName;
-                                        di.AudioDuration = pattern.AudioOptions.AudioDuration;
-                                        set = true;
-                                    }
+                                        var di = new DeviceInstructions(deviceId.Value, MessageTypeIdEnum.EventControl)
+                                        {
+                                            OnAt = onAt
+                                        };
 
-                                    if (pattern.DeviceIoPorts != null && (!pattern.DeviceIoPorts.IsDanger || (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
-                                    {
-                                        di.CommandPin = pattern.DeviceIoPorts.CommandPin;
-                                        di.PinDuration = pattern.Duration;
-                                        set = true;
-                                    }
+                                        bool set = false;
+                                        if (pattern.DeviceIoPorts != null &&
+                                            (!pattern.DeviceIoPorts.IsDanger ||
+                                             (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
+                                        {
+                                            di.CommandPin = pattern.DeviceIoPorts.CommandPin;
+                                            di.PinDuration = pattern.Duration;
+                                            set = true;
+                                        }
 
-                                    if (set)
-                                    {
-                                        list.Add(di);
+                                        if (!string.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName) && isAudioEnabled)
+                                        {
+                                            di.AudioFileName = pattern.AudioOptions.FileName;
+                                            di.AudioDuration = pattern.AudioOptions.AudioDuration;
+                                            set = true;
+                                        }
+
+                                        if (set)
+                                        {
+                                            deviceInstructions.Add(di);
+                                        }
                                     }
                                 }
+
+                                // New Feature added 2015 - Effects
+                                // This is something more global, that will be controled at the server side
+                                // They are hard-coded effects. at this time, baked into the solution. Later, there may be
+                                // a plugable architecture but for the sake of time, this is all hard coded.
+
+                                if (setSequence.DeviceEffects != null)
+                                {
+                                    switch (setSequence.DeviceEffects.EffectInstructionsAvailable.InstructionName)
+                                    {
+                                        case EffectsSupported.GPIO_RANDOM:
+                                        {
+                                            var data = EffectRandom(setSequence);
+                                            if (data != null) deviceInstructions.AddRange(data);
+                                        }
+                                            break;
+                                        case EffectsSupported.GPIO_STROBE_SET_DURATION:
+                                        {
+                                            var l = new List<int> {0};
+
+                                            var audioTopDurration =
+                                                deviceInstructions.OrderByDescending(x => (x.OnAt + x.AudioDuration))
+                                                    .Select(x => (x.OnAt + x.AudioDuration))
+                                                    .FirstOrDefault();
+                                                if(audioTopDurration.HasValue)
+                                                    l.Add(audioTopDurration.Value);
+
+                                            var pinTopDurration =
+                                                deviceInstructions.OrderByDescending(x => (x.OnAt + x.PinDuration))
+                                                    .Select(x => (x.OnAt + x.PinDuration))
+                                                    .FirstOrDefault();
+
+                                            if (pinTopDurration.HasValue)
+                                                l.Add(pinTopDurration.Value);
+
+                                            var endOfFullSet = l.Max();
+
+                                                Console.WriteLine("Effect {0} detected end of set in {1}ms", EffectsSupported.GPIO_STROBE_SET_DURATION, endOfFullSet);
+
+                                            var data = EffectStrobe(setSequence, endOfFullSet);
+                                            if (data != null) deviceInstructions.AddRange(data);
+                                        }
+
+                                            break;
+                                    }
+                                }
+
                             }
 
                             // once we have a list of to-dos, create the timers to start the sequence.
 
                             int topDuration = 0;
 
-                            if (list.Count != 0)
+                            if (deviceInstructions.Count != 0)
                             {
-                                for (int index = 0; index < list.Count; index++)
+                                for (int index = 0; index < deviceInstructions.Count; index++)
                                 {
-                                    var di = list[index];
+                                    var di = deviceInstructions[index];
                                     {
                                         var audioTop = di.AudioDuration ?? 0;
                                         var pinTop = di.PinDuration ?? 0;
@@ -367,7 +421,7 @@ namespace HolidayShowServer
                                         // Tracks the timer, just incase we need to cancel everything.
                                         QueuedTimers.TryAdd(timerStart, true);
                                     }
-                                    if (index == list.Count - 1)
+                                    if (index == deviceInstructions.Count - 1)
                                     {
                                         // setup the timer to say the set is not executing.
                                         Timer stoppedTimer = null;
@@ -406,9 +460,216 @@ namespace HolidayShowServer
                     setExecuting = false;
                 }
             }
+        }
 
+        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+
+            const string KEY_DUR = "DUR=";
+            const string KEY_DEVPINS = "DEVPINS=";
+
+            var dataChunks = setSequence.DeviceEffects.InstructionMetaData.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
+            var durationStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DUR));
+
+
+            if (string.IsNullOrWhiteSpace(devPinsStr) || string.IsNullOrWhiteSpace(durationStr))
+            {
+                Console.WriteLine("Invalid Effect MetaData. Must be formatted like DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50");
+                return null;
+            }
+
+            // Parse out the durration
+            int duration;
+            if(!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
+            {
+                Console.WriteLine("Invalid duration: " + durationStr);
+                return null;
+            }
+
+            var subDevPisn = devPinsStr.Replace(KEY_DEVPINS, "");
+            var subDevPinAry = subDevPisn.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+            List<KeyValuePair<int, int>> devicesAndKey = new List<KeyValuePair<int, int>>();
+            foreach (var kv in subDevPinAry)
+            {
+                var devIdPin = kv.Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+                if (devIdPin.Length != 2)
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device:Pin. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+                int deviceId;
+                int gpioPinId;
+
+                if (!int.TryParse(devIdPin[0], out deviceId))
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+
+                if (!int.TryParse(devIdPin[1], out gpioPinId))
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid GpioPin. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+
+                devicesAndKey.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
+            }
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can now randomize them
+            // and build up the list that we will return
+
+            // Shuffle the list for random
+            devicesAndKey.Shuffle();
+
+            // Devide up the desired duration by the number of items
+            // for an even distribution 
+            var onAtSplit = (setSequence.DeviceEffects.Duration/devicesAndKey.Count);
+
+            var list = new List<DeviceInstructions>();
+
+            for (int index = 0; index < devicesAndKey.Count; index++)
+            {
+                var dk = devicesAndKey[index];
+                var onAt = setSequence.OnAt + (onAtSplit * index);
+
+                var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                {
+                    OnAt = onAt
+                };
+
+                bool set = false;
+                //if (pattern.DeviceIoPorts != null &&
+                //    (!pattern.DeviceIoPorts.IsDanger || (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
+                //{
+                    di.CommandPin = dk.Value;
+                    di.PinDuration = duration;
+                //}
+                list.Add(di);
+            }
+            return list;
+        }
+
+        private static List<DeviceInstructions> EffectStrobe(SetSequences setSequence, int? setDurrationMs)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+
+            const string KEY_DUR = "DUR=";
+            const string KEY_DEVPINS = "DEVPINS=";
+
+            var dataChunks = setSequence.DeviceEffects.InstructionMetaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
+            var durationStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DUR));
+
+
+            if (string.IsNullOrWhiteSpace(devPinsStr) || string.IsNullOrWhiteSpace(durationStr))
+            {
+                Console.WriteLine("Invalid Effect MetaData. Must be formatted like DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50");
+                return null;
+            }
+
+            // Parse out the durration
+            int duration;
+            if (!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
+            {
+                Console.WriteLine("Invalid duration: " + durationStr);
+                return null;
+            }
+
+            var subDevPisn = devPinsStr.Replace(KEY_DEVPINS, "");
+            var subDevPinAry = subDevPisn.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            List<KeyValuePair<int, int>> devicesAndKey = new List<KeyValuePair<int, int>>();
+            foreach (var kv in subDevPinAry)
+            {
+                var devIdPin = kv.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                if (devIdPin.Length != 2)
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device:Pin. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+                int deviceId;
+                int gpioPinId;
+
+                if (!int.TryParse(devIdPin[0], out deviceId))
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+
+                if (!int.TryParse(devIdPin[1], out gpioPinId))
+                {
+                    Console.WriteLine("Warning Effect ID {0} Has Invalid GpioPin. Input received: {1} - Skipping",
+                        setSequence.DeviceEffects.EffectId, kv);
+                    continue;
+                }
+
+                devicesAndKey.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
+            }
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can now randomize them
+            // and build up the list that we will return
+
+            // Devide up the desired duration by the number of items
+            // for an even distribution 
+            //var onAtSplit = (setSequence.DeviceEffects.Duration / devicesAndKey.Count);
+
+            var startingPoint = setSequence.OnAt;
+            //var endingPoint = startingPoint;
+
+            //if (setSequence.DevicePatterns != null)
+            //{
+            //    var devicePatternEndsIn =
+            //        setSequence.DevicePatterns.DevicePatternSequences.OrderByDescending(x => x.OnAt + x.Duration)
+            //            .Select(x => x.OnAt + x.Duration)
+            //            .FirstOrDefault();
+
+            //    var audioPatternEndsIn = setSequence.DevicePatterns.DevicePatternSequences.Where(x => x.AudioOptions.AudioDuration > 0).OrderByDescending(x => x.OnAt + x.Duration)
+            //            .Select(x => x.OnAt + x.AudioOptions.AudioDuration)
+            //            .FirstOrDefault();
+
+            //    endingPoint = Math.Max(devicePatternEndsIn, audioPatternEndsIn);
+            //}
+
+            var list = new List<DeviceInstructions>();
+
+            while (startingPoint < setDurrationMs)
+            {
+                for (int index = 0; index < devicesAndKey.Count; index++)
+                {
+                    var dk = devicesAndKey[index];
+
+                    var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                    {
+                        OnAt = startingPoint,
+                        CommandPin = dk.Value,
+                        PinDuration = duration
+                    };
+
+                    list.Add(di);
+                }
+
+                startingPoint = startingPoint + (duration * 2);
+            }
             
-            
+            return list;
         }
 
         private static void SendInstruction(DeviceInstructions de)
@@ -468,6 +729,31 @@ namespace HolidayShowServer
         public override string ToString()
         {
             return $"Dev: {DeviceId}; OnAt: {OnAt}, CommandPin{CommandPin}";
+        }
+    }
+
+
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic]
+        private static Random Local;
+
+        public static Random ThisThreadsRandom => Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId)));
+    }
+
+    static class MyExtensions
+    {
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            var n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                var k = ThreadSafeRandom.ThisThreadsRandom.Next(n + 1);
+                var value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
     }
 

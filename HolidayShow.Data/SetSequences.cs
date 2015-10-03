@@ -17,8 +17,10 @@ namespace HolidayShow.Data
         public int SetSequenceId { get; set; }
         public int SetId { get; set; }
         public int OnAt { get; set; }
-        public int DevicePatternId { get; set; }
+        public Nullable<int> DevicePatternId { get; set; }
+        public Nullable<int> EffectId { get; set; }
     
+        public virtual DeviceEffects DeviceEffects { get; set; }
         public virtual DevicePatterns DevicePatterns { get; set; }
         public virtual Sets Sets { get; set; }
     }

@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="HolidayShow.Data.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="HolidayShow.Data.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="AudioOptions">
           <Key>
             <PropertyRef Name="AudioId" />
@@ -21,8 +21,9 @@
           </Key>
           <Property Name="EffectId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="EffectName" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="InstructionName" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="InstructionMetaData" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="InstructionMetaData" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Duration" Type="int" Nullable="false" />
+          <Property Name="EffectInstructionId" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="DeviceIoPorts">
           <Key>
@@ -61,6 +62,16 @@
           <Property Name="DeviceId" Type="int" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
         </EntityType>
+        <EntityType Name="EffectInstructionsAvailable">
+          <Key>
+            <PropertyRef Name="EffectInstructionId" />
+          </Key>
+          <Property Name="EffectInstructionId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DisplayName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="InstructionName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="InstructionsForUse" Type="nvarchar" MaxLength="2000" Nullable="false" />
+          <Property Name="IsDisabled" Type="bit" Nullable="false" />
+        </EntityType>
         <EntityType Name="Sets">
           <Key>
             <PropertyRef Name="SetId" />
@@ -76,7 +87,8 @@
           <Property Name="SetSequenceId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="SetId" Type="int" Nullable="false" />
           <Property Name="OnAt" Type="int" Nullable="false" />
-          <Property Name="DevicePatternId" Type="int" Nullable="false" />
+          <Property Name="DevicePatternId" Type="int" />
+          <Property Name="EffectId" Type="int" />
         </EntityType>
         <EntityType Name="Settings">
           <Key>
@@ -93,6 +105,18 @@
           <Property Name="VersionNumber" Type="int" Nullable="false" />
           <Property Name="DateUpdated" Type="datetime" Nullable="false" />
         </EntityType>
+        <Association Name="FK_DeviceEffects_EffectInstructionsAvailable">
+          <End Role="EffectInstructionsAvailable" Type="Self.EffectInstructionsAvailable" Multiplicity="1" />
+          <End Role="DeviceEffects" Type="Self.DeviceEffects" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EffectInstructionsAvailable">
+              <PropertyRef Name="EffectInstructionId" />
+            </Principal>
+            <Dependent Role="DeviceEffects">
+              <PropertyRef Name="EffectInstructionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_DeviceIoPorts_Devices">
           <End Role="Devices" Type="Self.Devices" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -161,10 +185,20 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_SetSequences_DeviceEffects">
+          <End Role="DeviceEffects" Type="Self.DeviceEffects" Multiplicity="0..1" />
+          <End Role="SetSequences" Type="Self.SetSequences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DeviceEffects">
+              <PropertyRef Name="EffectId" />
+            </Principal>
+            <Dependent Role="SetSequences">
+              <PropertyRef Name="EffectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_SetSequences_DevicePatterns">
-          <End Role="DevicePatterns" Type="Self.DevicePatterns" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="DevicePatterns" Type="Self.DevicePatterns" Multiplicity="0..1" />
           <End Role="SetSequences" Type="Self.SetSequences" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="DevicePatterns">
@@ -196,10 +230,15 @@
           <EntitySet Name="DevicePatterns" EntityType="Self.DevicePatterns" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DevicePatternSequences" EntityType="Self.DevicePatternSequences" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Devices" EntityType="Self.Devices" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="EffectInstructionsAvailable" EntityType="Self.EffectInstructionsAvailable" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Sets" EntityType="Self.Sets" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SetSequences" EntityType="Self.SetSequences" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Settings" EntityType="Self.Settings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Versions" EntityType="Self.Versions" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_DeviceEffects_EffectInstructionsAvailable" Association="Self.FK_DeviceEffects_EffectInstructionsAvailable">
+            <End Role="EffectInstructionsAvailable" EntitySet="EffectInstructionsAvailable" />
+            <End Role="DeviceEffects" EntitySet="DeviceEffects" />
+          </AssociationSet>
           <AssociationSet Name="FK_DeviceIoPorts_Devices" Association="Self.FK_DeviceIoPorts_Devices">
             <End Role="Devices" EntitySet="Devices" />
             <End Role="DeviceIoPorts" EntitySet="DeviceIoPorts" />
@@ -220,6 +259,10 @@
             <End Role="DevicePatterns" EntitySet="DevicePatterns" />
             <End Role="DevicePatternSequences" EntitySet="DevicePatternSequences" />
           </AssociationSet>
+          <AssociationSet Name="FK_SetSequences_DeviceEffects" Association="Self.FK_SetSequences_DeviceEffects">
+            <End Role="DeviceEffects" EntitySet="DeviceEffects" />
+            <End Role="SetSequences" EntitySet="SetSequences" />
+          </AssociationSet>
           <AssociationSet Name="FK_SetSequences_DevicePatterns" Association="Self.FK_SetSequences_DevicePatterns">
             <End Role="DevicePatterns" EntitySet="DevicePatterns" />
             <End Role="SetSequences" EntitySet="SetSequences" />
@@ -229,8 +272,7 @@
             <End Role="SetSequences" EntitySet="SetSequences" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="HolidayShow.Data" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -244,15 +286,6 @@
           <Property Name="AudioDuration" Type="Int32" Nullable="false" />
           <Property Name="IsNotVisable" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="DevicePatternSequences" Relationship="Self.FK_DevicePatternSequences_AudioOptions1" FromRole="AudioOptions" ToRole="DevicePatternSequences" />
-        </EntityType>
-        <EntityType Name="DeviceEffects">
-          <Key>
-            <PropertyRef Name="EffectId" />
-          </Key>
-          <Property Name="EffectId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EffectName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="InstructionName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="InstructionMetaData" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
         </EntityType>
         <EntityType Name="DeviceIoPorts">
           <Key>
@@ -276,7 +309,7 @@
           <Property Name="PatternName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="Devices" Relationship="Self.FK_DevicePatterns_Devices" FromRole="DevicePatterns" ToRole="Devices" />
           <NavigationProperty Name="DevicePatternSequences" Relationship="Self.FK_DevicePatternSequences_DevicePatterns" FromRole="DevicePatterns" ToRole="DevicePatternSequences" />
-          <NavigationProperty Name="SetSequences" Relationship="Self.FK_SetSequences_DevicePatterns" FromRole="DevicePatterns" ToRole="SetSequences" />
+          <NavigationProperty Name="SetSequences" Relationship="HolidayShow.Data.FK_SetSequences_DevicePatterns" FromRole="DevicePatterns" ToRole="SetSequences" />
         </EntityType>
         <EntityType Name="DevicePatternSequences">
           <Key>
@@ -308,18 +341,7 @@
           <Property Name="SetId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="SetName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="IsDisabled" Type="Boolean" Nullable="false" />
-          <NavigationProperty Name="SetSequences" Relationship="Self.FK_SetSequences_Sets" FromRole="Sets" ToRole="SetSequences" />
-        </EntityType>
-        <EntityType Name="SetSequences">
-          <Key>
-            <PropertyRef Name="SetSequenceId" />
-          </Key>
-          <Property Name="SetSequenceId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="SetId" Type="Int32" Nullable="false" />
-          <Property Name="OnAt" Type="Int32" Nullable="false" />
-          <Property Name="DevicePatternId" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="DevicePatterns" Relationship="Self.FK_SetSequences_DevicePatterns" FromRole="SetSequences" ToRole="DevicePatterns" />
-          <NavigationProperty Name="Sets" Relationship="Self.FK_SetSequences_Sets" FromRole="SetSequences" ToRole="Sets" />
+          <NavigationProperty Name="SetSequences" Relationship="HolidayShow.Data.FK_SetSequences_Sets" FromRole="Sets" ToRole="SetSequences" />
         </EntityType>
         <EntityType Name="Settings">
           <Key>
@@ -404,43 +426,13 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_SetSequences_DevicePatterns">
-          <End Role="DevicePatterns" Type="Self.DevicePatterns" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="SetSequences" Type="Self.SetSequences" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="DevicePatterns">
-              <PropertyRef Name="DevicePatternId" />
-            </Principal>
-            <Dependent Role="SetSequences">
-              <PropertyRef Name="DevicePatternId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_SetSequences_Sets">
-          <End Role="Sets" Type="Self.Sets" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="SetSequences" Type="Self.SetSequences" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Sets">
-              <PropertyRef Name="SetId" />
-            </Principal>
-            <Dependent Role="SetSequences">
-              <PropertyRef Name="SetId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="EfHolidayContext" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="AudioOptions" EntityType="Self.AudioOptions" />
-          <EntitySet Name="DeviceEffects" EntityType="Self.DeviceEffects" />
           <EntitySet Name="DeviceIoPorts" EntityType="Self.DeviceIoPorts" />
           <EntitySet Name="DevicePatterns" EntityType="Self.DevicePatterns" />
           <EntitySet Name="DevicePatternSequences" EntityType="Self.DevicePatternSequences" />
           <EntitySet Name="Devices" EntityType="Self.Devices" />
           <EntitySet Name="Sets" EntityType="Self.Sets" />
-          <EntitySet Name="SetSequences" EntityType="Self.SetSequences" />
           <EntitySet Name="Settings" EntityType="Self.Settings" />
           <EntitySet Name="Versions" EntityType="Self.Versions" />
           <AssociationSet Name="FK_DevicePatternSequences_AudioOptions1" Association="Self.FK_DevicePatternSequences_AudioOptions1">
@@ -463,16 +455,113 @@
             <End Role="DevicePatterns" EntitySet="DevicePatterns" />
             <End Role="DevicePatternSequences" EntitySet="DevicePatternSequences" />
           </AssociationSet>
-          <AssociationSet Name="FK_SetSequences_DevicePatterns" Association="Self.FK_SetSequences_DevicePatterns">
+          <EntitySet Name="DeviceEffects" EntityType="HolidayShow.Data.DeviceEffects" />
+          <EntitySet Name="EffectInstructionsAvailable" EntityType="HolidayShow.Data.EffectInstructionsAvailable" />
+          <EntitySet Name="SetSequences" EntityType="HolidayShow.Data.SetSequences" />
+          <AssociationSet Name="FK_DeviceEffects_EffectInstructionsAvailable" Association="HolidayShow.Data.FK_DeviceEffects_EffectInstructionsAvailable">
+            <End Role="EffectInstructionsAvailable" EntitySet="EffectInstructionsAvailable" />
+            <End Role="DeviceEffects" EntitySet="DeviceEffects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SetSequences_DeviceEffects" Association="HolidayShow.Data.FK_SetSequences_DeviceEffects">
+            <End Role="DeviceEffects" EntitySet="DeviceEffects" />
+            <End Role="SetSequences" EntitySet="SetSequences" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SetSequences_DevicePatterns" Association="HolidayShow.Data.FK_SetSequences_DevicePatterns">
             <End Role="DevicePatterns" EntitySet="DevicePatterns" />
             <End Role="SetSequences" EntitySet="SetSequences" />
           </AssociationSet>
-          <AssociationSet Name="FK_SetSequences_Sets" Association="Self.FK_SetSequences_Sets">
+          <AssociationSet Name="FK_SetSequences_Sets" Association="HolidayShow.Data.FK_SetSequences_Sets">
             <End Role="Sets" EntitySet="Sets" />
             <End Role="SetSequences" EntitySet="SetSequences" />
           </AssociationSet>
-        </EntityContainer>
-      </Schema>
+          </EntityContainer>
+        <EntityType Name="DeviceEffects">
+          <Key>
+            <PropertyRef Name="EffectId" />
+          </Key>
+          <Property Name="EffectId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EffectName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InstructionMetaData" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Duration" Type="Int32" Nullable="false" />
+          <Property Name="EffectInstructionId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="EffectInstructionsAvailable" Relationship="HolidayShow.Data.FK_DeviceEffects_EffectInstructionsAvailable" FromRole="DeviceEffects" ToRole="EffectInstructionsAvailable" />
+          <NavigationProperty Name="SetSequences" Relationship="HolidayShow.Data.FK_SetSequences_DeviceEffects" FromRole="DeviceEffects" ToRole="SetSequences" />
+        </EntityType>
+        <EntityType Name="EffectInstructionsAvailable">
+          <Key>
+            <PropertyRef Name="EffectInstructionId" />
+          </Key>
+          <Property Name="EffectInstructionId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DisplayName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InstructionName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="InstructionsForUse" Type="String" Nullable="false" MaxLength="2000" FixedLength="false" Unicode="true" />
+          <Property Name="IsDisabled" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="DeviceEffects" Relationship="HolidayShow.Data.FK_DeviceEffects_EffectInstructionsAvailable" FromRole="EffectInstructionsAvailable" ToRole="DeviceEffects" />
+        </EntityType>
+        <EntityType Name="SetSequences">
+          <Key>
+            <PropertyRef Name="SetSequenceId" />
+          </Key>
+          <Property Name="SetSequenceId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SetId" Type="Int32" Nullable="false" />
+          <Property Name="OnAt" Type="Int32" Nullable="false" />
+          <Property Name="DevicePatternId" Type="Int32" />
+          <Property Name="EffectId" Type="Int32" />
+          <NavigationProperty Name="DeviceEffects" Relationship="HolidayShow.Data.FK_SetSequences_DeviceEffects" FromRole="SetSequences" ToRole="DeviceEffects" />
+          <NavigationProperty Name="DevicePatterns" Relationship="HolidayShow.Data.FK_SetSequences_DevicePatterns" FromRole="SetSequences" ToRole="DevicePatterns" />
+          <NavigationProperty Name="Sets" Relationship="HolidayShow.Data.FK_SetSequences_Sets" FromRole="SetSequences" ToRole="Sets" />
+        </EntityType>
+        <Association Name="FK_DeviceEffects_EffectInstructionsAvailable">
+          <End Type="HolidayShow.Data.EffectInstructionsAvailable" Role="EffectInstructionsAvailable" Multiplicity="1" />
+          <End Type="HolidayShow.Data.DeviceEffects" Role="DeviceEffects" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EffectInstructionsAvailable">
+              <PropertyRef Name="EffectInstructionId" />
+            </Principal>
+            <Dependent Role="DeviceEffects">
+              <PropertyRef Name="EffectInstructionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SetSequences_DeviceEffects">
+          <End Type="HolidayShow.Data.DeviceEffects" Role="DeviceEffects" Multiplicity="0..1" />
+          <End Type="HolidayShow.Data.SetSequences" Role="SetSequences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DeviceEffects">
+              <PropertyRef Name="EffectId" />
+            </Principal>
+            <Dependent Role="SetSequences">
+              <PropertyRef Name="EffectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SetSequences_DevicePatterns">
+          <End Type="HolidayShow.Data.DevicePatterns" Role="DevicePatterns" Multiplicity="0..1" />
+          <End Type="HolidayShow.Data.SetSequences" Role="SetSequences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DevicePatterns">
+              <PropertyRef Name="DevicePatternId" />
+            </Principal>
+            <Dependent Role="SetSequences">
+              <PropertyRef Name="DevicePatternId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SetSequences_Sets">
+          <End Type="HolidayShow.Data.Sets" Role="Sets" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="HolidayShow.Data.SetSequences" Role="SetSequences" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Sets">
+              <PropertyRef Name="SetId" />
+            </Principal>
+            <Dependent Role="SetSequences">
+              <PropertyRef Name="SetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
@@ -486,16 +575,6 @@
                 <ScalarProperty Name="FileName" ColumnName="FileName" />
                 <ScalarProperty Name="AudioDuration" ColumnName="AudioDuration" />
                 <ScalarProperty Name="IsNotVisable" ColumnName="IsNotVisable" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="DeviceEffects">
-            <EntityTypeMapping TypeName="HolidayShow.Data.DeviceEffects">
-              <MappingFragment StoreEntitySet="DeviceEffects">
-                <ScalarProperty Name="EffectId" ColumnName="EffectId" />
-                <ScalarProperty Name="EffectName" ColumnName="EffectName" />
-                <ScalarProperty Name="InstructionName" ColumnName="InstructionName" />
-                <ScalarProperty Name="InstructionMetaData" ColumnName="InstructionMetaData" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -549,16 +628,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="SetSequences">
-            <EntityTypeMapping TypeName="HolidayShow.Data.SetSequences">
-              <MappingFragment StoreEntitySet="SetSequences">
-                <ScalarProperty Name="SetSequenceId" ColumnName="SetSequenceId" />
-                <ScalarProperty Name="SetId" ColumnName="SetId" />
-                <ScalarProperty Name="OnAt" ColumnName="OnAt" />
-                <ScalarProperty Name="DevicePatternId" ColumnName="DevicePatternId" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Settings">
             <EntityTypeMapping TypeName="HolidayShow.Data.Settings">
               <MappingFragment StoreEntitySet="Settings">
@@ -573,6 +642,39 @@
               <MappingFragment StoreEntitySet="Versions">
                 <ScalarProperty Name="VersionNumber" ColumnName="VersionNumber" />
                 <ScalarProperty Name="DateUpdated" ColumnName="DateUpdated" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DeviceEffects">
+            <EntityTypeMapping TypeName="HolidayShow.Data.DeviceEffects">
+              <MappingFragment StoreEntitySet="DeviceEffects">
+                <ScalarProperty Name="EffectInstructionId" ColumnName="EffectInstructionId" />
+                <ScalarProperty Name="Duration" ColumnName="Duration" />
+                <ScalarProperty Name="InstructionMetaData" ColumnName="InstructionMetaData" />
+                <ScalarProperty Name="EffectName" ColumnName="EffectName" />
+                <ScalarProperty Name="EffectId" ColumnName="EffectId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EffectInstructionsAvailable">
+            <EntityTypeMapping TypeName="HolidayShow.Data.EffectInstructionsAvailable">
+              <MappingFragment StoreEntitySet="EffectInstructionsAvailable">
+                <ScalarProperty Name="IsDisabled" ColumnName="IsDisabled" />
+                <ScalarProperty Name="InstructionsForUse" ColumnName="InstructionsForUse" />
+                <ScalarProperty Name="InstructionName" ColumnName="InstructionName" />
+                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
+                <ScalarProperty Name="EffectInstructionId" ColumnName="EffectInstructionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SetSequences">
+            <EntityTypeMapping TypeName="HolidayShow.Data.SetSequences">
+              <MappingFragment StoreEntitySet="SetSequences">
+                <ScalarProperty Name="EffectId" ColumnName="EffectId" />
+                <ScalarProperty Name="DevicePatternId" ColumnName="DevicePatternId" />
+                <ScalarProperty Name="OnAt" ColumnName="OnAt" />
+                <ScalarProperty Name="SetId" ColumnName="SetId" />
+                <ScalarProperty Name="SetSequenceId" ColumnName="SetSequenceId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

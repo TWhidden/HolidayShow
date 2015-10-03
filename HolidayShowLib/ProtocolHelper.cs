@@ -79,4 +79,10 @@ namespace HolidayShowLib
             return message;
         }
     }
+
+    public sealed class EffectsSupported
+    {
+        public const string GPIO_RANDOM = "GPIO_RANDOM";
+        public const string GPIO_STROBE_SET_DURATION = "GPIO_STROBE_SET_LENGTH";
+    }
 }

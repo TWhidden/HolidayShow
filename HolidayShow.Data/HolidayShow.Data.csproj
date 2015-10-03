@@ -75,6 +75,9 @@
     <Compile Include="Devices.cs">
       <DependentUpon>HolidayShow.tt</DependentUpon>
     </Compile>
+    <Compile Include="EffectInstructionsAvailable.cs">
+      <DependentUpon>HolidayShow.tt</DependentUpon>
+    </Compile>
     <Compile Include="HolidayShow.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

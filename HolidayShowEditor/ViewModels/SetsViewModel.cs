@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
-using HolidayShowEditor.Interfaces;
 using HolidayShowEditor.Services;
-using HolidayShowEditor.Views;
 using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEditor.ViewModels
@@ -91,10 +86,19 @@ namespace HolidayShowEditor.ViewModels
             return list;
         } }
 
+        public List<DeviceEffects> EffectsList
+        {
+            get
+            {
+                var list = _dataContext.Context.DeviceEffects.ToList().OrderBy(x => x.EffectName).ToList();
+                return list;
+            }
+        }
+
         private void OnCommandAddPattern()
         {
             if (SetSelected == null) return;
-            if (!_dataContext.Context.DevicePatterns.Any()) return;
+            //if (!_dataContext.Context.DevicePatterns.Any()) return;
 
 
             // create at the end, one second after everyone.
@@ -102,9 +106,10 @@ namespace HolidayShowEditor.ViewModels
 
             var newSetSequence = new SetSequences()
                 {
-                    DevicePatterns = _dataContext.Context.DevicePatterns.First(),
+                    //DevicePatterns = _dataContext.Context.DevicePatterns.First(),
                     OnAt = topNumber + 1000,
                 };
+
 
             SetSelected.SetSequences.Add(newSetSequence);
             _dataContext.Context.SaveChanges();
