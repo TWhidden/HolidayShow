@@ -1,32 +1,12 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using FirstFloor.ModernUI.Presentation;
-using FirstFloor.ModernUI.Windows.Controls;
-using HolidayShowEditor.Controllers;
-using Microsoft.Practices.Prism.Events;
-using Microsoft.Practices.Unity;
+﻿using FirstFloor.ModernUI.Windows.Controls;
 
 namespace HolidayShowEditor
 {
     public partial class ShellWindow : ModernWindow
     {
-        private readonly IEventAggregator _eventAggregator;
-        private readonly IUnityContainer _container;
-
-
-        public ShellWindow(IEventAggregator eventAggregator, IUnityContainer container)
+        public ShellWindow()
         {
-            _eventAggregator = eventAggregator;
-            _container = container;
             InitializeComponent();
-
-            
         }
-
     }
 }

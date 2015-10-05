@@ -133,6 +133,7 @@
     <Compile Include="ViewModels\EffectsViewModel.cs" />
     <Compile Include="ViewModels\IAudioFilesViewModel.cs" />
     <Compile Include="ViewModels\IDeviceViewModel.cs" />
+    <Compile Include="ViewModels\IEffectsViewModel.cs" />
     <Compile Include="ViewModels\ISetsViewModel.cs" />
     <Compile Include="ViewModels\ISettingsViewModel.cs" />
     <Compile Include="ViewModels\IViewModel.cs" />
@@ -144,8 +145,12 @@
     <Compile Include="Views\DeviceView.xaml.cs">
       <DependentUpon>DeviceView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\EffectsView.xaml.cs">
+      <DependentUpon>EffectsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\IAudioFilesView.cs" />
     <Compile Include="Views\IDeviceView.cs" />
+    <Compile Include="Views\IEffectsView.cs" />
     <Compile Include="Views\ISetsView.cs" />
     <Compile Include="Views\ISettingsView.cs" />
     <Compile Include="Views\IView.cs" />
@@ -176,6 +181,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\DeviceView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EffectsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

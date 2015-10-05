@@ -6,12 +6,10 @@ using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
 using HolidayShowEditor.Interfaces;
 using HolidayShowEditor.Services;
-using HolidayShowEditor.Views;
 using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEditor.ViewModels
 {
-    //public class DeviceViewModel : ViewAttachedViewModelBase<IDeviceView>, IDeviceViewModel, IHeaderedViewModel 
     public class DeviceViewModel : ViewModelBase, IDeviceViewModel, IHeaderedViewModel 
     {
         private readonly IDbDataContext _dataContext;
@@ -36,7 +34,7 @@ namespace HolidayShowEditor.ViewModels
 
         public object HeaderInfo { get; set; }
 
-        public ObservableCollection<HolidayShow.Data.Devices> Devices { get; set; }
+        public ObservableCollection<Devices> Devices { get; set; }
 
         public void LoadDevices()
         {
@@ -60,9 +58,8 @@ namespace HolidayShowEditor.ViewModels
 
         public List<DeviceIoPorts>  DeviceIoPorts
         {
-            get { if (DeviceSelected == null) return null;
-
-                return DeviceSelected.DeviceIoPorts.Where(x => !x.IsNotVisable).OrderBy(x => x.CommandPin).ToList();
+            get {
+                return DeviceSelected?.DeviceIoPorts.Where(x => !x.IsNotVisable).OrderBy(x => x.CommandPin).ToList();
             }
         }
 
@@ -70,11 +67,7 @@ namespace HolidayShowEditor.ViewModels
         {
             get
             {
-                if (DeviceSelected != null)
-                {
-                    return DeviceSelected.DevicePatterns.OrderBy(x => x.PatternName).ToList();
-                }
-                return null;
+                return DeviceSelected?.DevicePatterns.OrderBy(x => x.PatternName).ToList();
             }
         }
 
@@ -82,11 +75,7 @@ namespace HolidayShowEditor.ViewModels
         {
             get
             {
-                if (DevicePatternSelected != null)
-                {
-                    return DevicePatternSelected.DevicePatternSequences.OrderBy(x => x.OnAt).ToList();
-                }
-                return null;
+                return DevicePatternSelected?.DevicePatternSequences.OrderBy(x => x.OnAt).ToList();
             }
         }
 

@@ -9,6 +9,8 @@
         public const string CurrentSet = "CurrentSet";
         public const string OnAt = "TimeOnAt";
         public const string OffAt = "TimeOffAt";
+        public const string AudioOnAt = "AudioTimeOnAt";
+        public const string AudioOffAt = "AudioTimeOffAt";
         public const string IsDanagerEnabled = "IsDangerEnabled";
         public const string IsAudioEnabled = "IsAudioEnabled";
         public const string FileBasePath = "FileBasePath";

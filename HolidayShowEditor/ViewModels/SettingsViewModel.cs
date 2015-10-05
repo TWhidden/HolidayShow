@@ -199,6 +199,59 @@ namespace HolidayShowEditor.ViewModels
             }
         }
 
+        public string AudioOnAt
+        {
+            get
+            {
+                var option = _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.AudioOnAt)
+                                  .Select(x => x.ValueString)
+                                  .FirstOrDefault();
+                return option;
+            }
+            set
+            {
+                var option = _dbDataContext.Context.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
+                if (option == null)
+                {
+                    option = new Settings()
+                    {
+                        SettingName = SettingKeys.AudioOnAt,
+                        ValueString = string.Empty
+                    };
+                    _dbDataContext.Context.Settings.Add(option);
+                }
+                option.ValueString = value;
+                _dbDataContext.Context.SaveChanges();
+            }
+        }
+
+        public string AudioOffAt
+        {
+            get
+            {
+                var option =
+                    _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.AudioOffAt)
+                                  .Select(x => x.ValueString)
+                                  .FirstOrDefault();
+                return option;
+            }
+            set
+            {
+                var option = _dbDataContext.Context.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOffAt);
+                if (option == null)
+                {
+                    option = new Settings()
+                    {
+                        SettingName = SettingKeys.AudioOffAt,
+                        ValueString = string.Empty
+                    };
+                    _dbDataContext.Context.Settings.Add(option);
+                }
+                option.ValueString = value;
+                _dbDataContext.Context.SaveChanges();
+            }
+        }
+
         public bool IsDangerEnabled
         {
             get

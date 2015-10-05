@@ -39,6 +39,9 @@ namespace HolidayShowEditor
             _container.RegisterType<IAudioFilesViewModel, AudioFilesViewModel>();
             _container.RegisterType<IAudioFilesView, AudioFilesView>();
 
+            _container.RegisterType<IEffectsView, EffectsView>();
+            _container.RegisterType<IEffectsViewModel, EffectsViewModel>();
+
             mainController = _container.Resolve<MainController>();
             mainController.Run();
         }

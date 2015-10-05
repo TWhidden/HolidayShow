@@ -116,8 +116,15 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         private void BeginSendBytes(byte[] data)
         {
-            _socketSendArgs.SetBuffer(data, 0, data.Length);
-            _client.SendAsync(_socketSendArgs);
+            try
+            {
+                _socketSendArgs.SetBuffer(data, 0, data.Length);
+                _client.SendAsync(_socketSendArgs);
+            }
+            catch
+            {
+                Disconnect(true);
+            }
         }
 
         public async void Disconnect(bool recreate = true)

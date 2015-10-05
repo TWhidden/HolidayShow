@@ -365,3 +365,35 @@ BEGIN
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (3, getUtcDate())
 END
+
+
+
+
+if NOT EXISTS (select * from Versions where VersionNumber = 4)
+BEGIN
+
+	DECLARE @instructionName nvarchar(50) = 'GPIO_RANDOM'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO Random', @instructionName, 'Set the GPIO ports that participate in this. MetaData to look like DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;  DUR is the amount of time the GPIO is ON', 0)
+	END
+
+
+	SET @instructionName = 'GPIO_STROBE'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO Strobe', @instructionName, 'Strobes at a regular rate for the length of the current set or the effect duration. Set the effect duration to 0 for set duration. DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;  DUR is the lenght of time the GPIO will be ON', 0)
+	END
+
+	SET @instructionName = 'GPIO_STAY_ON'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO ON', @instructionName, 'On until duration is done, or set is over. DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;', 0)
+	END
+	
+
+	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (4, getUtcDate())
+END

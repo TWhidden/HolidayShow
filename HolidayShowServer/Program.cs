@@ -87,51 +87,23 @@ namespace HolidayShowServer
                     // check to see if we should be running or not.
                     var schuduleOn = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OnAt);
                     var schuduleOff = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OffAt);
-                    if (schuduleOn != null && schuduleOff != null && !String.IsNullOrWhiteSpace(schuduleOn.ValueString) &&
-                        !String.IsNullOrWhiteSpace(schuduleOff.ValueString))
+                    if (schuduleOn != null && schuduleOff != null && !string.IsNullOrWhiteSpace(schuduleOn.ValueString))
                     {
-                        DateTime onTime;
+                        var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(schuduleOn.ValueString);
+                        var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(schuduleOff.ValueString);
 
-                        var parsed = DateTime.TryParseExact(schuduleOn.ValueString,
-                                                            "HH:mm",
-                                                            new CultureInfo("en-US"),
-                                                            DateTimeStyles.None,
-                                                            out onTime);
-                        if (parsed)
+                        if (!isAboveBottomTime)
                         {
-                            DateTime offTime;
-                            parsed = DateTime.TryParseExact(schuduleOff.ValueString,
-                                                            "HH:mm",
-                                                            new CultureInfo("en-US"),
-                                                            DateTimeStyles.None,
-                                                            out offTime);
+                            Console.WriteLine("Schudule is currently off");
+                            Thread.Sleep(5000);
+                            continue;
+                        }
 
-                            if (parsed)
-                            {
-                                var currentTime = DateTime.Now;
-                                var onTime1 = Convert.ToDateTime(schuduleOn.ValueString);
-                                var offTime1 = Convert.ToDateTime(schuduleOff.ValueString);
-
-                                // Schudule is enabled
-                                if (DateTime.Compare(currentTime, onTime1) < 0)
-                                {
-                                    Console.WriteLine("Schudule OFF");
-                                    Thread.Sleep(5000);
-                                    continue;
-                                }
-
-
-                                if (DateTime.Compare(currentTime, offTime1) > 0)
-                                {
-                                    Console.WriteLine("Schudule OFF");
-                                    Thread.Sleep(5000);
-                                    continue;
-                                }
-
-
-
-                            }
-
+                        if (isAboveTopTime)
+                        {
+                            Console.WriteLine("Schudule is currently off");
+                            Thread.Sleep(5000);
+                            continue;
                         }
                     }
                 }
@@ -145,7 +117,13 @@ namespace HolidayShowServer
 
                         using (var dc = new EfHolidayContext())
                         {
+                            var audioOnAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
+                            var audioOffAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOffAt);
 
+                            var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(audioOnAt.ValueString);
+                            var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(audioOffAt.ValueString);
+
+                            var isAudioSchuduleEnabled = (isAboveBottomTime && !isAboveTopTime);
 
                             // Get the set we should be running.
                             var option = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
@@ -279,6 +257,12 @@ namespace HolidayShowServer
                                   .Select(x => ((int)x.ValueDouble == 1))
                                   .FirstOrDefault();
 
+                            // If the schudule says its off, disable here.
+                            if (!isAudioSchuduleEnabled)
+                            {
+                                isAudioEnabled = false;
+                            }
+
                             // create the work load
                             var deviceInstructions = new List<DeviceInstructions>();
 
@@ -301,9 +285,10 @@ namespace HolidayShowServer
                                         };
 
                                         bool set = false;
-                                        if (pattern.DeviceIoPorts != null &&
-                                            (!pattern.DeviceIoPorts.IsDanger ||
-                                             (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
+                                        if (pattern.DeviceIoPorts != null
+                                            && pattern.DeviceIoPorts.CommandPin >= 0
+                                            && (!pattern.DeviceIoPorts.IsDanger ||
+                                                (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
                                         {
                                             di.CommandPin = pattern.DeviceIoPorts.CommandPin;
                                             di.PinDuration = pattern.Duration;
@@ -323,53 +308,75 @@ namespace HolidayShowServer
                                         }
                                     }
                                 }
+                            }
 
-                                // New Feature added 2015 - Effects
-                                // This is something more global, that will be controled at the server side
-                                // They are hard-coded effects. at this time, baked into the solution. Later, there may be
-                                // a plugable architecture but for the sake of time, this is all hard coded.
+                            var l = new List<int> { 0 };
 
-                                if (setSequence.DeviceEffects != null)
-                                {
-                                    switch (setSequence.DeviceEffects.EffectInstructionsAvailable.InstructionName)
-                                    {
-                                        case EffectsSupported.GPIO_RANDOM:
-                                        {
-                                            var data = EffectRandom(setSequence);
-                                            if (data != null) deviceInstructions.AddRange(data);
-                                        }
-                                            break;
-                                        case EffectsSupported.GPIO_STROBE_SET_DURATION:
-                                        {
-                                            var l = new List<int> {0};
-
-                                            var audioTopDurration =
-                                                deviceInstructions.OrderByDescending(x => (x.OnAt + x.AudioDuration))
+                            var audioTopDurration =
+                                                deviceInstructions.Where(x => x.AudioDuration != 0)
+                                                    .OrderByDescending(x => (x.OnAt + x.AudioDuration))
                                                     .Select(x => (x.OnAt + x.AudioDuration))
                                                     .FirstOrDefault();
-                                                if(audioTopDurration.HasValue)
-                                                    l.Add(audioTopDurration.Value);
+                            if (audioTopDurration.HasValue)
+                                l.Add(audioTopDurration.Value);
 
-                                            var pinTopDurration =
-                                                deviceInstructions.OrderByDescending(x => (x.OnAt + x.PinDuration))
-                                                    .Select(x => (x.OnAt + x.PinDuration))
-                                                    .FirstOrDefault();
+                            Console.WriteLine("Top Audio Duration: " + audioTopDurration);
 
-                                            if (pinTopDurration.HasValue)
-                                                l.Add(pinTopDurration.Value);
+                            var pinTopDurration =
+                                deviceInstructions.OrderByDescending(x => (x.OnAt + x.PinDuration))
+                                    .Select(x => (x.OnAt + x.PinDuration))
+                                    .FirstOrDefault();
 
-                                            var endOfFullSet = l.Max();
+                            Console.WriteLine("Top Pin Duration: " + pinTopDurration);
 
-                                                Console.WriteLine("Effect {0} detected end of set in {1}ms", EffectsSupported.GPIO_STROBE_SET_DURATION, endOfFullSet);
+                            if (pinTopDurration.HasValue)
+                                l.Add(pinTopDurration.Value);
 
-                                            var data = EffectStrobe(setSequence, endOfFullSet);
+                            var totalSetTimeLength = l.Max();
+
+                            if (totalSetTimeLength == 0)
+                            {
+                                // It may be that just effects are listed, and they have have a desired runtime, so we will 
+                                // alter the time to go off the highest time in the set.
+                                totalSetTimeLength =
+                                    setData.SetSequences.Where(x => x.DeviceEffects != null)
+                                        .OrderByDescending(x => (x.OnAt + x.DeviceEffects.Duration))
+                                        .Select(x => (x.OnAt + x.DeviceEffects.Duration))
+                                        .FirstOrDefault();
+                            }
+
+
+                            foreach (var setSequence in setData.SetSequences.Where(x => x.DeviceEffects != null).OrderBy(x => x.OnAt))
+                            {
+                                // New Feature added 2015 - Effects
+                                // This is something more global, that will be controled at the server side
+                                // They are hard-coded effects. at this userTime, baked into the solution. Later, there may be
+                                // a plugable architecture but for the sake of userTime, this is all hard coded.
+
+                                if (setSequence.DeviceEffects == null || setSequence.DeviceEffects.EffectInstructionsAvailable.IsDisabled) continue;
+
+                                switch (setSequence.DeviceEffects.EffectInstructionsAvailable.InstructionName)
+                                {
+                                    case EffectsSupported.GPIO_RANDOM:
+                                    {
+                                        var data = EffectRandom(setSequence, totalSetTimeLength);
+                                        if (data != null) deviceInstructions.AddRange(data);
+                                    }
+                                        break;
+                                    case EffectsSupported.GPIO_STROBE:
+                                    {
+                                        var data = EffectStrobe(setSequence, totalSetTimeLength);
+                                        if (data != null) deviceInstructions.AddRange(data);
+                                    }
+                                        break;
+
+                                    case EffectsSupported.GPIO_STAY_ON:
+                                        {
+                                            var data = EffectStayOn(setSequence, totalSetTimeLength);
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
-
-                                            break;
-                                    }
+                                        break;
                                 }
-
                             }
 
                             // once we have a list of to-dos, create the timers to start the sequence.
@@ -462,66 +469,38 @@ namespace HolidayShowServer
             }
         }
 
-        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence)
+        private static bool IsCurrentTimeGreaterThanUserSettingTime(string userTime)
+        {
+            if (string.IsNullOrWhiteSpace(userTime))
+                return false;
+
+            DateTime userTimeObject;
+
+            if (!DateTime.TryParseExact(userTime,
+                "HH:mm",
+                new CultureInfo("en-US"),
+                DateTimeStyles.None,
+                out userTimeObject))
+            {
+                return false;
+            }
+
+            return DateTime.Now.TimeOfDay > userTimeObject.TimeOfDay;
+
+        }
+
+        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurrationMs)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
 
-            const string KEY_DUR = "DUR=";
-            const string KEY_DEVPINS = "DEVPINS=";
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+            var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
 
-            var dataChunks = setSequence.DeviceEffects.InstructionMetaData.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
-            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
-            var durationStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DUR));
-
-
-            if (string.IsNullOrWhiteSpace(devPinsStr) || string.IsNullOrWhiteSpace(durationStr))
-            {
-                Console.WriteLine("Invalid Effect MetaData. Must be formatted like DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50");
-                return null;
-            }
-
-            // Parse out the durration
-            int duration;
-            if(!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
-            {
-                Console.WriteLine("Invalid duration: " + durationStr);
-                return null;
-            }
-
-            var subDevPisn = devPinsStr.Replace(KEY_DEVPINS, "");
-            var subDevPinAry = subDevPisn.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-            List<KeyValuePair<int, int>> devicesAndKey = new List<KeyValuePair<int, int>>();
-            foreach (var kv in subDevPinAry)
-            {
-                var devIdPin = kv.Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
-                if (devIdPin.Length != 2)
-                {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device:Pin. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
-                    continue;
-                }
-                int deviceId;
-                int gpioPinId;
-
-                if (!int.TryParse(devIdPin[0], out deviceId))
-                {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
-                    continue;
-                }
-
-                if (!int.TryParse(devIdPin[1], out gpioPinId))
-                {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid GpioPin. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
-                    continue;
-                }
-
-                devicesAndKey.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
-            }
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
 
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;
@@ -534,29 +513,41 @@ namespace HolidayShowServer
 
             // Devide up the desired duration by the number of items
             // for an even distribution 
-            var onAtSplit = (setSequence.DeviceEffects.Duration/devicesAndKey.Count);
+            var startingPoint = setSequence.OnAt;
 
             var list = new List<DeviceInstructions>();
 
-            for (int index = 0; index < devicesAndKey.Count; index++)
+            var endingPosition = setDurrationMs;
+
+            if (setSequence.DeviceEffects.Duration > 0)
             {
-                var dk = devicesAndKey[index];
-                var onAt = setSequence.OnAt + (onAtSplit * index);
-
-                var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
-                {
-                    OnAt = onAt
-                };
-
-                bool set = false;
-                //if (pattern.DeviceIoPorts != null &&
-                //    (!pattern.DeviceIoPorts.IsDanger || (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
-                //{
-                    di.CommandPin = dk.Value;
-                    di.PinDuration = duration;
-                //}
-                list.Add(di);
+                endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
             }
+
+            while (startingPoint < endingPosition)
+            {
+                foreach (var dk in devicesAndKey)
+                {
+                    if (startingPoint + duration.Value > endingPosition.Value)
+                        goto end;
+
+                    var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                    {
+                        OnAt = startingPoint,
+                        CommandPin = dk.Value,
+                        PinDuration = duration
+                    };
+
+                    list.Add(di);
+
+                    startingPoint = startingPoint + (duration.Value * 2);
+                }
+
+                devicesAndKey.Shuffle();
+            }
+
+            end:
+
             return list;
         }
 
@@ -567,21 +558,93 @@ namespace HolidayShowServer
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
 
-            const string KEY_DUR = "DUR=";
-            const string KEY_DEVPINS = "DEVPINS=";
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+            var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
 
-            var dataChunks = setSequence.DeviceEffects.InstructionMetaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can loop them and configure sequences
+            // and build up the list that we will return
+
+            var startingPoint = setSequence.OnAt;
+            
+            var list = new List<DeviceInstructions>();
+
+            var endingPosition = setDurrationMs;
+
+            if (setSequence.DeviceEffects.Duration > 0)
+            {
+                endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
+            }
+
+            while (startingPoint < endingPosition)
+            {
+                list.AddRange(devicesAndKey.Select(dk => new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                {
+                    OnAt = startingPoint, CommandPin = dk.Value, PinDuration = duration
+                }));
+
+                startingPoint = startingPoint + (duration.Value * 2);
+            }
+
+            return list;
+        }
+
+        private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurrationMs)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can loop them and configure sequences
+            // and build up the list that we will return
+
+            var startingPoint = setSequence.OnAt;
+
+            var list = new List<DeviceInstructions>();
+
+            var timeLeft = setDurrationMs - setSequence.OnAt;
+
+            if (setSequence.DeviceEffects.Duration > 0)
+            {
+                timeLeft = setSequence.DeviceEffects.Duration;
+            }
+
+            if (timeLeft <= 0) return list;
+          
+            list.AddRange(devicesAndKey.Select(dk => new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+            {
+                OnAt = startingPoint,
+                CommandPin = dk.Value,
+                PinDuration = timeLeft
+            }));
+
+            return list;
+        }
+
+        private static int? GetDuration(string metaData)
+        {
+            const string KEY_DUR = "DUR=";
+
+            var dataChunks = metaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             var durationStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DUR));
 
-
-            if (string.IsNullOrWhiteSpace(devPinsStr) || string.IsNullOrWhiteSpace(durationStr))
+            if (string.IsNullOrWhiteSpace(durationStr))
             {
-                Console.WriteLine("Invalid Effect MetaData. Must be formatted like DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50");
+                Console.WriteLine("Pin Duration Expected. Must be formatted like DUR=50");
                 return null;
             }
 
-            // Parse out the durration
             int duration;
             if (!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
             {
@@ -589,16 +652,32 @@ namespace HolidayShowServer
                 return null;
             }
 
+            return duration;
+        }
+        
+
+        private static List<KeyValuePair<int, int>> GetDevicesAndPins(string metaData)
+        {
+            var results = new List<KeyValuePair<int, int>>();
+
+            const string KEY_DEVPINS = "DEVPINS=";
+
+            var dataChunks = metaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
+
+            if (string.IsNullOrWhiteSpace(devPinsStr))
+            {
+                Console.WriteLine("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
+                return results;
+            }
+
             var subDevPisn = devPinsStr.Replace(KEY_DEVPINS, "");
             var subDevPinAry = subDevPisn.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            List<KeyValuePair<int, int>> devicesAndKey = new List<KeyValuePair<int, int>>();
             foreach (var kv in subDevPinAry)
             {
                 var devIdPin = kv.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                 if (devIdPin.Length != 2)
                 {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device:Pin. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
                     continue;
                 }
                 int deviceId;
@@ -606,70 +685,19 @@ namespace HolidayShowServer
 
                 if (!int.TryParse(devIdPin[0], out deviceId))
                 {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid Device. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
                     continue;
                 }
 
                 if (!int.TryParse(devIdPin[1], out gpioPinId))
                 {
-                    Console.WriteLine("Warning Effect ID {0} Has Invalid GpioPin. Input received: {1} - Skipping",
-                        setSequence.DeviceEffects.EffectId, kv);
                     continue;
                 }
 
-                devicesAndKey.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
+                results.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
             }
 
-            // If there is nothing, return so we dont have a dev by zero
-            if (devicesAndKey.Count == 0) return null;
+            return results;
 
-            // now that we have a Key/Value Pair list with ints for devices and keys, we can now randomize them
-            // and build up the list that we will return
-
-            // Devide up the desired duration by the number of items
-            // for an even distribution 
-            //var onAtSplit = (setSequence.DeviceEffects.Duration / devicesAndKey.Count);
-
-            var startingPoint = setSequence.OnAt;
-            //var endingPoint = startingPoint;
-
-            //if (setSequence.DevicePatterns != null)
-            //{
-            //    var devicePatternEndsIn =
-            //        setSequence.DevicePatterns.DevicePatternSequences.OrderByDescending(x => x.OnAt + x.Duration)
-            //            .Select(x => x.OnAt + x.Duration)
-            //            .FirstOrDefault();
-
-            //    var audioPatternEndsIn = setSequence.DevicePatterns.DevicePatternSequences.Where(x => x.AudioOptions.AudioDuration > 0).OrderByDescending(x => x.OnAt + x.Duration)
-            //            .Select(x => x.OnAt + x.AudioOptions.AudioDuration)
-            //            .FirstOrDefault();
-
-            //    endingPoint = Math.Max(devicePatternEndsIn, audioPatternEndsIn);
-            //}
-
-            var list = new List<DeviceInstructions>();
-
-            while (startingPoint < setDurrationMs)
-            {
-                for (int index = 0; index < devicesAndKey.Count; index++)
-                {
-                    var dk = devicesAndKey[index];
-
-                    var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
-                    {
-                        OnAt = startingPoint,
-                        CommandPin = dk.Value,
-                        PinDuration = duration
-                    };
-
-                    list.Add(di);
-                }
-
-                startingPoint = startingPoint + (duration * 2);
-            }
-            
-            return list;
         }
 
         private static void SendInstruction(DeviceInstructions de)

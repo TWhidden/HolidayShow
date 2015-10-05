@@ -9,7 +9,10 @@
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
 
         <DataTemplate x:Key="DeviceSelectionTemplate">
-            <TextBlock Text="{Binding Name}" Margin="5"></TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding DeviceId}" Margin="5"/>
+                <TextBlock Text="{Binding Name}" Margin="5"/>
+            </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="DevicePresetSelectionTemplate">

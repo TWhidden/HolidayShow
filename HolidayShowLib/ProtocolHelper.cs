@@ -83,6 +83,7 @@ namespace HolidayShowLib
     public sealed class EffectsSupported
     {
         public const string GPIO_RANDOM = "GPIO_RANDOM";
-        public const string GPIO_STROBE_SET_DURATION = "GPIO_STROBE_SET_LENGTH";
+        public const string GPIO_STROBE = "GPIO_STROBE";
+        public const string GPIO_STAY_ON = "GPIO_STAY_ON";
     }
 }

@@ -8,6 +8,22 @@
         <ResourceDictionary>
             <!-- WPF 4.0 workaround -->
             <Style TargetType="{x:Type Rectangle}" />
+            <DataTemplate x:Key="EffectsAvailableTemplate">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="16"></TextBlock>
+
+                    <TextBlock Text="{Binding InstructionsForUse}" TextWrapping="Wrap" Grid.Row="1"></TextBlock>
+                    
+                    <CheckBox IsChecked="{Binding IsDisabled}" Grid.Row="2" Content="Disabled"></CheckBox>
+                    
+                </Grid>
+            </DataTemplate>
             <!-- end of workaround -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.xaml" />

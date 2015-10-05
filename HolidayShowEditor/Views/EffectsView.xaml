@@ -1,0 +1,60 @@
+﻿<UserControl x:Class="HolidayShowEditor.Views.EffectsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" x:Name="LayoutRoot">
+    <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <DataGrid Background="{x:Null}"
+                  ItemsSource="{Binding Effects}"
+                  SelectedItem="{Binding EffectSelected, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  CanUserDeleteRows="False"
+                  CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding EffectName}"
+                                    Header="Effect Name"></DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding InstructionMetaData}"
+                                    Header="Meta Data"
+                                    MinWidth="200"></DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Duration}"
+                                    Header="Run For (ms)"
+                                    MinWidth="50"></DataGridTextColumn>
+                <DataGridTemplateColumn Header="Effect Instruction">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding EffectInstructionsAvailable.DisplayName}"></TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.EffectInstructionsAvailable, ElementName=LayoutRoot, Mode=OneWay}"
+                                      SelectedItem="{Binding EffectInstructionsAvailable, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"></ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <ListBox ItemsSource="{Binding EffectInstructionsAvailable}" Grid.Column="1" Width="200" ItemTemplate="{DynamicResource EffectsAvailableTemplate}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"></ListBox>
+        
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+            <Button Content="SAVE" Command="{Binding CommandSave}" MaxWidth="200"/>
+            <Button Content="ADD PATTERN" Command="{Binding CommandAddPattern}" MaxWidth="200"/>
+            <Button Content="REMOVE PATTERN" Command="{Binding CommandRemovePattern}" MaxWidth="200"/>
+        </StackPanel>
+        
+        
+    </Grid>
+</UserControl>
