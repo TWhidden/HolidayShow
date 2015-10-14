@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using Windows.Devices.Gpio;
 using HolidayShowEndpointUniversalApp.BaseClasses;
@@ -51,8 +53,26 @@ namespace HolidayShowEndpointUniversalApp
             if (gpio == null)
                 return; // GPIO not available on this system
 
-            _availablePins = new List<GpioPin>();
+            // Reference: https://ms-iot.github.io/content/en-US/win10/samples/PinMappingsRPi2.htm
+            //Pin Added #4 - Gpio#: 4
+            //Pin Added #5 - Gpio#: 5
+            //Pin Added #6 - Gpio#: 6
+            //Pin Added #12 - Gpio#: 12
+            //Pin Added #13 - Gpio#: 13
+            //Pin Added #16 - Gpio#: 16
+            //Pin Added #18 - Gpio#: 18
+            //Pin Added #22 - Gpio#: 22
+            //Pin Added #23 - Gpio#: 23
+            //Pin Added #24 - Gpio#: 24
+            //Pin Added #25 - Gpio#: 25
+            //Pin Added #26 - Gpio#: 26
+            //Pin Added #27 - Gpio#: 27
+            //Pin Added #35 - Gpio#: 35  // Not a GPIO pin we can use (Red LED)
+            //Pin Added #47 - Gpio#: 47  // Not a GPIO pin we can use (Green LED)
 
+            var blockedIds = new[] {35, 47};
+
+            _availablePins = new List<GpioPin>();
 
             var pinCount = gpio.PinCount;
 
@@ -62,6 +82,8 @@ namespace HolidayShowEndpointUniversalApp
                 GpioOpenStatus status;
                 if (gpio.TryOpenPin(i, GpioSharingMode.Exclusive, out pin, out status))
                 {
+                    if (blockedIds.Contains(pin.PinNumber)) continue; // Dont process blocked pins.
+
                     var supportsOutputMode = pin.IsDriveModeSupported(GpioPinDriveMode.Output);
                     if (supportsOutputMode)
                     {
@@ -69,8 +91,8 @@ namespace HolidayShowEndpointUniversalApp
                         pin.SetDriveMode(GpioPinDriveMode.Output);  // We need this set to Output
                         pin.Write(GpioPinValue.Low);                // Init with a low value.
                         pin.DebounceTimeout = TimeSpan.Zero;        // Not all GPIO pins have this value set. 
+                        Debug.WriteLine("Pin Added #{0} - Gpio#: {1}", i, pin.PinNumber);
                     }
-                    
                 }
             }
 

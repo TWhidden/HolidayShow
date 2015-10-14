@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using Windows.Devices.Gpio;
 using HolidayShowEndpointUniversalApp.Services;
