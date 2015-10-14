@@ -9,6 +9,7 @@ namespace HolidayShowLib
         public const string DURATION = "DURATION";
         public const string PINON = "PINON";
         public const string PINSAVAIL = "PINSAVAIL";
+        public const string PINNAMES = "PINNAMES";
         public const string AUDIOFILE = "AUDIOFILE";
         public const string FILEDOWNLOAD = "FILEDOWNLOAD";
         public const string FILEBYTES = "FILEBYTES";

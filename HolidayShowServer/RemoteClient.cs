@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -134,6 +135,22 @@ namespace HolidayShowServer
                     var parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINSAVAIL], out pinsAvail);
                     if (!parsed) return;
 
+                    List<string> names = new List<string>();
+                    for (var i = 1; i <= pinsAvail; i++)
+                    {
+                        names.Add("PIN" + i);
+                    }
+
+                    if (message.MessageParts.ContainsKey(ProtocolMessage.PINNAMES))
+                    {
+                        var parts = message.MessageParts[ProtocolMessage.PINNAMES].Split(new [] {','}, StringSplitOptions.RemoveEmptyEntries);
+                        for (var i = 0; i < Math.Min(names.Count, parts.Length); i++)
+                        {
+                            var name = parts[i];
+                            names[i] = name;
+                        }
+                    }
+
                     // Update the pins in the database
                     using (var dc = new EfHolidayContext())
                     {
@@ -147,7 +164,7 @@ namespace HolidayShowServer
                             var port = ports.FirstOrDefault(x => x.CommandPin == i);
                             if (port == null)
                             {
-                                port = new DeviceIoPorts {DeviceId = DeviceId, CommandPin = i, Description = "PIN" + i.ToString()};
+                                port = new DeviceIoPorts {DeviceId = DeviceId, CommandPin = i, Description = names[i-1]};
                                 dc.DeviceIoPorts.Add(port);
                             }
                         }

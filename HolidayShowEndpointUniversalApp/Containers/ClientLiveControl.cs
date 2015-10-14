@@ -48,7 +48,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
             var dic = new Dictionary<string, string>
                 {
                     {ProtocolMessage.DEVID, _deviceId.ToString()},
-                    {ProtocolMessage.PINSAVAIL, _availablePins.Count.ToString()}
+                    {ProtocolMessage.PINSAVAIL, _availablePins.Count.ToString()},
+                    {ProtocolMessage.PINNAMES, string.Join(",", _availablePins.Select(x => "GPIO #" + x.PinNumber).ToArray()) }
                 };
 
             var message = new ProtocolMessage(MessageTypeIdEnum.DeviceId, dic);
