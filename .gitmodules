@@ -1,3 +1,0 @@
-[submodule "libuvxx"]
-	path = libuvxx
-	url = https://github.com/jmorrill/libuvxx.git

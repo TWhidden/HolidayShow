@@ -31,7 +31,7 @@ namespace HolidayShowEndpointUniversalApp.Storage
                 {
                     ServerAddress = "10.64.128.245",
                     ServerPort = 5555,
-                    DeviceId = 5
+                    DeviceId = 10
                 };
                 s.Save();
 #endif
