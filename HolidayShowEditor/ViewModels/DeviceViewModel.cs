@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -132,13 +133,10 @@ namespace HolidayShowEditor.ViewModels
         {
             int nextCommand = 0;
             // find the top-most value
-            var c = DevicePatternSequences.OrderByDescending(x => x.OnAt).FirstOrDefault();;
+            var c = DevicePatternSequences.OrderByDescending(x => x.OnAt + Math.Max(x.Duration, x.AudioOptions?.AudioDuration ?? 0)).FirstOrDefault();;
             if (c != null)
             {
-                nextCommand = (c.OnAt); 
-                // detect the duration of this last command.
-
-                nextCommand = c.AudioOptions.AudioDuration > c.Duration ? +c.AudioOptions.AudioDuration : +c.Duration;
+                nextCommand = (c.OnAt + Math.Max(c.Duration, c.AudioOptions?.AudioDuration ?? 0)); 
             }
             var ioPort = DeviceSelected.DeviceIoPorts.First(x => x.CommandPin == -1);
             var audio = _dataContext.Context.AudioOptions.First(x => x.Name == "NONE");
