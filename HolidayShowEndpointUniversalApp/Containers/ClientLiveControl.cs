@@ -30,12 +30,11 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         public override void FileRequestReceived(ProtocolMessage message)
         {
-            
+            // Not Used
         }
 
         protected override void NewConnectionEstablished()
         {
-       
             foreach (var timer in _rootedTimer.Values.ToList())
             {
                 timer.Dispose();
@@ -91,27 +90,18 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                 var gpioPin = _availablePins[pinIndex];
 
-                //Console.WriteLine("Pin {0} start", adjustedFor0PinId);
-
                 SetPin(gpioPin, (on == 1) ? GpioPinValue.High : GpioPinValue.Low);
 
                 if (durration > 0)
                 {
-                    lock (_rootedTimer)
+                    Timer timer;
+                    if (_rootedTimer.TryRemove(gpioPin, out timer))
                     {
-                        if (_rootedTimer.ContainsKey(gpioPin))
-                        {
-                            _rootedTimer[gpioPin].Dispose();
-                            Timer t;
-                            _rootedTimer.TryRemove(gpioPin, out t);
-                        }
+                        timer.Dispose();
                     }
-                    Timer timer = null;
+                    
                     timer = new Timer(x =>
                     {
-
-                        //Console.WriteLine("Pin {0} Stop", adjustedFor0PinId);
-
                         SetPin(gpioPin, GpioPinValue.Low);
 
                         lock (_rootedTimer)
@@ -139,10 +129,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
                         {
                             _rootedTimer.TryAdd(gpioPin, timer);
                         }
-
                     }
-
-
                 }
             }
 
@@ -166,7 +153,6 @@ namespace HolidayShowEndpointUniversalApp.Containers
             }
         }
 
-
         public void AllOff()
         {
             // stops all the running audio.
@@ -177,13 +163,6 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 SetPin(pin, GpioPinValue.Low);
             }
         }
-
-        private void ErrorDetectFlash()
-        {
-            AllOff();
-        }
-
-
 
         private void SetPin(GpioPin pin, GpioPinValue value)
         {
