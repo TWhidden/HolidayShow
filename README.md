@@ -1,36 +1,44 @@
 HolidayShow
 ===========
 
-C# / Mono project to run Raspberry Pi or Beagle bone blacks from a central machine controlling GPIOs.
+This project is designed to host any number of Raspberry Pi 2 running Windows IoT.  Each RP2 will connect to a running windows server, and receive its instructions real time. The server will control the client GPIOs or play audio files.  The client application will, on-demand, download the audio files from the server if it does not have them and store them in the Windows IoT data store. There is also a WPF editor and SQL Database that hosts and manages all of the controls.
 
-This project has been expanding since 2013.   Used in conjuction with Solid State Relays as well
-as gas valves, we created a light and fire show using propane.   Needless to say, it was the most insane house in the hood.
+This project has been expanding since 2013.   Used in conjunction with Solid State Relays as well as gas valves, we created a light and fire show using propane.   Needless to say, it was the most insane house in the neighborhood.
 
-Updated 2015/09 to support Windows IoT on Raspberry Pi 2 devices.
+Updated 2015/09 to support exclusively  Windows IoT projects (in this case, RasperryPi2, but nothing specifically written for it)
 
-Compoents:
+<b>Compoents:</b>
 
-1.) Server Compoent that handles commucnatino with 1-n IoT devices. This server requires SQL Server 2008 or higher (Express is fine) / Windows
-2.) The Editor built in WPF, so windows is required.
-3.) The EndPoint is available for Linux Raspberry Pi (v1) or Windows IoT Raspberry Pi 2 - Note, the Linux one will not be managed by me anymore. Only available for historic purposes
+<ol>
+ <li>SQL Server 2008 or higher (Express is fine)</li>
+ <li>Server software - Currently a console application</li>
+ <li>Wpf Editor for managing GPIO and audio</li>
+ <li>IoT Endpoint to be deployed on the Windows IoT device</li>
+</ol>
 
-Dev Enviornment Required:
-1.) Visual Studios 2015 (Community Edition is fine)
-2.) Raspberry Pi 2 or other supported Windows IoT devices
 
-Setup:
+<b>Dev Enviornment Required:</b>
+<ol>
+<li>Windows 10</li>
+<li>Visual Studios 2015 (Community Edition works great)</li>
+<li>Raspberry Pi 2 or other supported Windows IoT devices</li>
+</ol>
 
-Once you have everything compiled, you will need to setup one of the devices to connect inwards. 
-There is a user interface or you can modify the pre-processor directives that are hard coded. Handy if you dont have a monitor 
+<b>Setup:</b>
+<ol>
+<li>Clone this Repo</li>
+<li>Compile the entire project</li>
+<li>Setup a new database on your SQL Server such as HolidayShow</li>
+<li>Apply SQL Script available in \HolidayShow.Data\Sql\HolidayShow.sql</li>
+<li>Grant Privs, update connection strings in Server and Editor app.config files</li>
+<li>Run the Server console application (HolidayShowServer)</li>
+<li>Start a WinIoT device. *Currently, you can edit the host information on the RP user interface, or edit the XML file that is created on first-boot: \\WinIoTAddress\c$\Users\DefaultAccount\AppData\Local\Packages\HolidayShowEndPoint_7b8tge35t6pdg\LocalState\HolidayShowSettings.xml  
+Also, it is handy if you modify the pre-processor directives available in the code</li>
+<li>Once the WinIoT device connects, it will inform the server of all its available GPIO ports it can use. THese will be saved in the database</li>
+<li>Open up the WPF Editor, click Devices, and click on the first Device.</li>
+</ol>
 
-Once the device connects in to the running server, it will add itself by its ID number and available GPIO pins will be populated in the database
+<b>Special Note:</b>
+<i>This is not enterprise grade software. This is get-it-done software.  I usually start one month before the upcoming holiday, and never have enough time to complete. Each year I add more.</i>
 
-Open the editor, and you will be able to create patterns for each raspberry pi, and then assign those patterns to sets. The patterns are reusable, so you can make 
-sets with many different patterns. 
-
-You can also hook audio up, and have it play out the audio jacks.
-
-Being that this is not some really nice installer, you will have to play with it. I am more then willing to give you some help if you are interested however. 
-
-Open up a message under the discussions and I will do my best to help.
-
+Screen Shots:

@@ -252,9 +252,9 @@ namespace HolidayShowLib
                             searchBufferAgain = true;
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                       _messageBuffer.Position = 0;
+                    _messageBuffer.Position = 0;
                 }
             }
 

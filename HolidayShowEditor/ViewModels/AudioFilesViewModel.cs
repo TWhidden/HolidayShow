@@ -18,7 +18,6 @@ namespace HolidayShowEditor.ViewModels
     {
         private readonly IDbDataContext _dbDataContext;
         private AudioOptions _audioFileSelected;
-        private string _audioFilesPath;
 
         public AudioFilesViewModel(IDbDataContext dbDataContext)
         {
@@ -53,7 +52,7 @@ namespace HolidayShowEditor.ViewModels
             var audioFile = new AudioOptions()
                 {
                     Name = "**New Audio File",
-                    FileName = String.Empty,
+                    FileName = string.Empty,
                     AudioDuration = 0
                 };
             _dbDataContext.Context.AudioOptions.Add(audioFile);
@@ -109,7 +108,7 @@ namespace HolidayShowEditor.ViewModels
                         double nanoseconds;
                         double.TryParse(so.Properties.System.Media.Duration.Value.ToString(),
                         out nanoseconds);
-                        Console.WriteLine("NanaoSeconds: {0}", nanoseconds);
+                        Console.WriteLine(@"NanaoSeconds: {0}", nanoseconds);
                         if (nanoseconds > 0)
                         {
                             int milliseconds = (int)Convert100NanosecondsToMilliseconds(nanoseconds) ;
@@ -154,9 +153,9 @@ namespace HolidayShowEditor.ViewModels
 
                 
             }
-            catch (Exception ex)
+            catch
             {
-                
+               // Ignore 
             }
 
             OnPropertyChanged(() => AudioFilesList);
