@@ -42,3 +42,26 @@ Also, it is handy if you modify the pre-processor directives available in the co
 <i>This is not enterprise grade software. This is get-it-done software.  I usually start one month before the upcoming holiday, and never have enough time to complete. Each year I add more.</i>
 
 Screen Shots:
+Device Editor. Here you will see all the device that are connected (or have connected). From here, you can select a device, and edit the pin patterns.  you can setup how long a pin in on for, and when it comes on.
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/DeviceEditor.png)
+
+Effects Editor:
+Witht he effects editor (new for 2015), you can program your own effects. This helps when have long running sets, but want the same patterns to be executing throughout the set. Such as a strobe light, or an always on light.
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/EffectsEditor.png)
+
+Sets Editor:
+This is the key spot, where you can configure all the devices to work in harmony. you can configure each device to turn on a pattern at any time. This set is the show that will be used.
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/SetsEditor.png)
+
+Settings Editor:
+What is nice, is you can configure when everything turns on, or off, as well as have a time for when the audio turns off. For example, if you have scarey music playing but do not want it playing pat 8:30pm, the lights will still continue to go.
+you can also setup pins that should be monitored called "Danager Pins". This way when you are not around, you can just uncheck them, and they will not execute
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/ServerSettingsEditor.png)
+
+Audio Editor:
+The system will scan a directory and keep track of what files you have made available. Once the database has them, it knows how long each audio file is, and where the server can get the file.  If the WinIoT does not have the file, it will be auto-downloaded from the server over TCP
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/AudioEditor.png)
+
+Server Image:
+This is the console application that is running. The Console can later be re-created as a windows service. At this time, it is not.
+![](https://raw.githubusercontent.com/TWhidden/HolidayShow/master/Images/ServerRunning.jpg)
