@@ -38,6 +38,13 @@ Also, it is handy if you modify the pre-processor directives available in the co
 <li>Open up the WPF Editor, click Devices, and click on the first Device.</li>
 </ol>
 
+<b>Examples in action</b>
+<ol>
+<li>2015 Fire Test: [a link](https://www.youtube.com/watch?v=pDEbzSdWDaI)</li>
+<li>2014 Surveillance Footage (there were 3k people that came): [a link](https://www.youtube.com/watch?v=7LtSyZfghlU)</li>
+<li>2013 First RP project (running Mono at the time) [a link](https://www.youtube.com/watch?v=RIQrfBfR6y4)
+</ol>
+
 <b>Special Note:</b>
 <i>This is not enterprise grade software. This is get-it-done software.  I usually start one month before the upcoming holiday, and never have enough time to complete. Each year I add more.</i>
 
