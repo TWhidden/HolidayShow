@@ -22,15 +22,17 @@ namespace HolidayShowServer
         static void Main(string[] args)
         {
             var result = Parser.Default.ParseArguments<InputParams>(args);
-            if (result.Errors.Any())
-            {
-                // Values are available here
-                Console.WriteLine(result.Errors);
-                return;
-            }
+            int serverPort = 0;
+            var exitCode = result.MapResult
+                (
+                options => { serverPort = options.ServerPort; return 0; },
+                errors => { Console.WriteLine(errors); return 1; }
+                );
+
+            if (exitCode == 1) return;
 
             // Setup the listeners
-            _server = new TcpServer((ushort)result.Value.ServerPort);
+            _server = new TcpServer((ushort)serverPort);
             _server.OnClientConnected += _server_OnClientConnected;
             _server.Start();
 

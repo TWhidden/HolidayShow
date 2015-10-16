@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="HolidayShowEndPoint" Publisher="CN=travi" Version="1.0.0.0" />
+  <Identity Name="HolidayShowEndPoint" Publisher="CN=travi" Version="1.0.6.0" />
   <mp:PhoneIdentity PhoneProductId="fa9c4f27-f67c-4324-b58e-78c73e49d7fb" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Holiday Show Endpoint</DisplayName>
@@ -18,7 +18,6 @@
       <uap:VisualElements DisplayName="Holiday Show End Point" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="End point for the Windows IoT Core" BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
         </uap:DefaultTile>
-        <uap:SplashScreen Image="Assets\Fire.jpg" />
       </uap:VisualElements>
     </Application>
   </Applications>
