@@ -297,7 +297,7 @@ namespace HolidayShowServer
                                             set = true;
                                         }
 
-                                        if (!string.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName) && isAudioEnabled)
+                                        if (!string.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName))
                                         {
                                             di.AudioFileName = pattern.AudioOptions.FileName;
                                             di.AudioDuration = pattern.AudioOptions.AudioDuration;
@@ -378,6 +378,18 @@ namespace HolidayShowServer
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
+                                }
+                            }
+
+                            // #9 - Now that audio and effects have been added, we need to check to see
+                            // if audio is enabled, and if its not, remove any audio.
+                            if (!isAudioEnabled)
+                            {
+                                var audio = deviceInstructions.Where(x => x.AudioDuration > 0).ToList();
+                                foreach (var deviceInstructionse in audio)
+                                {
+                                    deviceInstructionse.AudioDuration = null;
+                                    deviceInstructionse.AudioFileName = string.Empty;
                                 }
                             }
 
