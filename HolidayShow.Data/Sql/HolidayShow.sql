@@ -1,4 +1,5 @@
 ﻿-- Holiday Show SQL database creator script
+DECLARE @instructionName nvarchar(50);
 
 -- Version table is needed 
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Versions]') AND type in (N'U'))
@@ -14,16 +15,10 @@ CREATE TABLE [dbo].[Versions](
 END
 
 
-
 -- Initial creation
 
 if NOT EXISTS (select * from Versions where VersionNumber = 1)
 BEGIN
-
-
-/****** Object:  Table [dbo].[AudioOptions]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
 
 
 CREATE TABLE [dbo].[AudioOptions](
@@ -37,11 +32,6 @@ CREATE TABLE [dbo].[AudioOptions](
 	[AudioId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
-
-
-/****** Object:  Table [dbo].[DeviceIoPorts]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
 
 
 CREATE TABLE [dbo].[DeviceIoPorts](
@@ -58,11 +48,6 @@ CREATE TABLE [dbo].[DeviceIoPorts](
 ) ON [PRIMARY]
 
 
-/****** Object:  Table [dbo].[DevicePatterns]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
-
-
 CREATE TABLE [dbo].[DevicePatterns](
 	[DevicePatternId] [int] IDENTITY(1,1) NOT NULL,
 	[DeviceId] [int] NOT NULL,
@@ -72,10 +57,6 @@ CREATE TABLE [dbo].[DevicePatterns](
 	[DevicePatternId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
-
-
-/****** Object:  Table [dbo].[DevicePatternSequences]    Script Date: 10/26/2014 4:50:11 PM ******/
-
 
 
 
@@ -93,11 +74,6 @@ CREATE TABLE [dbo].[DevicePatternSequences](
 ) ON [PRIMARY]
 
 
-/****** Object:  Table [dbo].[Devices]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
-
-
 CREATE TABLE [dbo].[Devices](
 	[DeviceId] [int] NOT NULL,
 	[Name] [nvarchar](50) NOT NULL CONSTRAINT [DF_Devices_Name]  DEFAULT ('NONAME'),
@@ -106,11 +82,6 @@ CREATE TABLE [dbo].[Devices](
 	[DeviceId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
-
-
-/****** Object:  Table [dbo].[Sets]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
 
 
 CREATE TABLE [dbo].[Sets](
@@ -124,11 +95,6 @@ CREATE TABLE [dbo].[Sets](
 ) ON [PRIMARY]
 
 
-/****** Object:  Table [dbo].[SetSequences]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
-
-
 CREATE TABLE [dbo].[SetSequences](
 	[SetSequenceId] [int] IDENTITY(1,1) NOT NULL,
 	[SetId] [int] NOT NULL,
@@ -139,13 +105,6 @@ CREATE TABLE [dbo].[SetSequences](
 	[SetSequenceId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
-
-
-/****** Object:  Table [dbo].[Settings]    Script Date: 10/26/2014 4:50:11 PM ******/
-
-
-
-
 
 
 CREATE TABLE [dbo].[Settings](
@@ -367,12 +326,10 @@ BEGIN
 END
 
 
-
-
 if NOT EXISTS (select * from Versions where VersionNumber = 4)
 BEGIN
 
-	DECLARE @instructionName nvarchar(50) = 'GPIO_RANDOM'
+	SET @instructionName = 'GPIO_RANDOM'
 	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
 	BEGIN
 		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
@@ -396,4 +353,18 @@ BEGIN
 	
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (4, getUtcDate())
+END
+
+-- Feature #8 - Strobe Effect over period of time
+if NOT EXISTS (select * from Versions where VersionNumber = 5)
+BEGIN
+
+	SET @instructionName = 'GPIO_STROBE_DELAY'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO Strobe Delay', @instructionName, 'Strobes the lights, but has a programmed delay after a period of time. MetaData to look like DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=3000;  DUR is the amount of time the GPIO is ON, DELAYBETWEEN is the amount of time everything is off before restarting, EXECUTEFOR is the amount of time the strobe will run for', 0)
+	END
+
+	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (5, getUtcDate())
 END

@@ -23,7 +23,7 @@ namespace HolidayShowServer
 
         private static readonly Timer UpdateDisplayTimer = new Timer((x)=> UpdateConsole(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
-        private readonly static List<string> _logMessages = new List<string>();
+        private readonly static List<string> LogMessages = new List<string>();
 
         private readonly static ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
 
@@ -38,6 +38,12 @@ namespace HolidayShowServer
                 );
 
             if (exitCode == 1) return;
+
+            // Update the database
+            using (var dc = new EfHolidayContext())
+            {
+                dc.UpdateDatabase();
+            }
 
             // Setup the listeners
             _server = new TcpServer((ushort)serverPort);
@@ -56,14 +62,14 @@ namespace HolidayShowServer
 
         static void LogMessage(string message)
         {
-            lock (_logMessages)
+            lock (LogMessages)
             {
-                _logMessages.Insert(0, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}");
-                var count = _logMessages.Count;
+                LogMessages.Insert(0, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}");
+                var count = LogMessages.Count;
                 const int maxOutput = 20;
                 if (count > maxOutput)
                 {
-                    _logMessages.RemoveRange(maxOutput, _logMessages.Count - maxOutput);
+                    LogMessages.RemoveRange(maxOutput, LogMessages.Count - maxOutput);
                 }
             }
         }
@@ -440,6 +446,12 @@ namespace HolidayShowServer
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
+                                    case EffectsSupported.GPIO_STROBE_DELAY:
+                                        {
+                                            var data = EffectRandomStrobe(setSequence, totalSetTimeLength, disabledPins);
+                                            if (data != null) deviceInstructions.AddRange(data);
+                                        }
+                                        break;
                                 }
                             }
 
@@ -571,9 +583,9 @@ namespace HolidayShowServer
                     c.MessageCountTotal, c.CameOnline));
             }
             string logMessages;
-            lock (_logMessages)
+            lock (LogMessages)
             {
-                logMessages = string.Join("\n", _logMessages);
+                logMessages = string.Join("\n", LogMessages);
             }
             var output = string.Format(ConsoleDisplayFormat, version, sb, logMessages);
 
@@ -608,9 +620,10 @@ namespace HolidayShowServer
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
-            var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
+            var duration = GetDuration(metadataKeyValue);
 
             // If the duration was incorrect, null will be returned
             if (duration == null) return null;
@@ -670,9 +683,10 @@ namespace HolidayShowServer
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
-            var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
+            var duration = GetDuration(metadataKeyValue);
 
             // If the duration was incorrect, null will be returned
             if (duration == null) return null;
@@ -707,14 +721,95 @@ namespace HolidayShowServer
             return list;
         }
 
+        private static List<DeviceInstructions> EffectRandomStrobe(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50;DELAYBETWEEN=10000
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
+
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
+            var duration = GetDuration(metadataKeyValue);
+
+            const string keyDelayBetween = "DELAYBETWEEN";
+            string delayBetweenStr;
+            if (!metadataKeyValue.TryGetValue(keyDelayBetween, out delayBetweenStr))
+            {
+                LogMessage("EffectRandomStrobe missing " + keyDelayBetween);
+                return null;
+            }
+
+            uint delayBetween;
+            if (!uint.TryParse(delayBetweenStr, out delayBetween))
+            {
+                LogMessage("EffectRandomStrobe Invalid Value Delay Between: " + delayBetweenStr);
+            }
+
+            const string keyExecuteFor = "EXECUTEFOR";
+            string executeForStr;
+            if (!metadataKeyValue.TryGetValue(keyExecuteFor, out executeForStr))
+            {
+                LogMessage("EffectRandomStrobe missing " + keyExecuteFor);
+                return null;
+            }
+
+            uint exectuteFor;
+            if (!uint.TryParse(executeForStr, out exectuteFor))
+            {
+                LogMessage("EffectRandomStrobe Invalid Value Exectue For: " + delayBetweenStr);
+            }
+
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can loop them and configure sequences
+            // and build up the list that we will return
+
+            long startingPoint = setSequence.OnAt;
+
+            var list = new List<DeviceInstructions>();
+
+            var endingPosition = setDurrationMs;
+
+            if (setSequence.DeviceEffects.Duration > 0)
+            {
+                endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
+            }
+            var nextDelayAt = startingPoint + exectuteFor;
+
+            while (startingPoint < endingPosition)
+            {
+                list.AddRange(devicesAndKey.Select(dk => new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                {
+                    OnAt = (int)startingPoint,
+                    CommandPin = dk.Value,
+                    PinDuration = duration
+                }));
+
+                startingPoint = startingPoint + (duration.Value * 2);
+                if (startingPoint >= nextDelayAt)
+                {
+                    startingPoint = startingPoint + delayBetween;
+                    nextDelayAt = startingPoint + exectuteFor;
+                }
+            }
+
+            return list;
+        }
+
         private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
 
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;
@@ -745,47 +840,60 @@ namespace HolidayShowServer
             return list;
         }
 
-        private static int? GetDuration(string metaData)
+        private static int? GetDuration(Dictionary<string, string> metaDataKeyValues)
         {
-            const string KEY_DUR = "DUR=";
+            const string keyDur = "DUR";
 
-            var dataChunks = metaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            var durationStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DUR));
+            string dur;
+            if (!metaDataKeyValues.TryGetValue(keyDur, out dur))
+            {
+                LogMessage("DUR= not found in metadata");
+                return null;
+            }
 
-            if (string.IsNullOrWhiteSpace(durationStr))
+            if (string.IsNullOrWhiteSpace(dur))
             {
                 LogMessage("Pin Duration Expected. Must be formatted like DUR=50");
                 return null;
             }
 
             int duration;
-            if (!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
-            {
-                LogMessage("Invalid duration: " + durationStr);
-                return null;
-            }
+            if (int.TryParse(dur, out duration)) return duration;
 
-            return duration;
+            LogMessage("Invalid duration: " + dur);
+            return null;
+        }
+
+        private static Dictionary<string, string> GetMetaDataKeyValues(string metaData)
+        {
+            var dataChunks = metaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            return dataChunks.Select(dataChunk => dataChunk
+                .Split(new[] {'='}, StringSplitOptions.RemoveEmptyEntries))
+                .Where(kvarry => kvarry.Length == 2)
+                .ToDictionary(kvarry => kvarry[0], kvarry => kvarry[1]);
         }
         
 
-        private static List<KeyValuePair<int, int>> GetDevicesAndPins(string metaData, Dictionary<int, List<int>> disabledPins)
+        private static List<KeyValuePair<int, int>> GetDevicesAndPins(Dictionary<string, string> metaDataKeyValue, Dictionary<int, List<int>> disabledPins)
         {
             var results = new List<KeyValuePair<int, int>>();
 
-            const string KEY_DEVPINS = "DEVPINS=";
+            const string keyDevpins = "DEVPINS";
 
-            var dataChunks = metaData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            var devPinsStr = dataChunks.FirstOrDefault(x => x.StartsWith(KEY_DEVPINS));
+            string devPins;
+            if (!metaDataKeyValue.TryGetValue(keyDevpins, out devPins))
+            {
+                 LogMessage("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
+                return results;
+            }
 
-            if (string.IsNullOrWhiteSpace(devPinsStr))
+            if (string.IsNullOrWhiteSpace(devPins))
             {
                 LogMessage("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
                 return results;
             }
-
-            var subDevPisn = devPinsStr.Replace(KEY_DEVPINS, "");
-            var subDevPinAry = subDevPisn.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            var subDevPinAry = devPins.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var kv in subDevPinAry)
             {
                 var devIdPin = kv.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
@@ -879,9 +987,9 @@ namespace HolidayShowServer
     public static class ThreadSafeRandom
     {
         [ThreadStatic]
-        private static Random Local;
+        private static Random _local;
 
-        public static Random ThisThreadsRandom => Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId)));
+        public static Random ThisThreadsRandom => _local ?? (_local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId)));
     }
 
     static class MyExtensions
