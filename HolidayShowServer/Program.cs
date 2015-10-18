@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using CommandLine;
@@ -310,6 +311,17 @@ namespace HolidayShowServer
                                   .Select(x => ((int)x.ValueDouble == 1))
                                   .FirstOrDefault();
 
+                            var disabledPins = new Dictionary<int, List<int>>();
+                            if (!isDanagerEnabled)
+                            {
+                                disabledPins =
+                                    dc.DeviceIoPorts.Where(x => x.IsDanger)
+                                        .Select(x => new {x.DeviceId, x.CommandPin})
+                                        .GroupBy(x => x.DeviceId)
+                                        .ToDictionary(x => x.Key,
+                                            y => y.Where(x => x.DeviceId == y.Key).Select(x => x.CommandPin).ToList());
+                            }
+
                             // If the schudule says its off, disable here.
                             if (!isAudioSchuduleEnabled)
                             {
@@ -412,20 +424,20 @@ namespace HolidayShowServer
                                 {
                                     case EffectsSupported.GPIO_RANDOM:
                                     {
-                                        var data = EffectRandom(setSequence, totalSetTimeLength);
+                                        var data = EffectRandom(setSequence, totalSetTimeLength, disabledPins);
                                         if (data != null) deviceInstructions.AddRange(data);
                                     }
                                         break;
                                     case EffectsSupported.GPIO_STROBE:
                                     {
-                                        var data = EffectStrobe(setSequence, totalSetTimeLength);
+                                        var data = EffectStrobe(setSequence, totalSetTimeLength, disabledPins);
                                         if (data != null) deviceInstructions.AddRange(data);
                                     }
                                         break;
 
                                     case EffectsSupported.GPIO_STAY_ON:
                                         {
-                                            var data = EffectStayOn(setSequence, totalSetTimeLength);
+                                            var data = EffectStayOn(setSequence, totalSetTimeLength, disabledPins);
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
@@ -591,14 +603,14 @@ namespace HolidayShowServer
 
         }
 
-        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurrationMs)
+        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
             var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
 
             // If the duration was incorrect, null will be returned
@@ -653,14 +665,14 @@ namespace HolidayShowServer
             return list;
         }
 
-        private static List<DeviceInstructions> EffectStrobe(SetSequences setSequence, int? setDurrationMs)
+        private static List<DeviceInstructions> EffectStrobe(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
             var duration = GetDuration(setSequence.DeviceEffects.InstructionMetaData);
 
             // If the duration was incorrect, null will be returned
@@ -696,14 +708,14 @@ namespace HolidayShowServer
             return list;
         }
 
-        private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurrationMs)
+        private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
             // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
 
-            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData);
+            var devicesAndKey = GetDevicesAndPins(setSequence.DeviceEffects.InstructionMetaData, disabledPins);
 
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;
@@ -758,7 +770,7 @@ namespace HolidayShowServer
         }
         
 
-        private static List<KeyValuePair<int, int>> GetDevicesAndPins(string metaData)
+        private static List<KeyValuePair<int, int>> GetDevicesAndPins(string metaData, Dictionary<int, List<int>> disabledPins)
         {
             var results = new List<KeyValuePair<int, int>>();
 
@@ -795,7 +807,11 @@ namespace HolidayShowServer
                     continue;
                 }
 
-                results.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
+                if (!disabledPins.ContainsKey(deviceId) ||
+                    (disabledPins.ContainsKey(deviceId) && !disabledPins[deviceId].Contains(gpioPinId)))
+                {
+                    results.Add(new KeyValuePair<int, int>(deviceId, gpioPinId));
+                }
             }
 
             return results;

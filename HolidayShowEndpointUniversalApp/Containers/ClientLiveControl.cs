@@ -86,7 +86,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINON], out on);
                 if (!parsed) return;
 
-                if (pinIndex > _availablePins.Count) return;
+                if (pinIndex >= _availablePins.Count) return;
 
                 var gpioPin = _availablePins[pinIndex];
 
