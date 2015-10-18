@@ -13,16 +13,24 @@ namespace HolidayShowServer
     {
         private readonly TcpClient _client;
 
-        private byte[] _buffer = new byte[2048];
+        private readonly byte[] _buffer = new byte[2048];
 
-        private int _deviceId = -1;
+        private const int StoreHistoryForSeconds = 10;
+
+        private readonly List<long> _eventHistory = new List<long>();
+
+        public long MessageCountTotal { get; private set; }
 
         public RemoteClient(TcpClient client)
         {
             _client = client;
-            base.Parsers.Add(new ParserProtocolContainer(new byte[] { 0x02 }, new byte[] { 0x03 }, 1));
+            Parsers.Add(new ParserProtocolContainer(new byte[] { 0x02 }, new byte[] { 0x03 }, 1));
             BeginRead();
         }
+
+        public DateTime CameOnline { get; } = DateTime.Now;
+
+        public string RemoteAddress => _client.Client.RemoteEndPoint.ToString();
 
         private void BeginRead()
         {
@@ -46,7 +54,7 @@ namespace HolidayShowServer
 
                 Buffer.BlockCopy(_buffer, 0, newBuffer, 0, bytesRead);
 
-                base.BytesReceived(newBuffer);
+                BytesReceived(newBuffer);
             }
             catch (Exception ex)
             {
@@ -60,7 +68,26 @@ namespace HolidayShowServer
         public void BeginSend(ProtocolMessage message)
         {
             var bytes = ProtocolHelper.Wrap(message);
+            lock (_eventHistory)
+            {
+                _eventHistory.Add(DateTime.UtcNow.Ticks);
+            }
+            MessageCountTotal++;
             BeginSendBytes(bytes);
+        }
+
+        public int MessagesPer(uint seconds)
+        {
+            // Clear old data
+            lock(_eventHistory)
+            {
+                var cutoffPoint = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(StoreHistoryForSeconds)).Ticks;
+                var requestedPoint = DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(seconds)).Ticks;
+
+                _eventHistory.RemoveAll((x) => x <= cutoffPoint);
+
+               return _eventHistory.FindAll((x) => x >= requestedPoint).Count;
+            }
         }
 
         private void BeginSendBytes(byte[] data)
@@ -80,7 +107,6 @@ namespace HolidayShowServer
             {
                 Console.WriteLine("Could not send data to remote client. Error: " + ex.Message);
                 Disconnect();
-                return;
             }
         }
 
@@ -105,7 +131,7 @@ namespace HolidayShowServer
             {
                 if (message.MessageParts.ContainsKey(ProtocolMessage.DEVID))
                 {
-                    int id = 0;
+                    int id;
                     var parsed = int.TryParse(message.MessageParts[ProtocolMessage.DEVID], out id);
                     if (!parsed) return;
 
@@ -131,7 +157,7 @@ namespace HolidayShowServer
 
                 if (message.MessageParts.ContainsKey(ProtocolMessage.PINSAVAIL))
                 {
-                    int pinsAvail = 0;
+                    int pinsAvail;
                     var parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINSAVAIL], out pinsAvail);
                     if (!parsed) return;
 
@@ -227,17 +253,9 @@ namespace HolidayShowServer
         {
             Console.WriteLine("Connction Closed.");
             EventHandler handler = OnConnectionClosed;
-            if (handler != null) handler(this, EventArgs.Empty);
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
-        public int DeviceId
-        {
-            get { return _deviceId; }
-            private set
-            {
-                _deviceId = value;
-            }
-        }
-       
+        public int DeviceId { get; private set; } = -1;
     }
 }

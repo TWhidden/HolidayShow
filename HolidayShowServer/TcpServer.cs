@@ -2,13 +2,12 @@
 using System.Net;
 using System.Net.Sockets;
 
-
 namespace HolidayShowServer
 {
     public class TcpServer : IDisposable
     {
-        private TcpListener _listener;
-        private bool _started = false;
+        private readonly TcpListener _listener;
+        private bool _started;
 
         public TcpServer(ushort listenPort)
         {
@@ -34,7 +33,7 @@ namespace HolidayShowServer
         protected virtual void InvokeOnClientConnected(NewClientEventArgs e)
         {
             EventHandler<NewClientEventArgs> handler = OnClientConnected;
-            if (handler != null) handler(this, e);
+            handler?.Invoke(this, e);
         }
 
         private void AcceptClient()
@@ -52,7 +51,7 @@ namespace HolidayShowServer
             }
             catch
             {
-                
+                // Ignore
             }
             finally
             {

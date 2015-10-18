@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using CommandLine;
 using HolidayShow.Data;
@@ -18,6 +20,10 @@ namespace HolidayShowServer
         private static bool _running = true;
 
         private readonly static List<RemoteClient> Clients = new List<RemoteClient>();
+
+        private static readonly Timer UpdateDisplayTimer = new Timer((x)=> UpdateConsole(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
+        private readonly static List<string> _logMessages = new List<string>();
 
         static void Main(string[] args)
         {
@@ -40,15 +46,29 @@ namespace HolidayShowServer
             t.Start();
             
 
-            Console.WriteLine("Press [ENTER] to stop the server");
+            LogMessage("Press [ENTER] to stop the server");
             Console.ReadLine();
             _running = false;
             _server.Stop();
         }
 
+        static void LogMessage(string message)
+        {
+            lock (_logMessages)
+            {
+                _logMessages.Insert(0, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}");
+                var count = _logMessages.Count;
+                const int maxOutput = 20;
+                if (count > maxOutput)
+                {
+                    _logMessages.RemoveRange(maxOutput, _logMessages.Count - maxOutput);
+                }
+            }
+        }
+
         static void _server_OnClientConnected(object sender, NewClientEventArgs e)
         {
-            Console.WriteLine("Client Connected from: " + e.Client.Client.RemoteEndPoint);
+            LogMessage("Client Connected from: " + e.Client.Client.RemoteEndPoint);
             var remoteClient = new RemoteClient(e.Client);
             remoteClient.OnConnectionClosed += remoteClient_OnConnectionClosed;
             Clients.Add(remoteClient);
@@ -59,7 +79,7 @@ namespace HolidayShowServer
         static void remoteClient_OnConnectionClosed(object sender, EventArgs e)
         {
             var remote = (RemoteClient)sender;
-            Console.WriteLine("Connection closed from DeviceId" + remote.DeviceId);
+            LogMessage("Connection closed from DeviceId" + remote.DeviceId);
             Clients.Remove((RemoteClient)sender);
         }
 
@@ -69,11 +89,11 @@ namespace HolidayShowServer
         {
             var setExecuting = false;
 
-            Console.WriteLine("3 second Delay to allow connections to come in ...");
+            LogMessage("3 second Delay to allow connections to come in ...");
 
             Thread.Sleep(3000);
 
-            Console.WriteLine("Ok, starting.");
+            LogMessage("Ok, starting.");
             var isOff = false;
             while (_running)
             {
@@ -96,14 +116,14 @@ namespace HolidayShowServer
 
                         if (!isAboveBottomTime)
                         {
-                            Console.WriteLine("Schudule is currently off");
+                            LogMessage("Schudule is currently off");
                             Thread.Sleep(5000);
                             continue;
                         }
 
                         if (isAboveTopTime)
                         {
-                            Console.WriteLine("Schudule is currently off");
+                            LogMessage("Schudule is currently off");
                             Thread.Sleep(5000);
                             continue;
                         }
@@ -131,7 +151,7 @@ namespace HolidayShowServer
                             var option = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
                             if (option == null)
                             {
-                                Console.WriteLine("Set Playback opton not set. Cannot start");
+                                LogMessage("Set Playback opton not set. Cannot start");
                                 Thread.Sleep(1000);
                                 goto skipStart;
                             }
@@ -165,13 +185,13 @@ namespace HolidayShowServer
                                     var sets = dc.Sets.Where(x => !x.IsDisabled).ToList();
                                     if (sets.Count == 0)
                                     {
-                                        Console.WriteLine("No sets are configured");
+                                        LogMessage("No sets are configured");
                                         goto skipStart;
                                     }
 
                                     if (sets.Count == 1)
                                     {
-                                        Console.WriteLine("Only one set available.  Setting desired set");
+                                        LogMessage("Only one set available.  Setting desired set");
                                         setId = sets[0].SetId;
                                     }
                                     else
@@ -189,7 +209,7 @@ namespace HolidayShowServer
                                         dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
                                     if (currentSet == null)
                                     {
-                                        Console.WriteLine("Current set is not set. Setting to random");
+                                        LogMessage("Current set is not set. Setting to random");
                                         dc.Settings.Add(new Settings()
                                             {
                                                 SettingName = SettingKeys.CurrentSet,
@@ -203,7 +223,7 @@ namespace HolidayShowServer
                                     var set = dc.Sets.FirstOrDefault(x => x.SetId == (int)currentSet.ValueDouble && !x.IsDisabled);
                                     if (set == null)
                                     {
-                                        Console.WriteLine("Current set references a set that does not exist. Setting to random.");
+                                        LogMessage("Current set references a set that does not exist. Setting to random.");
                                         dc.Settings.Add(new Settings()
                                         {
                                             SettingName = SettingKeys.CurrentSet,
@@ -221,7 +241,7 @@ namespace HolidayShowServer
                                     break;
                                 default:
                                     {
-                                        Console.WriteLine("Invlid SetPlaybackOption. ");
+                                        LogMessage("Invlid SetPlaybackOption. ");
                                         Thread.Sleep(1000);
                                         goto skipStart;
                                     }
@@ -230,9 +250,9 @@ namespace HolidayShowServer
                             // load the set data
                             var setData = dc.Sets.First(x => x.SetId == setId);
 
-                            Console.WriteLine("**************************************");
-                            Console.WriteLine("Set: " + setData.SetName);
-                            Console.WriteLine("**************************************");
+                            LogMessage("**************************************");
+                            LogMessage("Set: " + setData.SetName);
+                            LogMessage("**************************************");
 
                             // Update the current set playing
                             var current = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
@@ -322,14 +342,14 @@ namespace HolidayShowServer
                             if (audioTopDurration.HasValue)
                                 l.Add(audioTopDurration.Value);
 
-                            Console.WriteLine("Top Audio Duration: " + audioTopDurration);
+                            LogMessage("Top Audio Duration: " + audioTopDurration);
 
                             var pinTopDurration =
                                 deviceInstructions.OrderByDescending(x => (x.OnAt + x.PinDuration))
                                     .Select(x => (x.OnAt + x.PinDuration))
                                     .FirstOrDefault();
 
-                            Console.WriteLine("Top Pin Duration: " + pinTopDurration);
+                            LogMessage("Top Pin Duration: " + pinTopDurration);
 
                             if (pinTopDurration.HasValue)
                                 l.Add(pinTopDurration.Value);
@@ -419,7 +439,7 @@ namespace HolidayShowServer
 
                                                 if (item != null)
                                                 {
-                                                    Console.WriteLine("Sending Instruction: " + item.ToString());
+                                                    //LogMessage("Sending Instruction: " + item.ToString());
                                                     SendInstruction(item);
                                                 }
 
@@ -462,7 +482,7 @@ namespace HolidayShowServer
                             }
                             else
                             {
-                                Console.WriteLine("No patterns in set. Sleeping for one second");
+                                LogMessage("No patterns in set. Sleeping for one second");
                                 Thread.Sleep(1000);
                                 setExecuting = false;
                             }
@@ -476,11 +496,48 @@ namespace HolidayShowServer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error occured in server thread! Error: " + ex.Message);
+                    LogMessage("Error occured in server thread! Error: " + ex.Message);
                     Thread.Sleep(1000);
                     setExecuting = false;
                 }
             }
+        }
+
+        private const string ConsoleDisplayFormat =
+            "Holiday Show Version {0}\n" +
+            "-----------------------------------------------------\n" +
+            "Connected Endpoints:\n" +
+            "{1}" +
+            "-----------------------------------------------------\n" +
+            "{2}";
+
+        private const string ConnectedEndpointFormat = "{0}:{1} - {2}/s ({3}) Online Since {4}\n";
+
+
+        /// <summary>
+        /// This console will update the display.
+        /// </summary>
+        private static void UpdateConsole()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+
+            // Build the Connected Endpoint 
+            var sb = new StringBuilder();
+            foreach (var c in Clients.ToList().OrderBy(x => x.DeviceId))
+            {
+                sb.Append(string.Format(ConnectedEndpointFormat, c.DeviceId, c.RemoteAddress, c.MessagesPer(1),
+                    c.MessageCountTotal, c.CameOnline));
+            }
+            string logMessages;
+            lock (_logMessages)
+            {
+                logMessages = string.Join("\n", _logMessages);
+            }
+            var output = string.Format(ConsoleDisplayFormat, version, sb, logMessages);
+
+            Console.Clear();
+            Console.Write(output);
+
         }
 
         private static bool IsCurrentTimeGreaterThanUserSettingTime(string userTime)
@@ -655,14 +712,14 @@ namespace HolidayShowServer
 
             if (string.IsNullOrWhiteSpace(durationStr))
             {
-                Console.WriteLine("Pin Duration Expected. Must be formatted like DUR=50");
+                LogMessage("Pin Duration Expected. Must be formatted like DUR=50");
                 return null;
             }
 
             int duration;
             if (!int.TryParse(durationStr.Replace(KEY_DUR, ""), out duration))
             {
-                Console.WriteLine("Invalid duration: " + durationStr);
+                LogMessage("Invalid duration: " + durationStr);
                 return null;
             }
 
@@ -681,7 +738,7 @@ namespace HolidayShowServer
 
             if (string.IsNullOrWhiteSpace(devPinsStr))
             {
-                Console.WriteLine("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
+                LogMessage("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
                 return results;
             }
 
@@ -725,7 +782,7 @@ namespace HolidayShowServer
 
             if (de.CommandPin != -1)
             {
-                Console.WriteLine("Device {0} - Pin {1} - Duration: {2}", de.DeviceId, de.CommandPin, de.PinDuration);
+                //LogMessage("Device {0} - Pin {1} - Duration: {2}", de.DeviceId, de.CommandPin, de.PinDuration);
                 dic.Add(ProtocolMessage.PINON, "1");
                 dic.Add(ProtocolMessage.DURATION, de.PinDuration.ToString());
                 dic.Add(ProtocolMessage.PINID, de.CommandPin.ToString());
@@ -733,7 +790,7 @@ namespace HolidayShowServer
 
             if (!string.IsNullOrWhiteSpace(de.AudioFileName))
             {
-                Console.WriteLine("Device {0} - Audio {1} - Duration: {2}", de.DeviceId, de.AudioFileName, de.AudioDuration);
+                //LogMessage("Device {0} - Audio {1} - Duration: {2}", de.DeviceId, de.AudioFileName, de.AudioDuration);
                 dic.Add(ProtocolMessage.AUDIOFILE, de.AudioFileName);
             }
 
