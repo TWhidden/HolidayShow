@@ -333,7 +333,7 @@ BEGIN
 	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
 	BEGIN
 		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
-												VALUES('GPIO Random', @instructionName, 'Set the GPIO ports that participate in this. MetaData to look like DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;  DUR is the amount of time the GPIO is ON', 0)
+												VALUES('GPIO Random', @instructionName, 'Set the GPIO ports that participate in this. MetaData to look like DEVPINS=4:1,4:2;DUR=75;  DUR is the amount of time the GPIO is ON', 0)
 	END
 
 
@@ -341,7 +341,7 @@ BEGIN
 	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
 	BEGIN
 		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
-												VALUES('GPIO Strobe', @instructionName, 'Strobes at a regular rate for the length of the current set or the effect duration. Set the effect duration to 0 for set duration. DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;  DUR is the lenght of time the GPIO will be ON', 0)
+												VALUES('GPIO Strobe', @instructionName, 'Strobes at a regular rate for the length of the current set or the effect duration. Set the effect duration to 0 for set duration. DEVPINS=4:1,4:2;DUR=75;  DUR is the lenght of time the GPIO will be ON', 0)
 	END
 
 	SET @instructionName = 'GPIO_STAY_ON'
@@ -363,7 +363,7 @@ BEGIN
 	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
 	BEGIN
 		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
-												VALUES('GPIO Strobe Delay', @instructionName, 'Strobes the lights, but has a programmed delay after a period of time. MetaData to look like DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=3000;  DUR is the amount of time the GPIO is ON, DELAYBETWEEN is the amount of time everything is off before restarting, EXECUTEFOR is the amount of time the strobe will run for', 0)
+												VALUES('GPIO Strobe Delay', @instructionName, 'Strobes the lights, but has a programmed delay after a period of time. MetaData to look like DEVPINS=4:1,4:2;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=3000;  DUR is the amount of time the GPIO is ON, DELAYBETWEEN is the amount of time everything is off before restarting, EXECUTEFOR is the amount of time the strobe will run for', 0)
 	END
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (5, getUtcDate())
