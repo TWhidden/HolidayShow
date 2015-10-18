@@ -31,6 +31,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -150,5 +151,7 @@
                  HorizontalAlignment="Left"
                  Margin="0,0,-206,0.333"
                  Grid.RowSpan="2"></TextBox>
+        <Button Grid.Row="11" Grid.Column="0"
+                Command="{Binding CommandRestartProgram}" Content="Refresh Service"/>
     </Grid>
 </UserControl>

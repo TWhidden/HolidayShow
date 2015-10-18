@@ -25,6 +25,8 @@ namespace HolidayShowServer
 
         private readonly static List<string> _logMessages = new List<string>();
 
+        private readonly static ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
+
         static void Main(string[] args)
         {
             var result = Parser.Default.ParseArguments<InputParams>(args);
@@ -83,7 +85,25 @@ namespace HolidayShowServer
             Clients.Remove((RemoteClient)sender);
         }
 
-        private readonly static  ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
+        // If the user requests a reset, this will stop all timers, send an all-off, and start over
+        static void InitiateReset()
+        {
+            var timers = QueuedTimers.ToArray();
+            foreach (var kv in timers)
+            {
+                bool v;
+                if (QueuedTimers.TryRemove(kv.Key, out v))
+                {
+                    kv.Key.Dispose();
+                }
+            }
+
+            // Send messages to each client to Reset
+            foreach (var remoteClient in Clients)
+            {
+                remoteClient.BeginSend(new ProtocolMessage(MessageTypeIdEnum.Reset));
+            }
+        }
 
         private async static void RunServer()
         {
@@ -128,13 +148,23 @@ namespace HolidayShowServer
                             continue;
                         }
                     }
+
+                    var refresh = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.Refresh);
+                    if (refresh != null)
+                    {
+                        dc.Settings.Remove(refresh);
+                        dc.SaveChanges();
+                        InitiateReset();
+                        setExecuting = false;
+                        LogMessage("Reset called and excecuted");
+                    }
                 }
 
                 try
                 {
                     if (!setExecuting)
                     {
-                        QueuedTimers.Clear();
+                        InitiateReset();
                         setExecuting = true;
 
                         using (var dc = new EfHolidayContext())
@@ -177,6 +207,7 @@ namespace HolidayShowServer
                                             SendInstruction(di);
                                         }
                                     }
+                                    InitiateReset();
                                     setExecuting = false;
                                     goto skipStart;
                                 case SetPlaybackOptionEnum.PlaybackRandom:
@@ -775,8 +806,6 @@ namespace HolidayShowServer
         {
             var client = Clients.FirstOrDefault(x => x.DeviceId == de.DeviceId);
             if (client == null) return;
-
-            
 
             var dic = new Dictionary<string, string>();
 

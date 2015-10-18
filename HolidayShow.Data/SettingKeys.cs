@@ -14,6 +14,7 @@
         public const string IsDanagerEnabled = "IsDangerEnabled";
         public const string IsAudioEnabled = "IsAudioEnabled";
         public const string FileBasePath = "FileBasePath";
+        public const string Refresh = "Refresh";
     }
 
     public enum SetPlaybackOptionEnum

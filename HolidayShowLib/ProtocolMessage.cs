@@ -14,7 +14,6 @@ namespace HolidayShowLib
         public const string FILEDOWNLOAD = "FILEDOWNLOAD";
         public const string FILEBYTES = "FILEBYTES";
 
-
         public ProtocolMessage(MessageTypeIdEnum e, Dictionary<string, string> parts)
         {
             MessageEvent = e;

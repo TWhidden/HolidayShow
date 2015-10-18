@@ -1,11 +1,14 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Threading;
 using HolidayShow.Data;
 using HolidayShowEditor.BaseClasses;
 using HolidayShowEditor.Services;
+using Microsoft.Practices.Prism.Commands;
 
 namespace HolidayShowEditor.ViewModels
 {
@@ -26,10 +29,31 @@ namespace HolidayShowEditor.ViewModels
             _dbDataContext = dbDataContext;
             HeaderInfo = "Settings";
 
+            CommandRestartProgram = new DelegateCommand(OnCommandRestartProgram);
+
             _refreshAndKeepAlive = new Timer(x =>
             {
                 Refresh();
             }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        }
+
+        public DelegateCommand CommandRestartProgram { get; private set; }
+
+        private async void OnCommandRestartProgram()
+        {
+            var entryInDb = new Settings
+            {
+                SettingName = SettingKeys.Refresh,
+                ValueString = "None"
+            };
+
+            using (var dc = new EfHolidayContext())
+            {
+                dc.Settings.AddOrUpdate(entryInDb);
+                await dc.SaveChangesAsync();
+            }
+            
+
         }
 
         private object _headerInfo;
