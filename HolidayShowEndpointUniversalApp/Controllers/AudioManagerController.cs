@@ -56,7 +56,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             return null; // Could not dequeue a controller. THis means that all available are in use.
         }
 
-        public void Shutdown()
+        public void StopAllAudio()
         {
             // Stop all the running audios
             foreach (var c in _availableAudioInstances)

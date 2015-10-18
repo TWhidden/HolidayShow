@@ -162,6 +162,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
             {
                 SetPin(pin, GpioPinValue.Low);
             }
+
+            var audioControllers = _resolverService.Resolve<IAudioManagerController>();
+            audioControllers.StopAllAudio();
         }
 
         private void SetPin(GpioPin pin, GpioPinValue value)

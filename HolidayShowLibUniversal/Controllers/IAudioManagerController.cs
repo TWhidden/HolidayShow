@@ -6,6 +6,6 @@ namespace HolidayShowLibUniversal.Controllers
     {
         Task<IAudioRequestController> RequestAndPlay(string fileName);
 
-        void Shutdown();
+        void StopAllAudio();
     }
 }
