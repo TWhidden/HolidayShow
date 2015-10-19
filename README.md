@@ -29,9 +29,8 @@ Updated 2015/09 to support exclusively  Windows IoT projects (in this case, Rasp
 <li>Clone this Repo</li>
 <li>Compile the entire project</li>
 <li>Setup a new database on your SQL Server such as HolidayShow</li>
-<li>Apply SQL Script available in \HolidayShow.Data\Sql\HolidayShow.sql</li>
 <li>Grant Privs, update connection strings in Server and Editor app.config files</li>
-<li>Run the Server console application (HolidayShowServer)</li>
+<li>Run the Server console application (HolidayShowServer). This will auto-apply/update the database</li>
 <li>Start a WinIoT device. *Currently, you can edit the host information on the RP user interface, or edit the XML file that is created on first-boot: \\WinIoTAddress\c$\Users\DefaultAccount\AppData\Local\Packages\HolidayShowEndPoint_7b8tge35t6pdg\LocalState\HolidayShowSettings.xml  
 Also, it is handy if you modify the pre-processor directives available in the code</li>
 <li>Once the WinIoT device connects, it will inform the server of all its available GPIO ports it can use. THese will be saved in the database</li>
