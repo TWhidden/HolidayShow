@@ -76,7 +76,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
         {
             try
             {
-                if (e.BytesTransferred == 0 || !_client.Connected)
+                if (e.BytesTransferred == 0)
                 {
                     Disconnect();
                     return;
@@ -98,6 +98,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                 // Dump into the base class looking for the protocol
                 BytesReceived(data);
+
+                _client?.ReceiveAsync(_socketReceiveArgs);
             }
             catch (Exception ex)
             {
@@ -105,38 +107,42 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 Disconnect();
                 return;
             }
-            _client.ReceiveAsync(_socketReceiveArgs);
         }
 
-        protected void BeginSend(ProtocolMessage message)
+        protected bool BeginSend(ProtocolMessage message)
         {
             var bytes = ProtocolHelper.Wrap(message);
-            BeginSendBytes(bytes);
+            return BeginSendBytes(bytes);
         }
 
-        private void BeginSendBytes(byte[] data)
+        private bool BeginSendBytes(byte[] data)
         {
             try
             {
                 _socketSendArgs.SetBuffer(data, 0, data.Length);
                 _client.SendAsync(_socketSendArgs);
+                return true;
             }
             catch
             {
                 Disconnect(true);
+                return false;
             }
         }
 
         public async void Disconnect(bool recreate = true)
         {
-            if(_client.Connected)
-                _client.Shutdown(SocketShutdown.Both);
-
-            if (recreate)
+            if (_client != null && _client.Connected)
             {
-                await Task.Delay(1000);
-                CreateClientSocket();
+                _client.Shutdown(SocketShutdown.Both);
+                _client.Dispose();
+                _client = null;
             }
+
+            if (!recreate) return;
+
+            await Task.Delay(1000);
+            CreateClientSocket();
         }
 
         public override void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)

@@ -20,31 +20,40 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         public override void FileRequestReceived(ProtocolMessage message)
         {
-            // Get the guts of the message here
-            if (message.MessageParts.ContainsKey(ProtocolMessage.FILEBYTES))
+            try
             {
-                // Make sure it doesnt exist first
-                if (!File.Exists(_fileDownloadContainer.DestinationPath))
+                // Get the guts of the message here
+                if (message.MessageParts.ContainsKey(ProtocolMessage.FILEBYTES))
                 {
-                    // Ensure the entire path is available, because files might be in sub directories for
-                    // the storage
-                    var pathOnly = Path.GetDirectoryName(_fileDownloadContainer.DestinationPath);
-                    if (!Directory.Exists(pathOnly))
+                    // Make sure it doesnt exist first
+                    if (!File.Exists(_fileDownloadContainer.DestinationPath))
                     {
-                        Directory.CreateDirectory(pathOnly);
-                    }
+                        // Ensure the entire path is available, because files might be in sub directories for
+                        // the storage
+                        var pathOnly = Path.GetDirectoryName(_fileDownloadContainer.DestinationPath);
+                        if (!Directory.Exists(pathOnly))
+                        {
+                            Directory.CreateDirectory(pathOnly);
+                        }
 
-                    File.WriteAllBytes(_fileDownloadContainer.DestinationPath,
-                        Convert.FromBase64String(message.MessageParts[ProtocolMessage.FILEBYTES]));
+                        File.WriteAllBytes(_fileDownloadContainer.DestinationPath,
+                            Convert.FromBase64String(message.MessageParts[ProtocolMessage.FILEBYTES]));
+                    }
+                    _tcs.SetResult(true);
                 }
-                _tcs.SetResult(true);
+                else
+                {
+                    _tcs.SetResult(false);
+                }
             }
-            else
+            catch
             {
                 _tcs.SetResult(false);
             }
-
-            Disconnect(false);
+            finally
+            {
+                Disconnect(false);
+            }
         }
 
         protected override void NewConnectionEstablished()
@@ -55,18 +64,21 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 };
 
             var message = new ProtocolMessage(MessageTypeIdEnum.RequestFile, dic);
-            BeginSend(message);
+            if (!BeginSend(message))
+            {
+                Disconnect(false);
+                _tcs.SetResult(false);
+            }
         }
 
         protected override void ErrorDetected(Exception ex)
         {
-            _tcs.SetResult(false);
             Disconnect(false);
         }
 
         protected override void ResetReceived()
         {
-            
+            Disconnect(false);
         }
 
         protected override void EventControlReceived(ProtocolMessage message)
@@ -77,6 +89,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         public Task<bool> FileFinsihed()
         {
+            Disconnect(false);
             return _tcs.Task;
         }
     }

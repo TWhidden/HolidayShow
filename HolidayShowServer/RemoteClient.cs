@@ -92,9 +92,17 @@ namespace HolidayShowServer
 
         private void BeginSendBytes(byte[] data)
         {
-            if (_client.Connected)
-                _client.GetStream().BeginWrite(data, 0, data.Length, EndBeginSendBytes, null);
+            if (!_client.Connected) return;
 
+            try
+            {
+                _client.GetStream().BeginWrite(data, 0, data.Length, EndBeginSendBytes, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Could not send data to remote client. Error: " + ex.Message);
+                Disconnect();
+            }
         }
 
         private void EndBeginSendBytes(IAsyncResult a)
