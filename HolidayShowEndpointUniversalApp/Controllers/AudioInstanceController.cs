@@ -41,6 +41,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
                                         () =>
                                         {
                                             _mediaElement.Stop();
+                                            InvokeOnComplete(_currentRequest);
                                         });
            
         }
