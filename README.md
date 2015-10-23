@@ -39,9 +39,9 @@ Also, it is handy if you modify the pre-processor directives available in the co
 
 <b>Examples in action</b>
 <ol>
-<li>2015 Fire Test: [a link](https://www.youtube.com/watch?v=pDEbzSdWDaI)</li>
-<li>2014 Surveillance Footage (there were 3k people that came): [a link](https://www.youtube.com/watch?v=7LtSyZfghlU)</li>
-<li>2013 First RP project (running Mono at the time) [a link](https://www.youtube.com/watch?v=RIQrfBfR6y4)
+<li>2015 Halloween (Fire/Lights/Music): https://youtu.be/APfoZEe-HvU</li>
+<li>2014 Surveillance Footage (there were 3k people that came): https://www.youtube.com/watch?v=7LtSyZfghlU</li>
+<li>2013 First RP project (running Mono at the time) https://www.youtube.com/watch?v=RIQrfBfR6y4</li>
 </ol>
 
 <b>Special Note:</b>
