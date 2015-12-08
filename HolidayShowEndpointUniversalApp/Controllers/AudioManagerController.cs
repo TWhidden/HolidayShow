@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HolidayShowLibUniversal.Controllers;
 using HolidayShowLibUniversal.Services;
@@ -27,8 +28,12 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         private void AudioInstanceController_Complete(object sender, IAudioRequestController e)
         {
+            var instance = sender as IAudioInstanceController;
             // When complete is called, it will insert itself back into the queue of available instance controllers
-            _availableAudioInstances.Enqueue(sender as IAudioInstanceController);
+            if (!_availableAudioInstances.Contains(instance))
+            {
+                _availableAudioInstances.Enqueue(instance);
+            }
         }
 
         /// <summary>
@@ -59,10 +64,11 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         public void StopAllAudio()
         {
             // Stop all the running audios
-            foreach (var c in _availableAudioInstances)
-            {
-                c.StopPlayback();
-            }
+            // Bug found, dont use this code for now. 2015/12/07
+            //foreach (var c in _availableAudioInstances)
+            //{
+            //    c.StopPlayback();
+            //}
         }
 
         public async Task<IAudioRequestController> RequestAndPlay(string fileName)

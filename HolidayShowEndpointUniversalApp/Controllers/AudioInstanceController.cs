@@ -15,15 +15,15 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public event EventHandler<IAudioRequestController> Complete;
 
-        public void PlayMediaUri(IAudioRequestController c, Uri uri)
+        public async void PlayMediaUri(IAudioRequestController c, Uri uri)
         {
             _currentRequest = c;
-            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                            () =>
-                            {
-                                _mediaElement.Source = uri;
-                                _mediaElement.Play();
-                            });
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                () =>
+                {
+                    _mediaElement.Source = uri;
+                    _mediaElement.Play();
+                });
             
         }
 
@@ -35,14 +35,14 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             _mediaElement.MediaOpened += _mediaElement_MediaOpened;
         }
 
-        public void StopPlayback()
+        public async void StopPlayback()
         {
-            CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                                        () =>
-                                        {
-                                            _mediaElement.Stop();
-                                            InvokeOnComplete(_currentRequest);
-                                        });
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                () =>
+                {
+                    _mediaElement.Stop();
+                    InvokeOnComplete(_currentRequest);
+                });
            
         }
 
