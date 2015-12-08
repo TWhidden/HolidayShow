@@ -15,6 +15,7 @@
         public const string IsAudioEnabled = "IsAudioEnabled";
         public const string FileBasePath = "FileBasePath";
         public const string Refresh = "Refresh";
+        public const string DetectDevicePin = "DetectDevicePin";
     }
 
     public enum SetPlaybackOptionEnum
@@ -22,6 +23,7 @@
         Off = 0,
         PlaybackRandom = 1,
         PlaybackCurrentOnly = 2,
+        DevicePinDetect = 3,
     }
 
 }

@@ -92,7 +92,11 @@ namespace HolidayShowServer
 
         private void BeginSendBytes(byte[] data)
         {
-            if (!_client.Connected) return;
+            if (!_client.Connected)
+            {
+                Disconnect();
+                return;
+            }
 
             try
             {

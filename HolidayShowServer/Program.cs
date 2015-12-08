@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -198,25 +199,29 @@ namespace HolidayShowServer
                             if (delayBetweenSets <= 0) delayBetweenSets = 5000;
 
                             int setId;
-                            
+
                             switch (setting)
                             {
                                 case SetPlaybackOptionEnum.Off:
+                                {
                                     Thread.Sleep(1000);
                                     if (!isOff)
                                     {
-                                        
+
                                         isOff = true;
                                         foreach (var remoteClient in Clients)
                                         {
-                                            var di = new DeviceInstructions(remoteClient.DeviceId, MessageTypeIdEnum.Reset);
+                                            var di = new DeviceInstructions(remoteClient.DeviceId,
+                                                MessageTypeIdEnum.Reset);
                                             SendInstruction(di);
                                         }
                                     }
                                     InitiateReset();
                                     setExecuting = false;
                                     goto skipStart;
+                                }
                                 case SetPlaybackOptionEnum.PlaybackRandom:
+                                {
                                     // Get all the sets, random set one.
                                     isOff = false;
                                     var sets = dc.Sets.Where(x => !x.IsDisabled).ToList();
@@ -237,9 +242,10 @@ namespace HolidayShowServer
                                         var index = random.Next(sets.Count);
                                         setId = sets[index].SetId;
                                     }
-
+                                }
                                     break;
                                 case SetPlaybackOptionEnum.PlaybackCurrentOnly:
+                                {
                                     isOff = false;
                                     // get the set that is currently running
                                     var currentSet =
@@ -248,23 +254,26 @@ namespace HolidayShowServer
                                     {
                                         LogMessage("Current set is not set. Setting to random");
                                         dc.Settings.Add(new Settings()
-                                            {
-                                                SettingName = SettingKeys.CurrentSet,
-                                                ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
-                                                ValueString = String.Empty
-                                            });
+                                        {
+                                            SettingName = SettingKeys.CurrentSet,
+                                            ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
+                                            ValueString = String.Empty
+                                        });
                                         await dc.SaveChangesAsync();
                                         goto skipStart;
                                     }
 
-                                    var set = dc.Sets.FirstOrDefault(x => x.SetId == (int)currentSet.ValueDouble && !x.IsDisabled);
+                                    var set =
+                                        dc.Sets.FirstOrDefault(
+                                            x => x.SetId == (int) currentSet.ValueDouble && !x.IsDisabled);
                                     if (set == null)
                                     {
-                                        LogMessage("Current set references a set that does not exist. Setting to random.");
+                                        LogMessage(
+                                            "Current set references a set that does not exist. Setting to random.");
                                         dc.Settings.Add(new Settings()
                                         {
                                             SettingName = SettingKeys.CurrentSet,
-                                            ValueDouble = (int)SetPlaybackOptionEnum.PlaybackRandom,
+                                            ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
                                             ValueString = String.Empty
                                         });
                                         await dc.SaveChangesAsync();
@@ -274,14 +283,76 @@ namespace HolidayShowServer
                                     // if we are here, this is a valid set.
                                     setId = set.SetId;
 
+                                }
+                                    break;
+                                case SetPlaybackOptionEnum.DevicePinDetect:
+                                {
+                                    var pinDetect = await dc.Settings.Where(x => x.SettingName == SettingKeys.DetectDevicePin).FirstOrDefaultAsync();
+                                    if (pinDetect == null)
+                                    {
+                                        LogMessage("No Detect Device Pin Set");
+                                        Thread.Sleep(1000);
+                                        continue;
+                                    }
+
+                                    // Get the Detect Set
+                                    const string SET_DETECT_NAME = "DETECTION SET";
+                                    var set = await dc.Sets.Where(x => x.SetName == SET_DETECT_NAME).FirstOrDefaultAsync();
+                                    if (set == null)
+                                    {
+                                        set = new Sets
+                                        {
+                                            SetName = SET_DETECT_NAME,
+                                            IsDisabled = true  // Just keeps this from showing up in the random profile. We ignore this right now.
+                                        };
+                                        dc.Sets.Add(set);
+                                        await dc.SaveChangesAsync();
+                                    }
+                                    var sequence = set.SetSequences.FirstOrDefault();
+                                    if (sequence == null)
+                                    {
+                                        sequence = new SetSequences {SetId = set.SetId};
+                                        dc.SetSequences.Add(sequence);
+                                        await dc.SaveChangesAsync();
+                                    }
+
+                                    const string EFFECT_DETECT_NAME = "DETECT EFFECT";
+
+                                    var effectDetect = await dc.DeviceEffects.Where(x => x.EffectName == EFFECT_DETECT_NAME).FirstOrDefaultAsync();
+                                    if (effectDetect == null)
+                                    {
+                                        effectDetect = new DeviceEffects
+                                        {
+                                            EffectName = EFFECT_DETECT_NAME,
+                                            Duration = 2000,
+                                            EffectInstructionsAvailable = await
+                                                dc.EffectInstructionsAvailable.Where(
+                                                    x => x.InstructionName == EffectsSupported.GPIO_STROBE)
+                                                    .FirstOrDefaultAsync()
+                                        };
+                                        dc.DeviceEffects.Add(effectDetect);
+                                    }
+
+                                    var metaData = $"DEVPINS={pinDetect.ValueString};DUR={500}";
+
+                                    if (effectDetect.InstructionMetaData != metaData)
+                                    {
+                                        // format: DEVPINS=1:1;DUR=50
+                                        effectDetect.InstructionMetaData = metaData;
+                                        sequence.DeviceEffects = effectDetect;
+                                        await dc.SaveChangesAsync();
+                                    }
+
+                                    setId = set.SetId;
+                                }
 
                                     break;
                                 default:
-                                    {
-                                        LogMessage("Invlid SetPlaybackOption. ");
-                                        Thread.Sleep(1000);
-                                        goto skipStart;
-                                    }
+                                {
+                                    LogMessage("Invlid SetPlaybackOption. ");
+                                    Thread.Sleep(1000);
+                                    goto skipStart;
+                                }
                             }
 
                             // load the set data
@@ -302,8 +373,11 @@ namespace HolidayShowServer
                                     };
                                 dc.Settings.Add(current);
                             }
-                            current.ValueDouble = setId;
-                            await dc.SaveChangesAsync();
+                            if (current.ValueDouble != setId)
+                            {
+                                current.ValueDouble = setId;
+                                await dc.SaveChangesAsync();
+                            }
 
                             // check if audio and danager is enabled
                             var isAudioEnabled =
@@ -449,6 +523,12 @@ namespace HolidayShowServer
                                     case EffectsSupported.GPIO_STROBE_DELAY:
                                         {
                                             var data = EffectRandomStrobe(setSequence, totalSetTimeLength, disabledPins);
+                                            if (data != null) deviceInstructions.AddRange(data);
+                                        }
+                                        break;
+                                    case EffectsSupported.GPIO_SEQUENTIAL:
+                                        {
+                                            var data = EffectSequential(setSequence, totalSetTimeLength, disabledPins);
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
@@ -836,6 +916,68 @@ namespace HolidayShowServer
                 CommandPin = dk.Value,
                 PinDuration = timeLeft
             }));
+
+            return list;
+        }
+
+        private static List<DeviceInstructions> EffectSequential(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
+
+            const string reverseKey = "REVERSE";
+
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
+            var duration = GetDuration(metadataKeyValue);
+            var reverse = (metadataKeyValue.ContainsKey(reverseKey) && metadataKeyValue[reverseKey] == "1");
+
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // Devide up the desired duration by the number of items
+            // for an even distribution 
+            var startingPoint = setSequence.OnAt;
+
+            var list = new List<DeviceInstructions>();
+
+            var endingPosition = setDurrationMs;
+
+            if (setSequence.DeviceEffects.Duration > 0)
+            {
+                endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
+            }
+
+            while (startingPoint < endingPosition)
+            {
+                foreach (var dk in devicesAndKey)
+                {
+                    if (startingPoint + duration.Value > endingPosition.Value)
+                        goto end;
+
+                    var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                    {
+                        OnAt = startingPoint,
+                        CommandPin = dk.Value,
+                        PinDuration = duration
+                    };
+
+                    list.Add(di);
+
+                    startingPoint = startingPoint + (duration.Value * 2);
+                }
+                
+                // If the request is to go the other way, this will reverse the order of the keys for the next pass
+                if (reverse)
+                    devicesAndKey.Reverse();
+            }
+
+            end:
 
             return list;
         }

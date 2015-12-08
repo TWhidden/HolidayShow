@@ -368,3 +368,17 @@ BEGIN
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (5, getUtcDate())
 END
+
+-- Feature #8 - Strobe Effect over period of time
+if NOT EXISTS (select * from Versions where VersionNumber = 6)
+BEGIN
+
+	SET @instructionName = 'GPIO_SEQUENTIAL'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO Sequential', @instructionName, 'Sequential processing of the GPIO pins, with the programmed delay, and optional "Reverase" for the next pass to go the other direction; DEVPINS=4:1,4:2;DUR=75;REVERSE=1;', 0)
+	END
+
+	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (6, getUtcDate())
+END
