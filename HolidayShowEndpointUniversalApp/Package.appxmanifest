@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="HolidayShowEndPoint" Publisher="CN=&quot;eConnect, Inc&quot;, O=&quot;eConnect, Inc&quot;, L=Las Vegas, S=Nevada, C=US" Version="1.16.1011.0" />
+  <Identity Name="HolidayShowEndPoint" Publisher="CN=&quot;eConnect, Inc&quot;, O=&quot;eConnect, Inc&quot;, L=Las Vegas, S=Nevada, C=US" Version="1.17.1211.0" />
   <mp:PhoneIdentity PhoneProductId="fa9c4f27-f67c-4324-b58e-78c73e49d7fb" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Holiday Show Endpoint</DisplayName>

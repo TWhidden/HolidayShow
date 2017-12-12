@@ -16,12 +16,12 @@ namespace HolidayShowEndpointUniversalApp.Containers
     {
         private readonly int _deviceId;
         private readonly IResolverService _resolverService;
-        private readonly List<GpioPin> _availablePins;
+        private readonly List<OutletControl> _availablePins;
 
         protected static readonly List<IAudioRequestController> RunningAudioFiles = new List<IAudioRequestController>();
-        private readonly ConcurrentDictionary<GpioPin, Timer> _rootedTimer = new ConcurrentDictionary<GpioPin, Timer>();
+        private readonly ConcurrentDictionary<OutletControl, Timer> _rootedTimer = new ConcurrentDictionary<OutletControl, Timer>();
 
-        public ClientLiveControl(IServerDetails serverDetails, int deviceId, List<GpioPin> availablePins, IResolverService resolverService) : base(serverDetails)
+        public ClientLiveControl(IServerDetails serverDetails, int deviceId, List<OutletControl> availablePins, IResolverService resolverService) : base(serverDetails)
         {
             _deviceId = deviceId;
             _resolverService = resolverService;
@@ -65,7 +65,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
             AllOff();
         }
 
-        protected async override void EventControlReceived(ProtocolMessage message)
+        protected override async void EventControlReceived(ProtocolMessage message)
         {
             // FOr pin control.
             if (message.MessageParts.ContainsKey(ProtocolMessage.PINID) &&
@@ -90,7 +90,14 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                 var gpioPin = _availablePins[pinIndex];
 
-                SetPin(gpioPin, (on == 1) ? GpioPinValue.High : GpioPinValue.Low);
+                if (on == 1)
+                {
+                    await gpioPin.TurnOn();
+                }
+                else
+                {
+                    await gpioPin.TurnOff();
+                }
 
                 if (durration > 0)
                 {
@@ -100,9 +107,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
                         timer.Dispose();
                     }
                     
-                    timer = new Timer(x =>
-                    {
-                        SetPin(gpioPin, GpioPinValue.Low);
+                    timer = new Timer(async x =>
+                        {
+                            await gpioPin.TurnOff();
 
                         lock (_rootedTimer)
                         {
@@ -153,14 +160,14 @@ namespace HolidayShowEndpointUniversalApp.Containers
             }
         }
 
-        public void AllOff()
+        public async void AllOff()
         {
             // stops all the running audio.
             RunningAudioFiles.ToList().ForEach(x => x.Stop());
 
             foreach (var pin in _availablePins)
             {
-                SetPin(pin, GpioPinValue.Low);
+                await pin.TurnOff();
             }
 
             var audioControllers = _resolverService.Resolve<IAudioManagerController>();

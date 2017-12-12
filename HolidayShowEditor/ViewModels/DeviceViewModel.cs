@@ -142,6 +142,7 @@ namespace HolidayShowEditor.ViewModels
                 _dataContext.Context.Settings.Add(existingSetting);
             }
             existingSetting.ValueString = $"{ioPort.DeviceId}:{ioPort.CommandPin}";
+            await _dataContext.Context.SaveChangesAsync();
 
             var option = await _dataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.SetPlaybackOption).FirstOrDefaultAsync();
             if (option == null)
