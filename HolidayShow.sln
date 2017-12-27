@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolidayShow.Data", "HolidayShow.Data\HolidayShow.Data.csproj", "{9E26D44B-5773-438D-A095-B88F776500F5}"
 EndProject
@@ -190,8 +190,6 @@ Global
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|ARM.Build.0 = Debug|ARM
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|ARM.Deploy.0 = Debug|ARM
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Mixed Platforms.ActiveCfg = Debug|ARM
-		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Mixed Platforms.Build.0 = Debug|ARM
-		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Mixed Platforms.Deploy.0 = Debug|ARM
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Win32.ActiveCfg = Debug|x86
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Win32.Build.0 = Debug|x86
 		{3E0BD8BE-F956-4C76-AE26-F9B633FB7C71}.Debug|Win32.Deploy.0 = Debug|x86
@@ -284,5 +282,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6319B629-8641-4CF8-ACB8-E5BF1D344FA9}
 	EndGlobalSection
 EndGlobal

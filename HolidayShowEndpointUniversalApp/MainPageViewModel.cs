@@ -50,7 +50,7 @@ namespace HolidayShowEndpointUniversalApp
             _availablePins = new List<OutletControl>();
 
             // Identify if the device has a PiPlate attached.
-            await PiPlateRelay.PiRelay.Inititlize();
+            await PiPlateRelay.PiRelay.InititlizeAsync();
 
             if (PiPlateRelay.PiRelay.RelaysAvailable.Count > 0)
             {

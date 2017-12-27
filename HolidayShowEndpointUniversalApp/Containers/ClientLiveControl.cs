@@ -92,11 +92,11 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                 if (on == 1)
                 {
-                    await gpioPin.TurnOn();
+                    gpioPin.TurnOn();
                 }
                 else
                 {
-                    await gpioPin.TurnOff();
+                    gpioPin.TurnOff();
                 }
 
                 if (durration > 0)
@@ -107,9 +107,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
                         timer.Dispose();
                     }
                     
-                    timer = new Timer(async x =>
+                    timer = new Timer(x =>
                         {
-                            await gpioPin.TurnOff();
+                            gpioPin.TurnOff();
 
                         lock (_rootedTimer)
                         {
@@ -160,24 +160,18 @@ namespace HolidayShowEndpointUniversalApp.Containers
             }
         }
 
-        public async void AllOff()
+        public void AllOff()
         {
             // stops all the running audio.
             RunningAudioFiles.ToList().ForEach(x => x.Stop());
 
             foreach (var pin in _availablePins)
             {
-                await pin.TurnOff();
+                pin.TurnOff();
             }
 
             var audioControllers = _resolverService.Resolve<IAudioManagerController>();
             audioControllers.StopAllAudio();
-        }
-
-        private void SetPin(GpioPin pin, GpioPinValue value)
-        {
-            Debug.WriteLine("Pin {0} value {1}", pin.PinNumber, value);
-            pin.Write(value);
         }
     }
 }

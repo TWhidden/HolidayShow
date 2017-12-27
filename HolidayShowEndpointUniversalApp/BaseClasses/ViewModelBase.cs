@@ -3,15 +3,12 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 
 namespace HolidayShowEndpointUniversalApp.BaseClasses
 {
     
     public abstract class ViewModelBase : DependencyObject, INotifyPropertyChanged
     {
-        private static bool? m_isInDesignMode;
-
         /// <summary>
         /// Helper to raise the PropertyChanged event
         /// </summary>
@@ -20,7 +17,7 @@ namespace HolidayShowEndpointUniversalApp.BaseClasses
         {
             var e = new PropertyChangedEventArgs(propertyName);
             var changed = PropertyChanged;
-            if (changed != null) changed(this, e);
+            changed?.Invoke(this, e);
         }
 
         protected virtual void OnPropertyChanged<T>(Expression<Func<T>> action)

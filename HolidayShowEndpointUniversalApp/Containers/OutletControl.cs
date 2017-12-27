@@ -18,22 +18,22 @@ namespace HolidayShowEndpointUniversalApp.Containers
             _piRelayPin = piRelayPin;
         }
 
-        public async Task TurnOn()
+        public void TurnOn()
         {
             if (_piRelayPin.HasValue)
             {
-                await PiPlateRelay.PiRelay.RelayOnAsync(_piRelayPin.Value);
+                PiPlateRelay.PiRelay.RelayOnAsync(_piRelayPin.Value);
             }else
             {
                 _gpioPin?.Write(GpioPinValue.High);
             }
         }
 
-        public async Task TurnOff()
+        public void TurnOff()
         {
             if (_piRelayPin.HasValue)
             {
-                await PiPlateRelay.PiRelay.RelayOffAsync(_piRelayPin.Value);
+                PiPlateRelay.PiRelay.RelayOffAsync(_piRelayPin.Value);
             }
             else
             {
