@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Windows.Devices.Gpio;
 using HolidayShowEndpointUniversalApp.BaseClasses;
 using HolidayShowEndpointUniversalApp.Containers;
@@ -47,6 +48,10 @@ namespace HolidayShowEndpointUniversalApp
 
         private async void Value_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
+#if DEBUG
+            await Task.Delay(TimeSpan.FromSeconds(15));
+#endif
+
             _availablePins = new List<OutletControl>();
 
             // Identify if the device has a PiPlate attached.

@@ -40,9 +40,8 @@ namespace HolidayShowLib
                 ParserResults.Clear();
 
                 // Initilize the parsers
-                for (var p = 0; p < Parsers.Count; p++)
+                foreach (var parser in Parsers)
                 {
-                    var parser = Parsers[p];
                     ParserResults.Add(new BytePositions(parser));
                 }
             }
