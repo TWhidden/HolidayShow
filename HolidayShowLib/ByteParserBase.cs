@@ -29,9 +29,6 @@ namespace HolidayShowLib
 
         private readonly List<BytePositions> ParserResults = new List<BytePositions>();
 
-        private bool _isDisposed;
-
-
         public void BytesReceived(byte[] byteBuffer)
         {
             if (ParserResults.Count != Parsers.Count)

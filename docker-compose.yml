@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  holidayshowserver.core:
+    image: ${DOCKER_REGISTRY}holidayshowservercore
+    build:
+      context: .
+      dockerfile: HolidayShowServer.Core/Dockerfile

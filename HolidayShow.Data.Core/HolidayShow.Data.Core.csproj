@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\HolidayShow.Data\AudioOptions.cs" Link="AudioOptions.cs" />
+    <Compile Include="..\HolidayShow.Data\AudioOptions.Partial.cs" Link="AudioOptions.Partial.cs" />
+    <Compile Include="..\HolidayShow.Data\DeviceEffects.cs" Link="DeviceEffects.cs" />
+    <Compile Include="..\HolidayShow.Data\DeviceIoPorts.cs" Link="DeviceIoPorts.cs" />
+    <Compile Include="..\HolidayShow.Data\DevicePatterns.cs" Link="DevicePatterns.cs" />
+    <Compile Include="..\HolidayShow.Data\DevicePatterns.Partial.cs" Link="DevicePatterns.Partial.cs" />
+    <Compile Include="..\HolidayShow.Data\DevicePatternSequences.cs" Link="DevicePatternSequences.cs" />
+    <Compile Include="..\HolidayShow.Data\Devices.cs" Link="Devices.cs" />
+    <Compile Include="..\HolidayShow.Data\EffectInstructionsAvailable.cs" Link="EffectInstructionsAvailable.cs" />
+    <Compile Include="..\HolidayShow.Data\Sets.cs" Link="Sets.cs" />
+    <Compile Include="..\HolidayShow.Data\SetSequences.cs" Link="SetSequences.cs" />
+    <Compile Include="..\HolidayShow.Data\SettingKeys.cs" Link="SettingKeys.cs" />
+    <Compile Include="..\HolidayShow.Data\Settings.cs" Link="Settings.cs" />
+    <Compile Include="..\HolidayShow.Data\Versions.cs" Link="Versions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EntityFramework" Version="6.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Sql\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\HolidayShow.Data\Sql\HolidayShow.sql" Link="Sql\HolidayShow.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

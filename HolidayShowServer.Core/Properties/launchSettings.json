@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "HolidayShowServer.Core": {
+      "commandName": "Project",
+      "commandLineArgs": "-p 5555 -d \"10.64.128.100,1401\" -n  \"HolidayShow_Dev\" -u \"dev\" -s \"dev123\"",
+      "environmentVariables": {
+        "DBUSER": "dev",
+        "DBNAME": "HolidayShow_Dev",
+        "DBPASS": "dev123",
+        "DBSERVER": "10.64.128.100,1401",
+        "PORT": "5555"
+      }
+    }
+  }
+}

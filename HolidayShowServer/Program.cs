@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
+#if NETCOREAPP
+using Microsoft.EntityFrameworkCore;
+using HolidayShow.Data.Core;
+#else
 using System.Data.Entity;
+#endif
+
+
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +17,7 @@ using System.Text;
 using System.Threading;
 using CommandLine;
 using HolidayShow.Data;
+
 using HolidayShowLib;
 
 
@@ -20,28 +29,48 @@ namespace HolidayShowServer
 
         private static bool _running = true;
 
-        private readonly static List<RemoteClient> Clients = new List<RemoteClient>();
+        private static readonly List<RemoteClient> Clients = new List<RemoteClient>();
 
         private static readonly Timer UpdateDisplayTimer = new Timer((x)=> UpdateConsole(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
-        private readonly static List<string> LogMessages = new List<string>();
+        private static readonly List<string> LogMessages = new List<string>();
 
-        private readonly static ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
+        private static readonly ConcurrentDictionary<Timer, bool> QueuedTimers = new ConcurrentDictionary<Timer, bool>();
+
+        public static string ConnectionString = ConfigurationManager.ConnectionStrings["EfHolidayContext"].ConnectionString;
 
         static void Main(string[] args)
         {
             var result = Parser.Default.ParseArguments<InputParams>(args);
             int serverPort = 0;
+            string dbServer = null;
+            string dbName = null;
+            string dbUser = null;
+            string dbPass = null;
             var exitCode = result.MapResult
                 (
-                options => { serverPort = options.ServerPort; return 0; },
+                options =>
+                {
+                    serverPort = options.ServerPort;
+                    dbServer = options.DbServer;
+                    dbName = options.DbName;
+                    dbPass = options.Password;
+                    dbUser = options.Username;
+                    return 0;
+                },
                 errors => { Console.WriteLine(errors); return 1; }
                 );
 
             if (exitCode == 1) return;
+            
+
+            if (string.IsNullOrWhiteSpace(dbServer))
+            {
+                ConnectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPass};Trusted_Connection=False;";
+            }
 
             // Update the database
-            using (var dc = new EfHolidayContext())
+            using (var dc = new EfHolidayContext(ConnectionString))
             {
                 dc.UpdateDatabase();
             }
@@ -65,7 +94,7 @@ namespace HolidayShowServer
         {
             lock (LogMessages)
             {
-                LogMessages.Insert(0, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}");
+                LogMessages.Insert(0, $"{DateTime.Now:HH:mm:ss}: {message}");
                 var count = LogMessages.Count;
                 const int maxOutput = 20;
                 if (count > maxOutput)
@@ -112,7 +141,7 @@ namespace HolidayShowServer
             }
         }
 
-        private async static void RunServer()
+        private static async void RunServer()
         {
             var setExecuting = false;
 
@@ -131,7 +160,7 @@ namespace HolidayShowServer
                     continue;
                 }
 
-                using (var dc = new EfHolidayContext())
+                using (var dc = new EfHolidayContext(ConnectionString))
                 {
                     // check to see if we should be running or not.
                     var schuduleOn = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OnAt);
@@ -174,10 +203,20 @@ namespace HolidayShowServer
                         InitiateReset();
                         setExecuting = true;
 
-                        using (var dc = new EfHolidayContext())
+                        using (var dc = new EfHolidayContext(ConnectionString))
                         {
                             var audioOnAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
                             var audioOffAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOffAt);
+
+                            if (audioOnAt == null)
+                            {
+                                audioOnAt = new Settings();
+                            }
+
+                            if (audioOffAt == null)
+                            {
+                                audioOffAt = new Settings();
+                            }
 
                             var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(audioOnAt.ValueString);
                             var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(audioOffAt.ValueString);

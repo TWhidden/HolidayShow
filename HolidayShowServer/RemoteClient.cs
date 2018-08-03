@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using HolidayShow.Data;
 using HolidayShowLib;
+#if NETCOREAPP
+using HolidayShow.Data.Core;
+using Microsoft.EntityFrameworkCore;
+#else
+using System.Data.Entity;
+using HolidayShow.Data;
+#endif
 
 namespace HolidayShowServer
 {
@@ -131,7 +137,7 @@ namespace HolidayShowServer
         }
 
 
-        public async override void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)
+        public override async void ProcessPacket(byte[] bytes, ParserProtocolContainer parser)
         {
             // get the message
             var message = ProtocolHelper.UnWrap(bytes);
@@ -149,7 +155,7 @@ namespace HolidayShowServer
 
 
                     // Update the pins in the database
-                    using (var dc = new EfHolidayContext())
+                    using (var dc = new EfHolidayContext(Program.ConnectionString))
                     {
                         var device = dc.Devices.FirstOrDefault(x => x.DeviceId == id);
                         if (device == null)
@@ -190,7 +196,7 @@ namespace HolidayShowServer
                     }
 
                     // Update the pins in the database
-                    using (var dc = new EfHolidayContext())
+                    using (var dc = new EfHolidayContext(Program.ConnectionString))
                     {
                         var device = dc.Devices.FirstOrDefault(x => x.DeviceId == DeviceId);
                         if (device == null) return;
@@ -224,7 +230,7 @@ namespace HolidayShowServer
                 if (message.MessageParts.ContainsKey(ProtocolMessage.FILEDOWNLOAD))
                 {
                     // Read from the settings to find the base path.  This is the read path
-                    using (var dc = new EfHolidayContext())
+                    using (var dc = new EfHolidayContext(Program.ConnectionString))
                     {
                         var basePathSetting = await dc.Settings.Where(x=> x.SettingName == SettingKeys.FileBasePath).FirstOrDefaultAsync();
                         if (basePathSetting == null || String.IsNullOrWhiteSpace(basePathSetting.ValueString) || !Directory.Exists(basePathSetting.ValueString))
