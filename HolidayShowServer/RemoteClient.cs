@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using HolidayShow.Data;
 using HolidayShowLib;
 #if NETCOREAPP
-using HolidayShow.Data.Core;
+using HolidayShow.Data;
 using Microsoft.EntityFrameworkCore;
 #else
 using System.Data.Entity;

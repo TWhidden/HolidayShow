@@ -1,10 +1,6 @@
-﻿using System;
-using System.Data.Entity;
-using HolidayShow.Data.Models.Mapping;
-using Microsoft.EntityFrameworkCore;
-using DbContext = Microsoft.EntityFrameworkCore.DbContext;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace HolidayShow.Data.Core
+namespace HolidayShow.Data
 {
     public class EfHolidayContext : DbContext
     {
@@ -24,37 +20,178 @@ namespace HolidayShow.Data.Core
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(_connectionString);
+                optionsBuilder
+                    .UseLazyLoadingProxies()
+                    .UseSqlServer(_connectionString);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<AudioOptions>(entity =>
+            {
+                entity.HasKey(e => e.AudioId);
 
-            modelBuilder.Entity<AudioOptions>().HasKey(x => x.AudioId);
-            modelBuilder.Entity<DeviceIoPorts>().HasKey(x => x.DeviceIoPortId);
-            modelBuilder.Entity<DevicePatterns>().HasKey(x => x.DevicePatternId);
-            modelBuilder.Entity<DevicePatternSequences>().HasKey(x => x.DevicePatternSeqenceId);
-            modelBuilder.Entity<Devices>().HasKey(x => x.DeviceId);
-            modelBuilder.Entity<Sets>().HasKey(x => x.SetId);
-            modelBuilder.Entity<Settings>().HasKey(x => x.SettingName);
-            modelBuilder.Entity<Versions>().HasKey(x => x.VersionNumber);
-            modelBuilder.Entity<DeviceEffects>().HasKey(x => x.EffectId);
-            modelBuilder.Entity<EffectInstructionsAvailable>().HasKey(x => x.EffectInstructionId);
-            modelBuilder.Entity<SetSequences>().HasKey(x => x.SetSequenceId);
+                entity.Property(e => e.FileName)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
-            modelBuilder.ApplyConfiguration(new AudioOptionMap());
-            modelBuilder.ApplyConfiguration(new DeviceEffectMap());
-            modelBuilder.ApplyConfiguration(new DeviceIoPortMap());
-            modelBuilder.ApplyConfiguration(new DevicePatternMap());
-            modelBuilder.ApplyConfiguration(new DevicePatternSequenceMap());
-            modelBuilder.ApplyConfiguration(new DeviceMap());
-            modelBuilder.ApplyConfiguration(new EffectInstructionsAvailableMap());
-            modelBuilder.ApplyConfiguration(new SetMap());
-            modelBuilder.ApplyConfiguration(new SetSequenceMap());
-            modelBuilder.ApplyConfiguration(new SettingMap());
-            modelBuilder.ApplyConfiguration(new VersionMap());
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<DeviceEffects>(entity =>
+            {
+                entity.HasKey(e => e.EffectId);
+
+                entity.Property(e => e.EffectName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.InstructionMetaData)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.HasOne(d => d.EffectInstructionsAvailable)
+                    .WithMany(p => p.DeviceEffects)
+                    .HasForeignKey(d => d.EffectInstructionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DeviceEffects_EffectInstructionsAvailable");
+            });
+
+            modelBuilder.Entity<DeviceIoPorts>(entity =>
+            {
+                entity.HasKey(e => e.DeviceIoPortId);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("('')");
+
+                entity.HasOne(d => d.Devices)
+                    .WithMany(p => p.DeviceIoPorts)
+                    .HasForeignKey(d => d.DeviceId)
+                    .HasConstraintName("FK_DeviceIoPorts_Devices");
+            });
+
+            modelBuilder.Entity<DevicePatterns>(entity =>
+            {
+                entity.HasKey(e => e.DevicePatternId);
+
+                entity.Property(e => e.PatternName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasOne(d => d.Devices)
+                    .WithMany(p => p.DevicePatterns)
+                    .HasForeignKey(d => d.DeviceId)
+                    .HasConstraintName("FK_DevicePatterns_Devices");
+            });
+
+            modelBuilder.Entity<DevicePatternSequences>(entity =>
+            {
+                entity.HasKey(e => e.DevicePatternSeqenceId);
+
+                entity.HasOne(d => d.AudioOptions)
+                    .WithMany(p => p.DevicePatternSequences)
+                    .HasForeignKey(d => d.AudioId)
+                    .HasConstraintName("FK_DevicePatternSequences_AudioOptions1");
+
+                entity.HasOne(d => d.DeviceIoPorts)
+                    .WithMany(p => p.DevicePatternSequences)
+                    .HasForeignKey(d => d.DeviceIoPortId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DevicePatternSequences_DeviceIoPorts");
+
+                entity.HasOne(d => d.DevicePatterns)
+                    .WithMany(p => p.DevicePatternSequences)
+                    .HasForeignKey(d => d.DevicePatternId)
+                    .HasConstraintName("FK_DevicePatternSequences_DevicePatterns");
+            });
+
+            modelBuilder.Entity<Devices>(entity =>
+            {
+                entity.HasKey(e => e.DeviceId);
+
+                entity.Property(e => e.DeviceId).ValueGeneratedNever();
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("('NONAME')");
+            });
+
+            modelBuilder.Entity<EffectInstructionsAvailable>(entity =>
+            {
+                entity.HasKey(e => e.EffectInstructionId);
+
+                entity.Property(e => e.DisplayName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.InstructionName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.InstructionsForUse)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+            });
+
+            modelBuilder.Entity<Sets>(entity =>
+            {
+                entity.HasKey(e => e.SetId);
+
+                entity.Property(e => e.SetName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<SetSequences>(entity =>
+            {
+                entity.HasKey(e => e.SetSequenceId);
+
+                entity.HasOne(d => d.DevicePatterns)
+                    .WithMany(p => p.SetSequences)
+                    .HasForeignKey(d => d.DevicePatternId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_SetSequences_DevicePatterns");
+
+                entity.HasOne(d => d.DeviceEffects)
+                    .WithMany(p => p.SetSequences)
+                    .HasForeignKey(d => d.EffectId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_SetSequences_DeviceEffects");
+
+                entity.HasOne(d => d.Sets)
+                    .WithMany(p => p.SetSequences)
+                    .HasForeignKey(d => d.SetId)
+                    .HasConstraintName("FK_SetSequences_Sets");
+            });
+
+            modelBuilder.Entity<Settings>(entity =>
+            {
+                entity.HasKey(e => e.SettingName);
+
+                entity.Property(e => e.SettingName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.ValueString)
+                    .IsRequired()
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Versions>(entity =>
+            {
+                entity.HasKey(e => e.VersionNumber);
+
+                entity.Property(e => e.VersionNumber).ValueGeneratedNever();
+
+                entity.Property(e => e.DateUpdated).HasColumnType("datetime");
+            });
         }
 
 
