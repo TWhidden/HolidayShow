@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HolidayShow.Data.Core.Properties;
+using Microsoft.EntityFrameworkCore;
 
 namespace HolidayShow.Data
 {
@@ -13,7 +14,7 @@ namespace HolidayShow.Data
 
         public void UpdateDatabase()
         {
-            //this.Database.ExecuteSqlCommand(Properties.Resources.HolidayShow);
+            this.Database.ExecuteSqlCommand(Resources.HolidayShow);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

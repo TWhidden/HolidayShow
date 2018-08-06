@@ -5,10 +5,13 @@ using System.Configuration;
 #if NETCOREAPP
 using Microsoft.EntityFrameworkCore;
 using HolidayShow.Data.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Serilog;
 #else
 using System.Data.Entity;
 #endif
-
 
 using System.Globalization;
 using System.Linq;
@@ -17,8 +20,8 @@ using System.Text;
 using System.Threading;
 using CommandLine;
 using HolidayShow.Data;
-
 using HolidayShowLib;
+
 
 
 namespace HolidayShowServer
@@ -39,16 +42,36 @@ namespace HolidayShowServer
 
         public static string ConnectionString = ConfigurationManager.ConnectionStrings["EfHolidayContext"].ConnectionString;
 
+#if NETCOREAPP
+        private static ILogger<Program> _logger;
+#endif
+
         static void Main(string[] args)
         {
+
+#if NETCOREAPP
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.File("/var/log/HolidayShowServer/server.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 30)
+                //.WriteTo.File("c:\\logs\\server1.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 30)
+                .CreateLogger();
+
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            _logger = serviceProvider.GetService<ILogger<Program>>();
+
+            _logger.LogInformation($"STARTUP {DateTime.Now}; Args: {string.Join(" ", args)}");
+#endif
+
             var result = Parser.Default.ParseArguments<InputParams>(args);
-            int serverPort = 0;
+            var serverPort = 0;
             string dbServer = null;
             string dbName = null;
             string dbUser = null;
             string dbPass = null;
             var exitCode = result.MapResult
-                (
+            (
                 options =>
                 {
                     serverPort = options.ServerPort;
@@ -58,16 +81,25 @@ namespace HolidayShowServer
                     dbUser = options.Username;
                     return 0;
                 },
-                errors => { Console.WriteLine(errors); return 1; }
-                );
+                errors =>
+                {
+#if NETCOREAPP
+                    _logger.LogError(string.Join(Environment.NewLine, errors));
+#endif
+                    Console.WriteLine(errors);
+                    return 1;
+                }
+            );
 
             if (exitCode == 1) return;
-            
 
-            if (string.IsNullOrWhiteSpace(dbServer))
+            if (!string.IsNullOrWhiteSpace(dbServer))
             {
                 ConnectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPass};Trusted_Connection=False;";
             }
+#if NETCOREAPP
+            _logger.LogInformation($"CONNECTION STRING {ConnectionString}");
+#endif
 
             // Update the database
             using (var dc = new EfHolidayContext(ConnectionString))
@@ -82,15 +114,41 @@ namespace HolidayShowServer
 
             var t = new Thread(x => RunServer()) { IsBackground = true, Name = "HolidayServer" };
             t.Start();
-            
 
-            LogMessage("Press [ENTER] to stop the server");
-            Console.ReadLine();
+#if NETCOREAPP
+            Thread.Sleep(Timeout.Infinite);
+#endif
+
+            if (Environment.UserInteractive)
+            {
+                LogMessage("Press [ENTER] to stop the server");
+                Console.ReadLine();
+            }
+            else
+            {
+                // Docker has no interactive mode. If there is no console, we need to sleep forever until the task is force quit.
+                LogMessage("End Task to stop the server");
+                Thread.Sleep(Timeout.Infinite);
+            }
+
+#if NETCOREAPP
+            _logger.LogInformation($"SHUTTING DOWN! {DateTime.Now}");
+#endif
+
             _running = false;
             _server.Stop();
         }
 
-        static void LogMessage(string message)
+#if NETCOREAPP
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            //we will configure logging here
+            services.AddLogging(configure => configure.AddConsole());
+            services.AddLogging(configure => configure.AddSerilog());
+        }
+#endif
+
+        static void LogMessage(string message, bool persistMessage = false)
         {
             lock (LogMessages)
             {
@@ -102,6 +160,10 @@ namespace HolidayShowServer
                     LogMessages.RemoveRange(maxOutput, LogMessages.Count - maxOutput);
                 }
             }
+
+#if NETCOREAPP
+            if(persistMessage) _logger.LogInformation(message);
+#endif
         }
 
         static void _server_OnClientConnected(object sender, NewClientEventArgs e)
@@ -110,8 +172,6 @@ namespace HolidayShowServer
             var remoteClient = new RemoteClient(e.Client);
             remoteClient.OnConnectionClosed += remoteClient_OnConnectionClosed;
             Clients.Add(remoteClient);
-
-            
         }
 
         static void remoteClient_OnConnectionClosed(object sender, EventArgs e)
