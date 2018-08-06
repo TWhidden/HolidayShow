@@ -14,7 +14,7 @@ namespace HolidayShow.Data
 
         public void UpdateDatabase()
         {
-            this.Database.ExecuteSqlCommand(Resources.HolidayShow);
+            //this.Database.ExecuteSqlCommand(Resources.HolidayShow);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
