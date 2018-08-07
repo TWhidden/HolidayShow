@@ -18,11 +18,11 @@ export class NavMenu extends Component {
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav>
-            <LinkContainer to={'/'} exact>
+            {/* <LinkContainer to={'/'} exact>
               <NavItem>
                 <Glyphicon glyph='home' /> Home
               </NavItem>
-            </LinkContainer>
+            </LinkContainer> */}
             <LinkContainer to={'/DeviceEditor'} exact>
               <NavItem>
                 <Glyphicon glyph='lamp' />Devices
