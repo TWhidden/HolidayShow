@@ -8,6 +8,6 @@ namespace HolidayShow.Data
 {
     public partial class DevicePatterns
     {
-        public string PatternDescription => $"{Devices.Name} - {PatternName}";
+        //public string PatternDescription => $"{Devices.Name} - {PatternName}";
     }
 }

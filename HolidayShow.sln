@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerScripts", "DockerScri
 		entrypoint.sh = entrypoint.sh
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolidayShowWeb", "HolidayShowWeb\HolidayShowWeb.csproj", "{E06AC049-69A0-4417-9A78-664661996853}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -554,6 +556,56 @@ Global
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|Win32.Build.0 = ReleaseCore|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|x64.ActiveCfg = ReleaseCore|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|x64.Build.0 = ReleaseCore|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|ARM.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Win32.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Debug|x64.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|ARM.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|ARM.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Win32.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|Win32.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|x64.ActiveCfg = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Debug|x64.Build.0 = Debug|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Any CPU.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|ARM.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|ARM.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Win32.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|Win32.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|x64.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Galileo_Release|x64.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|ARM.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|ARM.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Win32.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|Win32.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|x64.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.Release|x64.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Any CPU.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Any CPU.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|ARM.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|ARM.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Mixed Platforms.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Win32.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|Win32.Build.0 = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|x64.ActiveCfg = Release|Any CPU
+		{E06AC049-69A0-4417-9A78-664661996853}.ReleaseCore|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

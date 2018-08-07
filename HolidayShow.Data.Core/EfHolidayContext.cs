@@ -1,4 +1,5 @@
-﻿using HolidayShow.Data.Core.Properties;
+﻿using System.Configuration;
+using HolidayShow.Data.Core.Properties;
 using Microsoft.EntityFrameworkCore;
 
 namespace HolidayShow.Data
@@ -6,6 +7,11 @@ namespace HolidayShow.Data
     public class EfHolidayContext : DbContext
     {
         private readonly string _connectionString;
+
+        public EfHolidayContext()
+        {
+            _connectionString = "Server=10.64.128.100,1401;Database=HolidayShow_Dev;User Id=dev;Password=dev123;Trusted_Connection=False;";
+        }
 
         public EfHolidayContext(string cs)
         {
