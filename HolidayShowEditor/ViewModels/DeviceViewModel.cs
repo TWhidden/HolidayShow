@@ -147,8 +147,7 @@ namespace HolidayShowEditor.ViewModels
             var option = await _dataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.SetPlaybackOption).FirstOrDefaultAsync();
             if (option == null)
             {
-                option = new Settings();
-                option.SettingName = SettingKeys.SetPlaybackOption;
+                option = new Settings {SettingName = SettingKeys.SetPlaybackOption};
                 _dataContext.Context.Settings.Add(option);
             }
             option.ValueDouble = (double)SetPlaybackOptionEnum.DevicePinDetect;

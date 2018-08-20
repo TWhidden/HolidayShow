@@ -67,6 +67,8 @@ namespace HolidayShowWeb.Controllers
                 _context.Entry(devicesDeviceIoPort).State = EntityState.Modified;
             }
 
+            await Task.Delay(5000);
+
             try
             {
                 await _context.SaveChangesAsync();

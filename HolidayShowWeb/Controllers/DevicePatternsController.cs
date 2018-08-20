@@ -46,6 +46,25 @@ namespace HolidayShowWeb.Controllers
             return Ok(devicePatterns);
         }
 
+        // GET: api/DevicePatterns/GetDevicePatternsByDevice/5
+        [HttpGet("GetDevicePatternsByDeviceId/{id}")]
+        public async Task<IActionResult> GetDevicePatternsByDeviceId([FromRoute] int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var devicePatterns = await _context.DevicePatterns.Where(x => x.DeviceId == id).ToArrayAsync();
+
+            if (devicePatterns == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(devicePatterns);
+        }
+
         // PUT: api/DevicePatterns/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDevicePatterns([FromRoute] int id, [FromBody] DevicePatterns devicePatterns)

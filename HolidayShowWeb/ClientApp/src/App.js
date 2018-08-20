@@ -6,6 +6,7 @@ import DeviceManager from './components/DeviceEditor';
 import SetsEditor from './components/SetsEditor';
 import EffectsEditor from './components/EffectsEditor';
 import SettingsEditor from './components/SettingsEditor';
+import DevicePatternEditor from './components/DevicePatternEditor';
 
 export default class App extends Component {
   displayName = App.name
@@ -15,6 +16,7 @@ export default class App extends Component {
       <Layout>
         <Route exact path='/' component={Home} />
         <Route exact path='/DeviceEditor' component={DeviceManager} />
+        <Route exact path='/DevicePatternEditor' component={DevicePatternEditor} />
         <Route exact path='/SetsEditor' component={SetsEditor} />
         <Route exact path='/EffectsEditor' component={EffectsEditor} />
         <Route exact path='/SettingsEditor' component={SettingsEditor} />

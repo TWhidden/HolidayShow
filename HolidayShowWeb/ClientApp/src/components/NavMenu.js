@@ -28,6 +28,11 @@ export class NavMenu extends Component {
                 <Glyphicon glyph='lamp' />Devices
               </NavItem>
             </LinkContainer>
+            <LinkContainer to={'/DevicePatternEditor'} exact>
+              <NavItem>
+                <Glyphicon glyph='align-center' />Device Patterns
+              </NavItem>
+            </LinkContainer>
             <LinkContainer to={'/SetsEditor'} exact>
               <NavItem>
                 <Glyphicon glyph='film' />Sets

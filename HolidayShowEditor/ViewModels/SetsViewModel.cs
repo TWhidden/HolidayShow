@@ -82,7 +82,7 @@ namespace HolidayShowEditor.ViewModels
 
         public List<DevicePatterns> DevicePatternsList { get
         {
-            var list =  _dataContext.Context.DevicePatterns.ToList().OrderBy(x => x.PatternDescription).ToList();
+            var list =  _dataContext.Context.DevicePatterns.ToList().OrderBy(x => x.PatternName).ToList();
             return list;
         } }
 
