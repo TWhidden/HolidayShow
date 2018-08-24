@@ -1,6 +1,6 @@
 class DevicePatternServices{
 
-    GetDevicePatternsByDeviceId = async (id)=>{
+    getDevicePatternsByDeviceId = async (id)=>{
         let response = await fetch(`/api/DevicePatterns/GetDevicePatternsByDeviceId/${id}`);
         return await response.json();
     }

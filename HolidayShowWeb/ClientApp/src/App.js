@@ -1,3 +1,5 @@
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/css/bootstrap-theme.css';
 import React, { Component } from 'react';
 import { Route } from 'react-router';
 import { Layout } from './components/Layout';
@@ -7,20 +9,27 @@ import SetsEditor from './components/SetsEditor';
 import EffectsEditor from './components/EffectsEditor';
 import SettingsEditor from './components/SettingsEditor';
 import DevicePatternEditor from './components/DevicePatternEditor';
+import { MuiThemeProvider } from '@material-ui/core/styles';
+
+
 
 export default class App extends Component {
   displayName = App.name
 
   render() {
     return (
-      <Layout>
-        <Route exact path='/' component={Home} />
-        <Route exact path='/DeviceEditor' component={DeviceManager} />
-        <Route exact path='/DevicePatternEditor' component={DevicePatternEditor} />
-        <Route exact path='/SetsEditor' component={SetsEditor} />
-        <Route exact path='/EffectsEditor' component={EffectsEditor} />
-        <Route exact path='/SettingsEditor' component={SettingsEditor} />
-      </Layout>
+      <MuiThemeProvider>
+
+        <Layout>
+          <Route exact path='/' component={Home} />
+          <Route exact path='/DeviceEditor' component={DeviceManager} />
+          <Route exact path='/DevicePatternEditor' component={DevicePatternEditor} />
+          <Route exact path='/SetsEditor' component={SetsEditor} />
+          <Route exact path='/EffectsEditor' component={EffectsEditor} />
+          <Route exact path='/SettingsEditor' component={SettingsEditor} />
+        </Layout>
+
+      </MuiThemeProvider>
     );
   }
 }

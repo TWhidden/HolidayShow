@@ -41,7 +41,7 @@ class DeviceManager extends Component {
             devicesDirty: [],
             selectedDevice: null,
             isBusy: false,
-        }
+        };
     }
 
     handleDeviceSelection = (device) => {

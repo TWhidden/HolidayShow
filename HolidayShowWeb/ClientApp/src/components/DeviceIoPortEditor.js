@@ -64,8 +64,8 @@ class DeviceIoPortEditor extends Component {
                                             className={classes.textField}
                                             InputLabelProps={{
                                                 style: {
-                                                    backgroundColor: "red",
-                                                    fontSize: "30px"
+                                                    // backgroundColor: "red",
+                                                    fontSize: "18px"
                                                 },
                                             }}
                                         />
