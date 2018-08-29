@@ -1,8 +1,6 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/dist/css/bootstrap-theme.css';
 import React, { Component } from 'react';
 import { Route } from 'react-router';
-import { Layout } from './components/Layout';
+import Layout from './components/Layout';
 import { Home } from './components/Home';
 import DeviceManager from './components/DeviceEditor';
 import SetsEditor from './components/SetsEditor';
@@ -10,8 +8,6 @@ import EffectsEditor from './components/EffectsEditor';
 import SettingsEditor from './components/SettingsEditor';
 import DevicePatternEditor from './components/DevicePatternEditor';
 import { MuiThemeProvider } from '@material-ui/core/styles';
-
-
 
 export default class App extends Component {
   displayName = App.name

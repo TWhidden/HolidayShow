@@ -1,9 +1,36 @@
-class DevicePatternServices{
+class DevicePatternServices {
 
-    getDevicePatternsByDeviceId = async (id)=>{
+    getDevicePatternsByDeviceId = async (id) => {
         let response = await fetch(`/api/DevicePatterns/GetDevicePatternsByDeviceId/${id}`);
         return await response.json();
     }
-} 
+
+    deletePatternByPatternId = async (id) => {
+        let options = {
+            method: 'delete',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+        await fetch(`/api/DevicePatterns/${id}`, options)
+    }
+
+    createPattern = async (pattern) => {
+        let options = {
+            method: 'post',
+            body: JSON.stringify(pattern),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+        let response = await fetch(`/api/DevicePatterns/`, options)
+
+        return await response.json();
+    }
+}
 
 export default new DevicePatternServices();

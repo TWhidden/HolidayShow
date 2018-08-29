@@ -38,8 +38,7 @@ class DeviceManager extends Component {
 
         this.state = {
             devices: [],
-            devicesDirty: [],
-            selectedDevice: null,
+            selectedDevice: "",
             isBusy: false,
         };
     }
@@ -54,15 +53,8 @@ class DeviceManager extends Component {
             this.setIsBusy(true);
             let devices = await this.DeviceServices.getAllDevices();
 
-            let cleanState = [];
-            for (let index = 0; index < devices.length; index++) {
-                const element = devices[index];
-                cleanState[index] = false;
-            }
-
             this.setState({
                 devices,
-                devicesDirty: cleanState
             });
 
         } catch (e) {
@@ -75,55 +67,18 @@ class DeviceManager extends Component {
     handleNameChange = (device, evt) => {
         device.name = evt.target.value;
 
-        this.handleDirty(device);
-
         this.setState({});
-    }
-
-    handleDirtyCleanChange(device, isDirty) {
-        var stateIndex = this.state.devices.indexOf(device);
-
-        this.state.devicesDirty[stateIndex] = isDirty;
-
-        this.setState({
-            devicesDirty: this.state.devicesDirty
-        });
-    }
-
-    handleDirty(device) {
-        this.handleDirtyCleanChange(device, true);
-    }
-
-    getDirty(device) {
-        var stateIndex = this.state.devices.indexOf(device);
-        return this.state.devicesDirty[stateIndex];
     }
 
     handleDeviceSave = async (device) => {
         try {
             this.setIsBusy(true);
             await this.DeviceServices.saveDevice(device);
-            this.handleDirtyCleanChange(device, false);
-            this.setState({});
         } catch (e) {
 
         } finally {
             this.setIsBusy(false);
         }
-    }
-
-    handleIoPortDetect = async (ioPortId) => {
-        try {
-            this.setIsBusy(true);
-            await this.DeviceIoPortServices.ioPortIdentify(ioPortId);
-            this.setState({});
-        } catch (e) 
-        {
-
-        } finally {
-            this.setIsBusy(false);
-        }
-
     }
 
     setIsBusy(busyState) {
@@ -143,7 +98,7 @@ class DeviceManager extends Component {
                             (
                                 <ListItem button onClick={() => this.handleDeviceSelection(device)} key={i}>
                                     <TextField
-                                        label={"Device ID" + device.deviceId}
+                                        label={`Device ID: ${device.deviceId}`}
                                         value={device.name}
                                         onChange={(evt) => this.handleNameChange(device, evt)}
                                         margin="normal"
@@ -152,17 +107,14 @@ class DeviceManager extends Component {
                                             className: classes.input,
                                         }}
                                     />
-                                    <Button onClick={(evt) => this.handleDeviceSave(device, evt)} className={this.getDirty(device) ? "visibile" : "hidden"}><SaveIcon /></Button>
+                                    {/* <Button onClick={(evt) => this.handleDeviceSave(device, evt)} className={this.getDirty(device) ? "visibile" : "hidden"}><SaveIcon /></Button> */}
                                 </ListItem>
                             ))}
 
                     </List>
 
                     <div style={{ overflow: "auto" }}>
-                        <DeviceIoPortEditor 
-                            device={this.state.selectedDevice} 
-                            onIoPortChanged={(evt) => this.handleDirty(this.state.selectedDevice)} 
-                            onIoPortDetect={(ioPortId, evt) => this.handleIoPortDetect(ioPortId)} />
+                        <DeviceIoPortEditor device={this.state.selectedDevice} />
                     </div>
                 </div>
                 {

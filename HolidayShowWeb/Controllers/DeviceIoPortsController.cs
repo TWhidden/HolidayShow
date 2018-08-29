@@ -46,6 +46,24 @@ namespace HolidayShowWeb.Controllers
             return Ok(deviceIoPorts);
         }
 
+        [HttpGet("ByDeviceId/{deviceId}")]
+        public async Task<IActionResult> GetDeviceIoPortsByDeviceId([FromRoute] int deviceId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var deviceIoPorts = await _context.DeviceIoPorts.Where(x => x.DeviceId == deviceId).ToListAsync();
+
+            if (deviceIoPorts == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(deviceIoPorts);
+        }
+
         // PUT: api/DeviceIoPorts/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDeviceIoPorts([FromRoute] int id, [FromBody] DeviceIoPorts deviceIoPorts)

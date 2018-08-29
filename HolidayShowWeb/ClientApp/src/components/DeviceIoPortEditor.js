@@ -3,71 +3,111 @@ import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Switch from '@material-ui/core/Switch';
-
+import BusyContent from './controls/BusyContent';
 import Button from '@material-ui/core/Button';
 import FindReplace from '@material-ui/icons/FindReplace'
 
+import DeviceIoPortServices from '../Services/DeviceIoPortServices';
+
 const styles = theme => ({
-    textField: {
-        fontSize: '14px',
-        paddingBottom: 0,
-        marginTop: 4,
-        fontWeight: 500
-    },
-    formHelperText: {
-        fontSize: '16px'
-    },
-    input: {
-        fontSize: '16px'
-    }
+
 });
 
 class DeviceIoPortEditor extends Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            ports: [],
+            isBusy: false
+        };
+
+    }
+
+    DeviceIoPortServices = DeviceIoPortServices;
+
+    componentDidUpdate = async (prevProps, prevState) => {
+
+        let { device } = this.props
+
+        if (this.props.device.deviceId == prevProps.device.deviceId) return;
+
+        try {
+            this.setIsBusy(true);
+
+            let ports = await this.DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
+
+            this.setState({
+                ports,
+            });
+
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
     }
 
     handleIoPortDangerChange = (ioPort, evt) => {
         ioPort.isDanger = evt.target.checked;
-
-        this.props.onIoPortChanged(evt);
+        this.handleSave(ioPort);
     }
 
-    handleIoPortNameChange = (ioPort, evt) => {
+    handleIoPortNameChange = async (ioPort, evt) => {
         ioPort.description = evt.target.value;
-
-        this.props.onIoPortChanged(evt);
-
-        this.setState({});
+        await this.handleSave(ioPort);
     }
+
+    handleSave = async (ioPort) => {
+        try {
+            this.setIsBusy(true);
+
+            await this.DeviceIoPortServices.ioPortUpdate(ioPort);
+            
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
+    }
+
+    handleIoPortDetect = async (ioPortId) => {
+        try {
+            this.setIsBusy(true);
+            await this.DeviceIoPortServices.ioPortIdentify(ioPortId);
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
+
+    }
+
+    setIsBusy(busyState) {
+        this.setState({ isBusy: busyState });
+    }
+
+
 
     render() {
 
         const { classes } = this.props;
 
-
         return (
             <div>
                 <div>
-                    <div style={{ display: "flex", flexFlow: "column" }}>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
                         {
-                            (this.props.device && this.props.device.deviceIoPorts) && this.props.device.deviceIoPorts.map((ioPort, i) => {
+                            this.state.ports.length > 0 && this.state.ports.map((ioPort, i) => {
                                 return (
-                                    <div style={{ display: "flex", flexFlow: "row" }} key={i}>
+                                    <div style={{ display: "flex", flexDirection: "row" }} key={i}>
 
                                         <TextField
                                             label={"PIN: " + ioPort.commandPin + ""}
                                             value={ioPort.description}
                                             onChange={(evt) => this.handleIoPortNameChange(ioPort, evt)}
                                             margin="normal"
-                                            className={classes.textField}
-                                            InputLabelProps={{
-                                                style: {
-                                                    // backgroundColor: "red",
-                                                    fontSize: "18px"
-                                                },
-                                            }}
                                         />
 
                                         <Switch
@@ -75,13 +115,16 @@ class DeviceIoPortEditor extends Component {
                                             onChange={(evt) => this.handleIoPortDangerChange(ioPort, evt)}
                                         />
 
-                                        <Button onClick={(evt) => this.props.onIoPortDetect(ioPort.deviceIoPortId, evt)}><FindReplace /></Button>
+                                        <Button onClick={(evt) => this.handleIoPortDetect(ioPort.deviceIoPortId)}><FindReplace /></Button>
                                     </div>
                                 )
                             })
                         }
                     </div>
                 </div>
+                {
+                    this.state.isBusy && (<BusyContent />)
+                }
             </div>
         );
     }

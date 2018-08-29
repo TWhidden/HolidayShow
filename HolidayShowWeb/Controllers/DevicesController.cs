@@ -62,13 +62,6 @@ namespace HolidayShowWeb.Controllers
 
             _context.Entry(devices).State = EntityState.Modified;
 
-            foreach (var devicesDeviceIoPort in devices.DeviceIoPorts)
-            {
-                _context.Entry(devicesDeviceIoPort).State = EntityState.Modified;
-            }
-
-            await Task.Delay(5000);
-
             try
             {
                 await _context.SaveChangesAsync();

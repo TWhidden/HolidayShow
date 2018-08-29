@@ -1,14 +1,13 @@
 using HolidayShow.Data;
+using HolidayShowWeb.Resovlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace HolidayShowWeb
 {
@@ -38,6 +37,8 @@ namespace HolidayShowWeb
             services.AddMvc().AddJsonOptions(options => {
                 //options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.None;
+                options.SerializerSettings.ContractResolver = new EnityFrameworkCustomResolver();
             });
         }
 
