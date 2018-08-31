@@ -43,6 +43,8 @@ class DeviceManager extends Component {
         };
     }
 
+    
+
     handleDeviceSelection = (device) => {
         this.setState({ selectedDevice: device });
     }
@@ -64,10 +66,14 @@ class DeviceManager extends Component {
         }
     }
 
+    componentWillUnmount(){
+        clearTimeout(this.timer);
+    }
+
     handleNameChange = (device, evt) => {
         device.name = evt.target.value;
 
-        this.setState({});
+        this.handleDeviceSave(device);
     }
 
     handleDeviceSave = async (device) => {
@@ -82,7 +88,13 @@ class DeviceManager extends Component {
     }
 
     setIsBusy(busyState) {
-        this.setState({ isBusy: busyState });
+        clearTimeout(this.timer);
+        if(!busyState){
+            this.setState({ isBusy: false });
+            return;
+        }
+
+        this.timer = setTimeout( () => this.setState({ isBusy: true }), 250);
     }
 
     render() {

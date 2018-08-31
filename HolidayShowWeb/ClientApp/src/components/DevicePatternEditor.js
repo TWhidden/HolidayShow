@@ -52,8 +52,10 @@ class DevicePattern extends LinkedComponent {
         this.state = {
             devices: [],
             deviceSelected: "",
+            deviceIdSelected: 0,
             patterns: [],
             patternSelected: "",
+            patternIdSelected: 0,
             patternSequences: [],
             isBusy: false,
         };
@@ -76,21 +78,35 @@ class DevicePattern extends LinkedComponent {
         }
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timer);
+    }
+
     handleDeviceChange = async (evt) => {
-        let device = evt.target.value;
-        //device = Object.assign({}, device);
+        let deviceId = evt.target.value;
+
+        this.setState({
+            deviceIdSelected: deviceId
+        });
+
+        var device = Enumerable.asEnumerable(this.state.devices)
+            .Where(x => x.deviceId == deviceId)
+            .FirstOrDefault();
+
+        if(device == null) return;
 
         await this.getPatternsForSelectedDevice(device);
     }
 
     getPatternsForSelectedDevice = async (device) => {
         try {
-            //this.setIsBusy(true);
+            this.setIsBusy(true);
             let patterns = await this.PatternServices.getDevicePatternsByDeviceId(device.deviceId);
 
             this.setState({
                 patterns,
                 patternSelected: "",
+                patternIdSelected: 0,
                 patternSequences: [],
                 deviceSelected: device
             });
@@ -98,19 +114,19 @@ class DevicePattern extends LinkedComponent {
         } catch (e) {
 
         } finally {
-            //this.setIsBusy(false);
+            this.setIsBusy(false);
         }
     }
 
-    handlePatternChange = async (pattern) => {
-        let patternIdSelected = pattern.devicePatternId;
+    handlePatternChange = async (patternId) => {
 
         let patternSelected = Enumerable.asEnumerable(this.state.patterns)
-            .Where(x => x.devicePatternId == patternIdSelected)
+            .Where(x => x.devicePatternId == patternId)
             .FirstOrDefault();
 
         this.setState({
-            patternSelected
+            patternSelected,
+            patternIdSelected: patternId
         });
     }
 
@@ -120,7 +136,7 @@ class DevicePattern extends LinkedComponent {
 
             if (this.state.patternSelected == null) return;
 
-            await this.PatternServices.deletePatternByPatternId(this.state.patternSelected.devicePatternId);
+            await this.PatternServices.deletePatternByPatternId(this.state.patternIdSelected);
 
             let patterns = this.state.patterns;
 
@@ -129,6 +145,7 @@ class DevicePattern extends LinkedComponent {
 
             this.setState({
                 patternSelected: "",
+                patternIdSelected: 0,
                 patternSequences: [],
                 patterns
             })
@@ -156,7 +173,8 @@ class DevicePattern extends LinkedComponent {
 
             this.setState({
                 patterns,
-                patternSelected: newPattern
+                patternSelected: newPattern,
+                patternIdSelected: newPattern.devicePatternId
             })
 
         } catch (e) {
@@ -167,12 +185,32 @@ class DevicePattern extends LinkedComponent {
     }
 
     setIsBusy(busyState) {
-        this.setState({ isBusy: busyState });
+        clearTimeout(this.timer);
+        if (!busyState) {
+            this.setState({ isBusy: false });
+            return;
+        }
+
+        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
     }
 
     handlePatternNameChange = (pattern, evt) => {
         pattern.patternName = evt.target.value;
-        this.setState({ patternSelected: pattern });
+        this.handlePatternSave(pattern);
+    }
+
+    handlePatternSave = async (pattern) => {
+        try {
+            this.setIsBusy(true);
+
+            await this.PatternServices.updatePattern(pattern);
+
+            this.setState({});
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
     }
 
     render() {
@@ -188,7 +226,7 @@ class DevicePattern extends LinkedComponent {
                         <FormControl className={classes.formControl}>
                             <InputLabel htmlFor="devices1">Devices</InputLabel>
                             <Select
-                                value={this.state.deviceSelected}
+                                value={this.state.deviceIdSelected}
                                 onChange={(evt) => this.handleDeviceChange(evt)}
                                 inputProps={{
                                     name: 'dev',
@@ -197,7 +235,7 @@ class DevicePattern extends LinkedComponent {
                             >
                                 {this.state.devices.map((device, i) =>
                                     (
-                                        <MenuItem value={device} key={i}>{device.deviceId}: {device.name}</MenuItem>
+                                        <MenuItem value={device.deviceId} key={i}>{device.deviceId}: {device.name}</MenuItem>
                                     ))}
                             </Select>
                         </FormControl>
@@ -207,7 +245,7 @@ class DevicePattern extends LinkedComponent {
                             <FormControl className={classes.formControl}>
                                 <InputLabel htmlFor="patterns1">Patterns</InputLabel>
                                 <Select
-                                    value={this.state.patternSelected}
+                                    value={this.state.patternIdSelected}
                                     onChange={(evt) => this.handlePatternChange(evt.target.value)}
                                     inputProps={{
                                         name: 'pattern',
@@ -216,7 +254,7 @@ class DevicePattern extends LinkedComponent {
                                 >
                                     {this.state.patterns && this.state.patterns.map((pattern, i) =>
                                         (
-                                            <MenuItem value={pattern}  key={i}>{pattern.patternName}</MenuItem>
+                                            <MenuItem value={pattern.devicePatternId} key={i}>{pattern.patternName}</MenuItem>
                                         ))}
                                 </Select>
                             </FormControl>
@@ -225,7 +263,7 @@ class DevicePattern extends LinkedComponent {
 
                     {this.state.patternSelected && (
 
-                        <Tooltip title="Delete Pattern" stule={{ verticalAlign: "middle" }}>
+                        <Tooltip title="Delete Pattern">
                             <IconButton onClick={(evt) => this.handlePatternDelete()}><DeleteIcon /></IconButton>
                         </Tooltip>
 
@@ -252,8 +290,6 @@ class DevicePattern extends LinkedComponent {
                                 />
                             </div>
                             <div>
-
-
 
                                 {this.state.patternSequences && this.state.patternSequences.map((sequence, i) =>
                                     (

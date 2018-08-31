@@ -31,6 +31,19 @@ class DevicePatternServices {
 
         return await response.json();
     }
+
+    updatePattern = async (pattern) => {
+        let options = {
+            method: 'put',
+            body: JSON.stringify(pattern),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+        let response = await fetch(`/api/DevicePatterns/${pattern.devicePatternId}`, options)
+    }
 }
 
 export default new DevicePatternServices();

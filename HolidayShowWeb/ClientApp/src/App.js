@@ -14,7 +14,6 @@ export default class App extends Component {
 
   render() {
     return (
-      <MuiThemeProvider>
 
         <Layout>
           <Route exact path='/' component={Home} />
@@ -25,7 +24,6 @@ export default class App extends Component {
           <Route exact path='/SettingsEditor' component={SettingsEditor} />
         </Layout>
 
-      </MuiThemeProvider>
     );
   }
 }

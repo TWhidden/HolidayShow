@@ -49,6 +49,10 @@ class DeviceIoPortEditor extends Component {
         }
     }
 
+    componentWillUnmount(){
+        clearTimeout(this.timer);
+    }
+
     handleIoPortDangerChange = (ioPort, evt) => {
         ioPort.isDanger = evt.target.checked;
         this.handleSave(ioPort);
@@ -84,8 +88,15 @@ class DeviceIoPortEditor extends Component {
 
     }
 
+    
     setIsBusy(busyState) {
-        this.setState({ isBusy: busyState });
+        clearTimeout(this.timer);
+        if(!busyState){
+            this.setState({ isBusy: false });
+            return;
+        }
+
+        this.timer = setTimeout( () => this.setState({ isBusy: true }), 250);
     }
 
 

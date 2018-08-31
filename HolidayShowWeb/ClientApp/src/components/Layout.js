@@ -135,7 +135,7 @@ class Layout extends Component {
 
           <main className={classes.content}>
             <div className={classes.toolbar} />
-            <Typography noWrap>{this.props.children}</Typography>
+            {this.props.children}
           </main>
         </div>
       </React.Fragment>
