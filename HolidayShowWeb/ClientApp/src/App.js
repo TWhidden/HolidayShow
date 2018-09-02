@@ -7,7 +7,6 @@ import SetsEditor from './components/SetsEditor';
 import EffectsEditor from './components/EffectsEditor';
 import SettingsEditor from './components/SettingsEditor';
 import DevicePatternEditor from './components/DevicePatternEditor';
-import { MuiThemeProvider } from '@material-ui/core/styles';
 
 export default class App extends Component {
   displayName = App.name

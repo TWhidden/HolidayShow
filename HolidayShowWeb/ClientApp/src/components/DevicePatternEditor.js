@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import DeviceServices from '../Services/DeviceServices';
 import PatternServices from '../Services/DevicePatternServices';
+import DevicePatternSequenceServices from '../Services/DevicePatternSequenceServices';
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -48,6 +49,7 @@ class DevicePattern extends LinkedComponent {
 
         this.DeviceServices = DeviceServices;
         this.PatternServices = PatternServices;
+        this.DevicePatternSequenceServices = DevicePatternSequenceServices;
 
         this.state = {
             devices: [],
@@ -93,7 +95,7 @@ class DevicePattern extends LinkedComponent {
             .Where(x => x.deviceId == deviceId)
             .FirstOrDefault();
 
-        if(device == null) return;
+        if (device == null) return;
 
         await this.getPatternsForSelectedDevice(device);
     }
@@ -128,6 +130,27 @@ class DevicePattern extends LinkedComponent {
             patternSelected,
             patternIdSelected: patternId
         });
+
+        await this.handlePatternSequencesLoad(patternId);
+    }
+
+    handlePatternSequencesLoad = async () => {
+
+        try {
+            this.setIsBusy(true);
+
+            let sequences = await this.DevicePatternSequenceServices.sequenceGetByPatternId(this.state.patternIdSelected);
+
+            this.setState({
+                patternSequences: sequences,
+            });
+
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
+
     }
 
     handlePatternDelete = async (evt) => {
@@ -213,14 +236,53 @@ class DevicePattern extends LinkedComponent {
         }
     }
 
+    handleSequenceCreate = async ()=>{
+        try {
+            this.setIsBusy(true);
+
+            // find the next sequence, and add it at the end.
+
+            var lastOnAt = Enumerable.asEnumerable(this.state.patternSequences)
+                .Select(x => x.onAt)
+                .OrderByDescending(x => x)
+                .FirstOrDefault();
+            
+            let nextOnAt = 0;
+            if(lastOnAt != null) nextOnAt = lastOnAt * 1;
+            nextOnAt = nextOnAt + 1000;
+  
+            let newSequence = {
+                 onAt: nextOnAt,
+                 devicePatternId: this.state.patternIdSelected,
+            };
+
+            newSequence = await this.DevicePatternSequenceServices.sequenceCreate(this.state.deviceIdSelected, newSequence);
+
+            let sequences = this.state.patternSequences;
+            sequences.push(newSequence);
+
+            this.setState({
+                patternSequences: sequences
+            })
+
+        } catch (error) 
+        {
+            let v = error;
+            console.log(error);
+            
+        } finally {
+            this.setIsBusy(false);
+        }
+    }
+
     render() {
 
         const { classes } = this.props;
 
-        const usersLink = this.linkAt('patternSelected.devicePatternSequences');
+        const sequenceLink = this.linkAt('patternSequences') ;
 
         return (
-            <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+            <div style={{ display: "flex", flexDirection: "column", }}>
                 <div style={{ display: "flex", flexDirection: "row" }}>
                     <form className={classes.root} autoComplete="off">
                         <FormControl className={classes.formControl}>
@@ -281,19 +343,24 @@ class DevicePattern extends LinkedComponent {
                 {this.state.patternSelected && (
                     <div>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <div>
+                            <div style={{ display: "flex", flexDirection: "row" }}>
                                 <TextField
                                     label={"Pattern Name"}
                                     value={this.state.patternSelected.patternName}
                                     onChange={(evt) => this.handlePatternNameChange(this.state.patternSelected, evt)}
                                     margin="normal"
                                 />
+
+                                <Tooltip title="Create New Event">
+                                    <IconButton onClick={(evt) => this.handleSequenceCreate()}><AddIcon /></IconButton>
+                                </Tooltip>
                             </div>
                             <div>
 
-                                {this.state.patternSequences && this.state.patternSequences.map((sequence, i) =>
+                                {/* {this.state.patternSequences && this.state.patternSequences.map((sequence, i) => */}
+                                { sequenceLink.map( ( sequence, i ) => 
                                     (
-                                        <EditPattern userLink={Link.value({}, x => usersLink.push(x))} />
+                                        <EditPattern sequenceLink={sequence} key={ i }/>
                                     ))}
 
 
@@ -314,18 +381,16 @@ class DevicePattern extends LinkedComponent {
 export default withStyles(styles)(DevicePattern);
 
 class EditPattern extends LinkedComponent {
-    static proTypes = {
+    static sequenceLink = {
         userLink: PropTypes.instanceOf(Link).isRequired,
-    }
+    };
 
     state = {
-        name: '',
-        email: '',
-        isActive: true
+        onAt: 0
     };
 
     componentWillMount() {
-        this.setState(this.props.userLink.value);
+        this.setState(this.props.sequenceLink.value);
     }
 
     render() {
@@ -334,7 +399,7 @@ class EditPattern extends LinkedComponent {
 
         return (
 
-            <div><TextField valueLink={linked.OnAt} /></div>
+            <div><input valueLink={linked.onAt} /> </div>
         )
     }
 
