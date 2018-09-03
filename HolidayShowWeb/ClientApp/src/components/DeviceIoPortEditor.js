@@ -6,6 +6,7 @@ import Switch from '@material-ui/core/Switch';
 import BusyContent from './controls/BusyContent';
 import Button from '@material-ui/core/Button';
 import FindReplace from '@material-ui/icons/FindReplace'
+import * as Enumerable from "linq-es2015";
 
 import DeviceIoPortServices from '../Services/DeviceIoPortServices';
 
@@ -37,6 +38,9 @@ class DeviceIoPortEditor extends Component {
             this.setIsBusy(true);
 
             let ports = await this.DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
+
+            // Remove the -1 pin, thats an internal pin used for NONE reference. We dont want that edited.
+            ports = Enumerable.asEnumerable(ports).Where(x => x.commandPin != -1).ToArray();
 
             this.setState({
                 ports,

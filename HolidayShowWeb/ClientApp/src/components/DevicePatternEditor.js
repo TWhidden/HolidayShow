@@ -2,6 +2,12 @@ import React, { Component } from 'react';
 import DeviceServices from '../Services/DeviceServices';
 import PatternServices from '../Services/DevicePatternServices';
 import DevicePatternSequenceServices from '../Services/DevicePatternSequenceServices';
+import AudioServices from '../Services/AudioServices';
+import DeviceIoPortServices from '../Services/DeviceIoPortServices';
+
+import 'react-select/dist/react-select.css'
+import 'react-virtualized/styles.css'
+import 'react-virtualized-select/styles.css'
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -15,9 +21,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import Link, { LinkedComponent } from 'valuelink';
-import PropTypes from 'proptypes';
-import { Input, isRequired, isEmail } from 'valuelink/tags';
+import VirtualizedSelect from 'react-virtualized-select'
 
 import './CommonStyles.css';
 
@@ -41,7 +45,7 @@ const styles = theme => ({
 //     </div>
 // }
 
-class DevicePattern extends LinkedComponent {
+class DevicePattern extends Component {
     displayName = DevicePattern.name
 
     constructor(props) {
@@ -50,6 +54,8 @@ class DevicePattern extends LinkedComponent {
         this.DeviceServices = DeviceServices;
         this.PatternServices = PatternServices;
         this.DevicePatternSequenceServices = DevicePatternSequenceServices;
+        this.AudioServices = AudioServices;
+        this.DeviceIoPortServices = DeviceIoPortServices;
 
         this.state = {
             devices: [],
@@ -60,6 +66,8 @@ class DevicePattern extends LinkedComponent {
             patternIdSelected: 0,
             patternSequences: [],
             isBusy: false,
+            audioOptions: [],
+            ioPortOptions: []
         };
     }
 
@@ -69,8 +77,13 @@ class DevicePattern extends LinkedComponent {
             this.setIsBusy(true);
             let devices = await this.DeviceServices.getAllDevices();
 
+            let audioOptions = await this.AudioServices.getAllAudioOptions();
+
+            audioOptions = audioOptions.map((item) => ({ label: item.name, value: item.audioId }));
+
             this.setState({
                 devices,
+                audioOptions,
             });
 
         } catch (e) {
@@ -98,6 +111,7 @@ class DevicePattern extends LinkedComponent {
         if (device == null) return;
 
         await this.getPatternsForSelectedDevice(device);
+        await this.getIoPortsForSelectedDevice(device);
     }
 
     getPatternsForSelectedDevice = async (device) => {
@@ -120,6 +134,24 @@ class DevicePattern extends LinkedComponent {
         }
     }
 
+    getIoPortsForSelectedDevice = async (device) => {
+        try {
+            this.setIsBusy(true);
+            let ports = await this.DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
+
+            ports = ports.map((item) => ({ label: `${item.commandPin}: ${item.description}`, value: item.deviceIoPortId }));
+
+            this.setState({
+                ioPortOptions: ports
+            })
+
+        } catch (e) {
+
+        } finally {
+            this.setIsBusy(false);
+        }
+    }
+
     handlePatternChange = async (patternId) => {
 
         let patternSelected = Enumerable.asEnumerable(this.state.patterns)
@@ -134,12 +166,12 @@ class DevicePattern extends LinkedComponent {
         await this.handlePatternSequencesLoad(patternId);
     }
 
-    handlePatternSequencesLoad = async () => {
+    handlePatternSequencesLoad = async (patternId) => {
 
         try {
             this.setIsBusy(true);
 
-            let sequences = await this.DevicePatternSequenceServices.sequenceGetByPatternId(this.state.patternIdSelected);
+            let sequences = await this.DevicePatternSequenceServices.sequenceGetByPatternId(patternId);
 
             this.setState({
                 patternSequences: sequences,
@@ -236,7 +268,7 @@ class DevicePattern extends LinkedComponent {
         }
     }
 
-    handleSequenceCreate = async ()=>{
+    handleSequenceCreate = async () => {
         try {
             this.setIsBusy(true);
 
@@ -246,14 +278,14 @@ class DevicePattern extends LinkedComponent {
                 .Select(x => x.onAt)
                 .OrderByDescending(x => x)
                 .FirstOrDefault();
-            
+
             let nextOnAt = 0;
-            if(lastOnAt != null) nextOnAt = lastOnAt * 1;
+            if (lastOnAt != null) nextOnAt = lastOnAt * 1;
             nextOnAt = nextOnAt + 1000;
-  
+
             let newSequence = {
-                 onAt: nextOnAt,
-                 devicePatternId: this.state.patternIdSelected,
+                onAt: nextOnAt,
+                devicePatternId: this.state.patternIdSelected,
             };
 
             newSequence = await this.DevicePatternSequenceServices.sequenceCreate(this.state.deviceIdSelected, newSequence);
@@ -265,11 +297,10 @@ class DevicePattern extends LinkedComponent {
                 patternSequences: sequences
             })
 
-        } catch (error) 
-        {
+        } catch (error) {
             let v = error;
             console.log(error);
-            
+
         } finally {
             this.setIsBusy(false);
         }
@@ -278,8 +309,6 @@ class DevicePattern extends LinkedComponent {
     render() {
 
         const { classes } = this.props;
-
-        const sequenceLink = this.linkAt('patternSequences') ;
 
         return (
             <div style={{ display: "flex", flexDirection: "column", }}>
@@ -357,10 +386,29 @@ class DevicePattern extends LinkedComponent {
                             </div>
                             <div>
 
+                                <div style={{ display: "flex", flexDirection: "row", }}>
+                                    <div className="child">
+                                        On At:
+                                     </div>
+
+                                     <div className="child">
+                                        Duration:
+                                     </div>
+
+                                     <div className="child">
+                                        Gpio Port:
+                                     </div>
+
+                                    <div className="child">
+                                        Audio File:
+                                </div>
+
+                                </div>
+
                                 {/* {this.state.patternSequences && this.state.patternSequences.map((sequence, i) => */}
-                                { sequenceLink.map( ( sequence, i ) => 
+                                {this.state.patternSequences.map((sequence, i) =>
                                     (
-                                        <EditPattern sequenceLink={sequence} key={ i }/>
+                                        <EditPattern sequence={sequence} audioOptions={this.state.audioOptions} portOptions={this.state.ioPortOptions} key={i} />
                                     ))}
 
 
@@ -368,41 +416,112 @@ class DevicePattern extends LinkedComponent {
                         </div>
                     </div>
 
-                )}
+                )
+                }
 
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
-            </div>
+            </div >
         );
     }
 }
 
 export default withStyles(styles)(DevicePattern);
 
-class EditPattern extends LinkedComponent {
-    static sequenceLink = {
-        userLink: PropTypes.instanceOf(Link).isRequired,
-    };
+class EditPattern extends Component {
+    constructor(props) {
+        super(props)
 
-    state = {
-        onAt: 0
-    };
+        this.state = {
+            onAt: this.props.sequence.onAt,
+            duration: this.props.sequence.duration,
+            port: this.props.sequence.deviceIoPortId,
+            audio: this.props.sequence.audioId
+        };
 
-    componentWillMount() {
-        this.setState(this.props.sequenceLink.value);
+        this.DevicePatternSequenceServices = DevicePatternSequenceServices;
+    }
+
+    handleSave = async () => {
+        var sequence = this.props.sequence;
+        let sequenceId = sequence.devicePatternSeqenceId;
+
+        sequence.onAt = this.state.onAt;
+        sequence.duration = this.state.duration;
+        sequence.audioId = this.state.audio;
+        sequence.deviceIoPortId = this.state.port;
+
+        try {
+            await this.DevicePatternSequenceServices.sequenceSave(sequenceId, sequence);
+        } catch (e) {
+
+        } finally {
+
+        }
+    }
+
+    handleDelaySave() {
+        clearTimeout(this.saveTimer);
+
+        this.saveTimer = setTimeout(() => this.handleSave(), 1000);
     }
 
     render() {
 
-        const linked = this.linkAll();
-
         return (
 
-            <div><input valueLink={linked.onAt} /> </div>
+            <div style={{ display: "flex", flexDirection: "row", }}>
+                <TextField
+                    className="child"
+                    value={this.state.onAt}
+                    onChange={(evt) => {
+                        this.setState(
+                            {
+                                onAt: evt.target.value
+                            }
+                        );
+                        this.handleDelaySave();
+                    }}
+                />
+
+                <TextField
+                    className="child"
+                    value={this.state.duration}
+                    onChange={(evt) => {
+                        this.setState(
+                            {
+                                duration: evt.target.value
+                            }
+                        );
+                        this.handleDelaySave();
+                    }}
+                />
+
+                <VirtualizedSelect
+                    className="child"
+                    options={this.props.portOptions}
+                    onChange={(selectValue) => {
+                        if(selectValue == null) return;
+                        this.setState({ port: selectValue.value })
+                        this.handleDelaySave();
+                    }
+                    }
+                    value={this.state.port}
+                />
+
+                <VirtualizedSelect
+                    className="child"
+                    options={this.props.audioOptions}
+                    onChange={(selectValue) => {
+                        if(selectValue == null) return;
+                        this.setState({ audio: selectValue.value })
+                        this.handleDelaySave();
+                    }
+                    }
+                    value={this.state.audio}
+                />
+            </div>
         )
     }
-
-
-
 }

@@ -30,7 +30,7 @@ namespace HolidayShowWeb.Controllers
         [HttpGet("SequenceByPatternId/{id}")]
         public IEnumerable<DevicePatternSequences> GetDevicePatternSequencesByPatternId([FromRoute] int id)
         {
-            return _context.DevicePatternSequences.Where(x => x.DevicePatternId == id);
+            return _context.DevicePatternSequences.Where(x => x.DevicePatternId == id).OrderBy(x => x.OnAt);
         }
 
         // GET: api/DevicePatternSequences/5

@@ -20,6 +20,19 @@ class DevicePatternSequenceServices {
 
         return await response.json();
     }
+
+    sequenceSave = async (sequenceId, sequence) => {
+        let options = {
+            method: 'put',
+            body: JSON.stringify(sequence),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+        await fetch(`/api/DevicePatternSequences/${sequenceId}`, options)
+    }
 }
 
 export default new DevicePatternSequenceServices();
