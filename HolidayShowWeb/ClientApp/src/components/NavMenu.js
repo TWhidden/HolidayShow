@@ -14,6 +14,7 @@ import ComputerIcon from '@material-ui/icons/Computer';
 import PatternIcon from '@material-ui/icons/Reorder';
 import SetIcon from '@material-ui/icons/PlaylistAdd';
 import EffectIcon from '@material-ui/icons/LowPriority';
+import HomeIcon from '@material-ui/icons/Home';
 
 import './NavMenu.css';
 
@@ -24,6 +25,12 @@ export class NavMenu extends Component {
     return (
 
       <List disablePadding style={{ width: "224px" }}>
+          <ListItem button component={Link} to={`/`} >
+          <ListItemIcon>
+            <HomeIcon />
+          </ListItemIcon>
+          <ListItemText primary="Home" /></ListItem>
+
         <ListItem button component={Link} to={`/DeviceEditor/`} >
           <ListItemIcon>
             <ComputerIcon />

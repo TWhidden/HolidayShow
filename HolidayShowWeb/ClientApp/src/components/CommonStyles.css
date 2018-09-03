@@ -32,3 +32,25 @@
     width: 200px;  /* Or whatever */
     margin: 5px;  /* Magic! */
   }
+
+  .quickSelectContainer{
+    margin:30px;
+    display:flex;
+    flex-direction:row;
+    flex-wrap: wrap;
+  
+    padding:5px; /* this */
+  }
+
+  .quickSelect{
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    background-color: lightblue;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  

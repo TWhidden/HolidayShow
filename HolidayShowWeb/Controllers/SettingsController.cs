@@ -81,6 +81,59 @@ namespace HolidayShowWeb.Controllers
             return NoContent();
         }
 
+        // PUT: api/Settings/5
+        [HttpPut("RestartExecution")]
+        public async Task<IActionResult> RestartExecution()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var setting = await _context.Settings.Where(x => x.SettingName == SettingKeys.Refresh).FirstOrDefaultAsync();
+
+            if (setting == null)
+            {
+                setting = new Settings
+                {
+                    SettingName = SettingKeys.Refresh,
+                };
+                _context.Settings.Add(setting);
+            }
+
+            setting.ValueString = "NONE";
+            
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPut("PlaybackOption/{playbackOption}")]
+        public async Task<IActionResult> SetPlaybackOption([FromRoute] int playbackOption)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var setting = await _context.Settings.Where(x => x.SettingName == SettingKeys.SetPlaybackOption).FirstOrDefaultAsync();
+
+            if (setting == null)
+            {
+                setting = new Settings
+                {
+                    SettingName = SettingKeys.SetPlaybackOption,
+                };
+                _context.Settings.Add(setting);
+            }
+
+            setting.ValueDouble = playbackOption;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         // POST: api/Settings
         [HttpPost]
         public async Task<IActionResult> PostSettings([FromBody] Settings settings)

@@ -295,7 +295,7 @@ class DevicePattern extends Component {
 
             this.setState({
                 patternSequences: sequences
-            })
+            });
 
         } catch (error) {
             let v = error;

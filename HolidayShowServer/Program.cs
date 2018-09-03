@@ -260,13 +260,28 @@ namespace HolidayShowServer
                 {
                     if (!setExecuting)
                     {
-                        InitiateReset();
+                        
                         setExecuting = true;
 
                         using (var dc = new EfHolidayContext(ConnectionString))
                         {
-                            var audioOnAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
-                            var audioOffAt = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOffAt);
+                            var settingKeysOfInterest = new List<string>()
+                            {
+                                SettingKeys.AudioOnAt,
+                                SettingKeys.AudioOffAt,
+                                SettingKeys.SetPlaybackOption,
+                                SettingKeys.DelayBetweenSets,
+                                SettingKeys.CurrentSet,
+                                SettingKeys.DetectDevicePin,
+                                SettingKeys.IsAudioEnabled,
+                                SettingKeys.IsDanagerEnabled,
+                            };
+
+                            // Aquire all of the keys needed in this function here.
+                            var settings = dc.Settings.Where(x => settingKeysOfInterest.Contains(x.SettingName)).ToList();
+
+                            var audioOnAt = settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
+                            var audioOffAt = settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOffAt);
 
                             if (audioOnAt == null)
                             {
@@ -284,7 +299,7 @@ namespace HolidayShowServer
                             var isAudioSchuduleEnabled = (isAboveBottomTime && !isAboveTopTime);
 
                             // Get the set we should be running.
-                            var option = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
+                            var option = settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
                             if (option == null)
                             {
                                 LogMessage("Set Playback opton not set. Cannot start");
@@ -294,7 +309,7 @@ namespace HolidayShowServer
 
                             var setting = (SetPlaybackOptionEnum) option.ValueDouble;
 
-                            var delayBetweenSets = dc.Settings.Where(x => x.SettingName == SettingKeys.DelayBetweenSets).Select(x => (int)x.ValueDouble).FirstOrDefault();
+                            var delayBetweenSets = settings.Where(x => x.SettingName == SettingKeys.DelayBetweenSets).Select(x => (int)x.ValueDouble).FirstOrDefault();
                             if (delayBetweenSets <= 0) delayBetweenSets = 5000;
 
                             int setId;
@@ -303,24 +318,22 @@ namespace HolidayShowServer
                             {
                                 case SetPlaybackOptionEnum.Off:
                                 {
-                                    Thread.Sleep(1000);
+                                    
                                     if (!isOff)
                                     {
 
                                         isOff = true;
-                                        foreach (var remoteClient in Clients)
-                                        {
-                                            var di = new DeviceInstructions(remoteClient.DeviceId,
-                                                MessageTypeIdEnum.Reset);
-                                            SendInstruction(di);
-                                        }
+                                        InitiateReset();
                                     }
-                                    InitiateReset();
+                                    
                                     setExecuting = false;
+
+                                    Thread.Sleep(1000);
                                     goto skipStart;
                                 }
                                 case SetPlaybackOptionEnum.PlaybackRandom:
                                 {
+                                    InitiateReset();
                                     // Get all the sets, random set one.
                                     isOff = false;
                                     var sets = dc.Sets.Where(x => !x.IsDisabled).ToList();
@@ -345,10 +358,11 @@ namespace HolidayShowServer
                                     break;
                                 case SetPlaybackOptionEnum.PlaybackCurrentOnly:
                                 {
+                                    InitiateReset();
                                     isOff = false;
                                     // get the set that is currently running
                                     var currentSet =
-                                        dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
+                                        settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
                                     if (currentSet == null)
                                     {
                                         LogMessage("Current set is not set. Setting to random");
@@ -386,7 +400,8 @@ namespace HolidayShowServer
                                     break;
                                 case SetPlaybackOptionEnum.DevicePinDetect:
                                 {
-                                    var pinDetect = await dc.Settings.Where(x => x.SettingName == SettingKeys.DetectDevicePin).FirstOrDefaultAsync();
+                                    InitiateReset();
+                                    var pinDetect = settings.FirstOrDefault(x => x.SettingName == SettingKeys.DetectDevicePin);
                                     if (pinDetect == null)
                                     {
                                         LogMessage("No Detect Device Pin Set");
@@ -462,7 +477,7 @@ namespace HolidayShowServer
                             LogMessage("**************************************");
 
                             // Update the current set playing
-                            var current = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
+                            var current = settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
                             if (current == null)
                             {
                                 current = new Settings()
@@ -480,12 +495,12 @@ namespace HolidayShowServer
 
                             // check if audio and danager is enabled
                             var isAudioEnabled =
-                                dc.Settings.Where(x => x.SettingName == SettingKeys.IsAudioEnabled)
+                                settings.Where(x => x.SettingName == SettingKeys.IsAudioEnabled)
                                   .Select(x => ((int) x.ValueDouble == 1))
                                   .FirstOrDefault();
 
                             var isDanagerEnabled =
-                                dc.Settings.Where(x => x.SettingName == SettingKeys.IsDanagerEnabled)
+                                settings.Where(x => x.SettingName == SettingKeys.IsDanagerEnabled)
                                   .Select(x => ((int)x.ValueDouble == 1))
                                   .FirstOrDefault();
 
@@ -511,7 +526,6 @@ namespace HolidayShowServer
 
                             foreach (var setSequence in setData.SetSequences.OrderBy(x => x.OnAt))
                             {
-
                                 var deviceId = setSequence.DevicePatterns?.DeviceId;
 
                                 var startingOffset = setSequence.OnAt;
