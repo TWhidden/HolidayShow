@@ -7,6 +7,7 @@ import BusyContent from './controls/BusyContent';
 import Button from '@material-ui/core/Button';
 import FindReplace from '@material-ui/icons/FindReplace'
 import * as Enumerable from "linq-es2015";
+import ErrorContent from './controls/ErrorContent';
 
 import DeviceIoPortServices from '../Services/DeviceIoPortServices';
 
@@ -21,7 +22,8 @@ class DeviceIoPortEditor extends Component {
 
         this.state = {
             ports: [],
-            isBusy: false
+            isBusy: false,
+            errorMessage: null,
         };
 
     }
@@ -47,7 +49,7 @@ class DeviceIoPortEditor extends Component {
             });
 
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -74,7 +76,7 @@ class DeviceIoPortEditor extends Component {
             await this.DeviceIoPortServices.ioPortUpdate(ioPort);
             
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -85,7 +87,7 @@ class DeviceIoPortEditor extends Component {
             this.setIsBusy(true);
             await this.DeviceIoPortServices.ioPortIdentify(ioPortId);
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -140,6 +142,7 @@ class DeviceIoPortEditor extends Component {
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
             </div>
         );
     }

@@ -21,6 +21,9 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import VirtualizedSelect from 'react-virtualized-select'
+import Typography from '@material-ui/core/Typography';
+import ErrorContent from './controls/ErrorContent';
+
 
 import './CommonStyles.css';
 
@@ -37,12 +40,6 @@ const styles = theme => ({
         marginTop: theme.spacing.unit * 2,
     },
 });
-
-// MyStateless = (props) => {
-//     <div>
-//         <TextField value={props.myVal} />
-//     </div>
-// }
 
 class SetsEditor extends Component {
     displayName = SetsEditor.name
@@ -61,7 +58,8 @@ class SetsEditor extends Component {
             setSelected: null,
             setSequences: [],
             patterns: [],
-            effects: []
+            effects: [],
+            errorMessage: null,
         };
     }
 
@@ -70,7 +68,7 @@ class SetsEditor extends Component {
         try {
             this.setIsBusy(true);
             
-            let sets = await this.SetServices.getAllSets();
+            await this.getAllSets();
 
             let patterns = await this.DevicePatternServices.getAllPatterns();
 
@@ -81,13 +79,37 @@ class SetsEditor extends Component {
             effects = effects.map((item) => ({ label: item.effectName, value: item.effectId }));
 
             this.setState({
-                sets,
                 patterns,
                 effects,
             });
 
         } catch (e) {
+            this.setState({errorMessage: e.message})
+        } finally {
+            this.setIsBusy(false);
+        }
+    }
 
+    getAllSets = async () => {
+        try {
+            this.setIsBusy(true);
+            
+            let sets = await this.SetServices.getAllSets();
+
+            let setSelected = Enumerable.asEnumerable(sets).FirstOrDefault();
+            let setIdSelected = 0;
+            if(setSelected != null){
+                setIdSelected = setSelected.setId;
+            }
+
+            this.setState({
+                sets,
+                setIdSelected,
+                setSelected,
+            });
+
+        } catch (e) {
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -126,7 +148,7 @@ class SetsEditor extends Component {
             });
 
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -152,7 +174,7 @@ class SetsEditor extends Component {
             })
 
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -180,7 +202,7 @@ class SetsEditor extends Component {
             await this.getSequencesForSet();
 
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -209,7 +231,7 @@ class SetsEditor extends Component {
 
             this.setState({});
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -245,13 +267,30 @@ class SetsEditor extends Component {
                 sequences
             })
 
-        } catch (error) {
-            let v = error;
-            console.log(error);
-
+        } catch (e) {
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
+    }
+
+    handleSequenceDelete = async (setSequence) => {
+        try {
+            this.setIsBusy(true);
+
+            // find the next sequence, and add it at the end.
+            await this.SetSequenceServices.deleteSetSequence(setSequence.setSequenceId);
+
+            this.setState({
+                 setSequences: []
+            })
+        } catch (e) {
+            this.setState({errorMessage: e.message})
+        } finally {
+            this.setIsBusy(false);
+        }
+
+        await this.getSequencesForSet(this.state.setSelected);
     }
 
     render() {
@@ -259,7 +298,7 @@ class SetsEditor extends Component {
         const { classes } = this.props;
 
         return (
-            <div style={{ display: "flex", flexDirection: "column", }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
                 <div style={{ display: "flex", flexDirection: "row" }}>
                     <form className={classes.root} autoComplete="off">
                         <FormControl className={classes.formControl}>
@@ -278,6 +317,7 @@ class SetsEditor extends Component {
                                     ))}
                             </Select>
                         </FormControl>
+                        
                     </form>
                    
                     {this.state.setSelected && (
@@ -316,15 +356,27 @@ class SetsEditor extends Component {
 
                                 <div style={{ display: "flex", flexDirection: "row", }}>
                                     <div className="child">
+                                    <Typography variant="body2" gutterBottom>
                                         On At:
+                                        </Typography>
                                      </div>
 
                                      <div className="child">
-                                        DevicePattern
+                                     <Typography variant="body2" gutterBottom>
+                                        Device Pattern
+                                        </Typography>
                                      </div>
 
                                      <div className="child">
-                                        EffectId
+                                     <Typography variant="body2" gutterBottom>
+                                        Effect
+                                        </Typography>
+                                     </div>
+
+                                       <div className="child">
+                                       <Typography variant="body2" gutterBottom>
+                                        Delete
+                                        </Typography>
                                      </div>
 
                                 </div>
@@ -336,6 +388,7 @@ class SetsEditor extends Component {
                                             sequence={sequence} 
                                             effects={this.state.effects} 
                                             patterns={this.state.patterns}
+                                            onDelete={(s)=>this.handleSequenceDelete(s)}
                                             key={i} />
                                     ))}
 
@@ -350,6 +403,7 @@ class SetsEditor extends Component {
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
             </div >
         );
     }
@@ -433,6 +487,10 @@ class SetSequenceEdit extends Component {
                     }
                     value={this.state.effectId}
                 />
+
+                  <Tooltip title="Delete Sequence">
+                            <IconButton onClick={(evt) => this.props.onDelete(this.props.sequence)}><DeleteIcon /></IconButton>
+                   </Tooltip>
             </div>
         )
     }

@@ -33,6 +33,18 @@ class DevicePatternSequenceServices {
 
         await fetch(`/api/DevicePatternSequences/${sequenceId}`, options)
     }
+
+    sequenceDelete = async (sequenceId) => {
+        let options = {
+            method: 'delete',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+        await fetch(`/api/DevicePatternSequences/${sequenceId}`, options)
+    }
 }
 
 export default new DevicePatternSequenceServices();

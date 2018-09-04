@@ -11,6 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import ErrorContent from './controls/ErrorContent';
 
 import './CommonStyles.css';
 
@@ -40,10 +41,9 @@ class DeviceManager extends Component {
             devices: [],
             selectedDevice: "",
             isBusy: false,
+            errorMessage: null,
         };
     }
-
-    
 
     handleDeviceSelection = (device) => {
         this.setState({ selectedDevice: device });
@@ -60,7 +60,7 @@ class DeviceManager extends Component {
             });
 
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -81,7 +81,7 @@ class DeviceManager extends Component {
             this.setIsBusy(true);
             await this.DeviceServices.saveDevice(device);
         } catch (e) {
-
+            this.setState({errorMessage: e.message})
         } finally {
             this.setIsBusy(false);
         }
@@ -132,6 +132,7 @@ class DeviceManager extends Component {
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
             </div>
         );
     }

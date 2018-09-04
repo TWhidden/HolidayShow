@@ -3,10 +3,11 @@ import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import BusyContent from './controls/BusyContent';
+import ErrorContent from './controls/ErrorContent';
+import * as Enumerable from "linq-es2015";
 
 import SettingServices from '../Services/SettingServices';
 import SetServices from '../Services/SetServices';
-import * as Enumerable from "linq-es2015";
 
 const styles = theme => ({
   button: {
@@ -29,7 +30,8 @@ export class Home extends Component {
     this.state = ({
       isBusy: false,
       sets: [],
-      settings: []
+      settings: [],
+      errorMessage: null,
     })
   }
 
@@ -47,7 +49,7 @@ export class Home extends Component {
         settings,
       });
     } catch (e) {
-
+      this.setState({errorMessage: e.message})
     } finally {
       this.setIsBusy(false);
     }
@@ -62,7 +64,7 @@ export class Home extends Component {
 
       this.setState({});
     } catch (e) {
-
+      this.setState({errorMessage: e.message})
     } finally {
       this.setIsBusy(false);
     }
@@ -76,7 +78,7 @@ export class Home extends Component {
 
       this.setState({});
     } catch (e) {
-
+      this.setState({errorMessage: e.message})
     } finally {
       this.setIsBusy(false);
     }
@@ -90,7 +92,7 @@ export class Home extends Component {
 
       this.setState({});
     } catch (e) {
-
+      this.setState({errorMessage: e.message})
     } finally {
       this.setIsBusy(false);
     }
@@ -126,7 +128,7 @@ export class Home extends Component {
 
       this.setState({});
     } catch (e) {
-
+      this.setState({errorMessage: e.message})
     } finally {
       this.setIsBusy(false);
     }
@@ -186,6 +188,7 @@ export class Home extends Component {
                                       color="primary"
                                       className="quickSelect"
                                       onClick={() => this.handleStartSet(set.setId)}
+                                      key={i}
                                     >
                                       {set.setName}
                                     </Button>
@@ -196,6 +199,7 @@ export class Home extends Component {
         {
           this.state.isBusy && (<BusyContent />)
         }
+        <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
       </div>
     );
   }

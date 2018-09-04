@@ -32,6 +32,19 @@ class SetSequenceServices{
 
         await fetch(`/api/SetSequences/${sequence.setSequenceId}`, options)
     }
+
+    deleteSetSequence = async (setSequenceId) =>{
+
+        let options = {
+                method: 'delete',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                }
+        }
+
+        await fetch(`/api/SetSequences/${setSequenceId}`, options)
+    }
 } 
 
 export default new SetSequenceServices();
