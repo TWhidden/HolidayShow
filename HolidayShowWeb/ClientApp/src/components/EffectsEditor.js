@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
+
 import EffectServices from '../Services/EffectServices';
 import EffectsAvailableServices from '../Services/EffectsAvailableServices';
-
-
-import 'react-select/dist/react-select.css'
-import 'react-virtualized/styles.css'
-import 'react-virtualized-select/styles.css'
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -20,10 +16,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import VirtualizedSelect from 'react-virtualized-select'
-import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
-
-import './CommonStyles.css';
 
 const styles = theme => ({
     root: {
@@ -113,7 +106,7 @@ class EffectsEditor extends Component {
         let effectId = evt.target.value;
 
         var effect = Enumerable.asEnumerable(this.state.effects)
-            .Where(x => x.effectId == effectId)
+            .Where(x => x.effectId === effectId)
             .FirstOrDefault();
 
         if (effect == null) return;
@@ -194,9 +187,9 @@ class EffectsEditor extends Component {
         try {
             this.setIsBusy(true);
 
-            await this.EffectServices.saveEffect(effect);
+            this.setState({effect});
 
-            this.setState({});
+            await this.EffectServices.saveEffect(effect);
         } catch (e) {
             this.setState({errorMessage: e.message})
         } finally {

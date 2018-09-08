@@ -5,22 +5,16 @@ import DeviceIoPortServices from '../Services/DeviceIoPortServices'
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import DeviceIoPortEditor from './DeviceIoPortEditor';
-import SaveIcon from '@material-ui/icons/Save'
-import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
 import ErrorContent from './controls/ErrorContent';
-
-import './CommonStyles.css';
 
 const styles = theme => ({
     textField: {
         fontSize: '14px',
         paddingBottom: 0,
         marginTop: 4,
-        fontWeight: 500
     },
 
     input: {

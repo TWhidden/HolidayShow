@@ -9,7 +9,6 @@ import { NavMenu } from './NavMenu';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import Hidden from '@material-ui/core/Hidden';
-import CssBaseline from '@material-ui/core/CssBaseline'
 
 const drawerWidth = 240;
 
@@ -85,8 +84,6 @@ class Layout extends Component {
 
     return (
       <React.Fragment>
-        <CssBaseline />
-
         <div className={classes.root}>
           <AppBar className={classes.appBar}>
             <Toolbar>

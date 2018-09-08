@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
+
 import DeviceServices from '../Services/DeviceServices';
 import PatternServices from '../Services/DevicePatternServices';
 import DevicePatternSequenceServices from '../Services/DevicePatternSequenceServices';
 import AudioServices from '../Services/AudioServices';
 import DeviceIoPortServices from '../Services/DeviceIoPortServices';
-
-import 'react-select/dist/react-select.css'
-import 'react-virtualized/styles.css'
-import 'react-virtualized-select/styles.css'
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -24,8 +21,6 @@ import Tooltip from '@material-ui/core/Tooltip';
 import VirtualizedSelect from 'react-virtualized-select'
 import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
-
-import './CommonStyles.css';
 
 const styles = theme => ({
     root: {
@@ -125,7 +120,7 @@ class DevicePattern extends Component {
 
     handleDeviceChange = async (deviceId) => {
         var device = Enumerable.asEnumerable(this.state.devices)
-            .Where(x => x.deviceId == deviceId)
+            .Where(x => x.deviceId === deviceId)
             .FirstOrDefault();
 
         if (device == null) return;
@@ -188,7 +183,7 @@ class DevicePattern extends Component {
         if(patternId == null) return;
 
         let patternSelected = Enumerable.asEnumerable(this.state.patterns)
-            .Where(x => x.devicePatternId == patternId)
+            .Where(x => x.devicePatternId === patternId)
             .FirstOrDefault();
 
         this.setState({
@@ -437,7 +432,7 @@ class DevicePattern extends Component {
                             <div>
 
                                 <div style={{ display: "flex", flexDirection: "row" }}>
-                                    <div className="child">
+                                    <div className="child"  style={{ width: "100px" }}>
                                         <Typography variant="body2" gutterBottom>
                                         On At:
                                         </Typography>
@@ -545,6 +540,7 @@ class EditPattern extends Component {
             <div style={{ display: "flex", flexDirection: "row", }}>
                 <TextField
                     className="child"
+                    style={{ width: "100px" }}
                     value={this.state.onAt}
                     onChange={(evt) => {
                         this.setState(

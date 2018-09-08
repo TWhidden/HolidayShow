@@ -7,6 +7,7 @@ import SetsEditor from './components/SetsEditor';
 import EffectsEditor from './components/EffectsEditor';
 import SettingsEditor from './components/SettingsEditor';
 import DevicePatternEditor from './components/DevicePatternEditor';
+import CssBaseline from '@material-ui/core/CssBaseline'
 
 export default class App extends Component {
   displayName = App.name
@@ -15,6 +16,7 @@ export default class App extends Component {
     return (
 
         <Layout>
+          <CssBaseline />
           <Route exact path='/' component={Home} />
           <Route exact path='/DeviceEditor' component={DeviceManager} />
           <Route exact path='/DevicePatternEditor' component={DevicePatternEditor} />

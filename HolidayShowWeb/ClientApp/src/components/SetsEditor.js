@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
+
 import DevicePatternServices from '../Services/DevicePatternServices';
 import SetServices from '../Services/SetServices';
 import SetSequenceServices from '../Services/SetSequenceServices';
 import EffectServices from '../Services/EffectServices';
-
-import 'react-select/dist/react-select.css'
-import 'react-virtualized/styles.css'
-import 'react-virtualized-select/styles.css'
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -23,9 +20,6 @@ import Tooltip from '@material-ui/core/Tooltip';
 import VirtualizedSelect from 'react-virtualized-select'
 import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
-
-
-import './CommonStyles.css';
 
 const styles = theme => ({
     root: {
@@ -123,7 +117,7 @@ class SetsEditor extends Component {
         let setId = evt.target.value;
 
         var set = Enumerable.asEnumerable(this.state.sets)
-            .Where(x => x.setId == setId)
+            .Where(x => x.setId === setId)
             .FirstOrDefault();
 
         if (set == null) return;
@@ -219,7 +213,12 @@ class SetsEditor extends Component {
     }
 
     handlePatternNameChange = (set, evt) => {
+        
+        set = Object.assign({}, set);
         set.setName = evt.target.value;
+
+        this.setState({ setSelected: set });
+
         this.handleSetSave(set);
     }
 
@@ -229,7 +228,7 @@ class SetsEditor extends Component {
 
             await this.SetServices.saveSet(set)
 
-            this.setState({});
+            
         } catch (e) {
             this.setState({errorMessage: e.message})
         } finally {
@@ -255,7 +254,6 @@ class SetsEditor extends Component {
             let setSequence = {
                 onAt: nextOnAt,
                 setId: this.state.setIdSelected,
-
             };
 
             setSequence = await this.SetSequenceServices.createSetSequence(setSequence);
@@ -425,7 +423,7 @@ class SetSequenceEdit extends Component {
     }
 
     handleSave = async () => {
-        var sequence = this.props.sequence;
+        var sequence = Object.assign(this.props.sequence);
         
         sequence.onAt = this.state.onAt;
         sequence.devicePatternId = this.state.devicePatternId;

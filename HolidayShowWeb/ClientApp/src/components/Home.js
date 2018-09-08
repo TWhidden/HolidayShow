@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
+
+import SettingServices from '../Services/SettingServices';
+import SetServices from '../Services/SetServices';
+
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import BusyContent from './controls/BusyContent';
 import ErrorContent from './controls/ErrorContent';
 import * as Enumerable from "linq-es2015";
-
-import SettingServices from '../Services/SettingServices';
-import SetServices from '../Services/SetServices';
 
 const styles = theme => ({
   button: {
@@ -104,7 +105,7 @@ export class Home extends Component {
 
       // get current setting, 
       var setting = Enumerable.asEnumerable(this.state.settings)
-                    .Where(setting => setting.settingName == "CurrentSet")
+                    .Where(setting => setting.settingName === "CurrentSet")
                     .FirstOrDefault();
 
       if(setting == null){
