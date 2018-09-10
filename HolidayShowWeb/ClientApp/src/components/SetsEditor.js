@@ -4,6 +4,7 @@ import DevicePatternServices from '../Services/DevicePatternServices';
 import SetServices from '../Services/SetServices';
 import SetSequenceServices from '../Services/SetSequenceServices';
 import EffectServices from '../Services/EffectServices';
+import DeviceServices from '../Services/DeviceServices';
 
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
@@ -20,6 +21,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import VirtualizedSelect from 'react-virtualized-select'
 import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
+
 
 const styles = theme => ({
     root: {
@@ -41,6 +43,7 @@ class SetsEditor extends Component {
     constructor(props) {
         super(props)
 
+        this.DeviceServices = DeviceServices;
         this.DevicePatternServices = DevicePatternServices;
         this.SetServices = SetServices;
         this.SetSequenceServices = SetSequenceServices;
@@ -58,19 +61,33 @@ class SetsEditor extends Component {
     }
 
     componentDidMount = async () => {
-
         try {
             this.setIsBusy(true);
             
             await this.getAllSets();
 
+            let none = {label: "NONE", value: null};
+
+            let devices = await this.DeviceServices.getAllDevices();
+
             let patterns = await this.DevicePatternServices.getAllPatterns();
 
-            patterns = patterns.map((item) => ({ label: `${item.deviceId}: ${item.patternName}` , value: item.devicePatternId }));
+            patterns = Enumerable.asEnumerable(patterns)
+                                .Join(devices, pattern => pattern.deviceId, device => device.deviceId, (pattern, device)=>{return {deviceName: device.name, deviceId: device.deviceId, patternName: pattern.patternName, patternId: pattern.devicePatternId}})
+                                .OrderBy(item => item.deviceName)
+                                .ThenBy(item => item.patternName)
+                                .Select(item => ({ label: `${item.deviceName}: ${item.patternName}` , value: item.patternId }))
+                                .ToArray();
+
+            //patterns = patterns.map((item) => ({ label: `${item.deviceId}: ${item.patternName}` , value: item.devicePatternId }));
+
+            patterns.splice(0, 0, none);
 
             let effects = await this.EffectServices.getAllEffects();
 
             effects = effects.map((item) => ({ label: item.effectName, value: item.effectId }));
+
+            effects.splice(0, 0, none);
 
             this.setState({
                 patterns,
@@ -85,13 +102,16 @@ class SetsEditor extends Component {
     }
 
     getAllSets = async () => {
+        
+        let setIdSelected = 0;
+
         try {
             this.setIsBusy(true);
             
             let sets = await this.SetServices.getAllSets();
 
             let setSelected = Enumerable.asEnumerable(sets).FirstOrDefault();
-            let setIdSelected = 0;
+            
             if(setSelected != null){
                 setIdSelected = setSelected.setId;
             }
@@ -107,14 +127,17 @@ class SetsEditor extends Component {
         } finally {
             this.setIsBusy(false);
         }
+
+        if(setIdSelected != 0){
+            this.handleSetChange(setIdSelected);
+        }
     }
 
     componentWillUnmount() {
         clearTimeout(this.timer);
     }
 
-    handleSetChange = async (evt) => {
-        let setId = evt.target.value;
+    handleSetChange = async (setId) => {
 
         var set = Enumerable.asEnumerable(this.state.sets)
             .Where(x => x.setId === setId)
@@ -303,7 +326,7 @@ class SetsEditor extends Component {
                             <InputLabel htmlFor="devices1">Sets</InputLabel>
                             <Select
                                 value={this.state.setIdSelected}
-                                onChange={(evt) => this.handleSetChange(evt)}
+                                onChange={(evt) => this.handleSetChange(evt.target.value)}
                                 inputProps={{
                                     name: 'dev',
                                     id: 'devices1',

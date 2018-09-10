@@ -50,14 +50,14 @@ export default class SettingsEditor extends Component {
 
             settings = Enumerable.AsEnumerable(settings);
 
-            let delayBetweenSets = settings.Where(x => x.settingName == delayMs).Select(x => x.valueDouble).FirstOrDefault();
-            let onAt = settings.Where(x => x.settingName == timeOnAt).Select(x => x.valueString).FirstOrDefault();
-            let offAt = settings.Where(x => x.settingName == timeOffAt).Select(x => x.valueString).FirstOrDefault();
-            let audioOnAt = settings.Where(x => x.settingName == audioTimeOnAt).Select(x => x.valueString).FirstOrDefault();
-            let audioOffAt = settings.Where(x => x.settingName == audioTimeOffAt).Select(x => x.valueString).FirstOrDefault();
-            let enableDangerPins = settings.Where(x => x.settingName == isDangerEnabled).Select(x => x.valueDouble).FirstOrDefault();
-            let enableAudio = settings.Where(x => x.settingName == isAudioEnabled).Select(x => x.valueDouble).FirstOrDefault();
-            let audioFileLocation = settings.Where(x => x.settingName == fileBasePath).Select(x => x.valueString).FirstOrDefault();
+            let delayBetweenSets = settings.Where(x => x.settingName === delayMs).Select(x => x.valueDouble).FirstOrDefault();
+            let onAt = settings.Where(x => x.settingName === timeOnAt).Select(x => x.valueString).FirstOrDefault();
+            let offAt = settings.Where(x => x.settingName === timeOffAt).Select(x => x.valueString).FirstOrDefault();
+            let audioOnAt = settings.Where(x => x.settingName === audioTimeOnAt).Select(x => x.valueString).FirstOrDefault();
+            let audioOffAt = settings.Where(x => x.settingName === audioTimeOffAt).Select(x => x.valueString).FirstOrDefault();
+            let enableDangerPins = settings.Where(x => x.settingName === isDangerEnabled).Select(x => x.valueDouble).FirstOrDefault();
+            let enableAudio = settings.Where(x => x.settingName === isAudioEnabled).Select(x => x.valueDouble).FirstOrDefault();
+            let audioFileLocation = settings.Where(x => x.settingName === fileBasePath).Select(x => x.valueString).FirstOrDefault();
 
             this.setState({
                 delayBetweenSets,

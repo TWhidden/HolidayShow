@@ -2,24 +2,22 @@ import React, { Component } from 'react';
 import DeviceServices from '../Services/DeviceServices'
 import DeviceIoPortServices from '../Services/DeviceIoPortServices'
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import DeviceIoPortEditor from './DeviceIoPortEditor';
 import TextField from '@material-ui/core/TextField';
 import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
 import ErrorContent from './controls/ErrorContent';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import * as Enumerable from "linq-es2015";
 
 const styles = theme => ({
-    textField: {
-        fontSize: '14px',
-        paddingBottom: 0,
-        marginTop: 4,
+    formControl: {
+        margin: 0,
+        minWidth: 120,
     },
-
-    input: {
-        fontSize: '16px'
-    }
 });
 
 class DeviceManager extends Component {
@@ -33,14 +31,11 @@ class DeviceManager extends Component {
 
         this.state = {
             devices: [],
-            selectedDevice: "",
+            deviceIdSelected: 0,
+            deviceSelected: "",
             isBusy: false,
             errorMessage: null,
         };
-    }
-
-    handleDeviceSelection = (device) => {
-        this.setState({ selectedDevice: device });
     }
 
     componentDidMount = async () => {
@@ -49,18 +44,26 @@ class DeviceManager extends Component {
             this.setIsBusy(true);
             let devices = await this.DeviceServices.getAllDevices();
 
-            this.setState({
-                devices,
-            });
+            let deviceSelected = devices[0];
+            if (deviceSelected != null) {
+                this.setState({
+                    devices,
+                    deviceSelected,
+                    deviceIdSelected: deviceSelected.deviceId,
+
+                });
+            } else {
+                this.setState({ devices });
+            }
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         clearTimeout(this.timer);
     }
 
@@ -75,7 +78,7 @@ class DeviceManager extends Component {
             this.setIsBusy(true);
             await this.DeviceServices.saveDevice(device);
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -83,12 +86,12 @@ class DeviceManager extends Component {
 
     setIsBusy(busyState) {
         clearTimeout(this.timer);
-        if(!busyState){
+        if (!busyState) {
             this.setState({ isBusy: false });
             return;
         }
 
-        this.timer = setTimeout( () => this.setState({ isBusy: true }), 250);
+        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
     }
 
     render() {
@@ -96,38 +99,78 @@ class DeviceManager extends Component {
         const { classes } = this.props;
 
         return (
-            <div style={{ display: "flex", flex: "1", height: "100vh" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", flex: "1" }}>
-                    <List component="nav">
+            <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", flexDirection: "row" }}>
 
-                        {this.state.devices.map((device, i) =>
-                            (
-                                <ListItem button onClick={() => this.handleDeviceSelection(device)} key={i}>
-                                    <TextField
-                                        label={`Device ID: ${device.deviceId}`}
-                                        value={device.name}
-                                        onChange={(evt) => this.handleNameChange(device, evt)}
-                                        margin="normal"
-                                        className={classes.textField}
-                                        InputProps={{
-                                            className: classes.input,
-                                        }}
-                                    />
-                                    {/* <Button onClick={(evt) => this.handleDeviceSave(device, evt)} className={this.getDirty(device) ? "visibile" : "hidden"}><SaveIcon /></Button> */}
-                                </ListItem>
-                            ))}
+                    <form autoComplete="off">
+                        <FormControl className={classes.formControl}>
+                            <InputLabel htmlFor="devices1">Devices</InputLabel>
+                            <Select
+                                value={this.state.deviceIdSelected}
+                                onChange={(evt) => {
 
-                    </List>
+                                    let device = Enumerable.asEnumerable(this.state.devices)
+                                        .Where(x => x.deviceId === evt.target.value)
+                                        .FirstOrDefault();
 
-                    <div style={{ overflow: "auto" }}>
-                        <DeviceIoPortEditor device={this.state.selectedDevice} />
-                    </div>
+                                    if (device == null) {
+                                        this.setState({
+                                            deviceSelected: "",
+                                            deviceIdSelected: 0
+                                        });
+                                    } else {
+                                        this.setState({
+                                            deviceSelected: device,
+                                            deviceIdSelected: device.deviceId
+                                        });
+                                    }
+                                }}
+
+                                inputProps={{
+                                    name: 'dev',
+                                    id: 'devices1',
+                                }}
+                            >
+                                {this.state.devices.map((device, i) =>
+                                    (
+                                        <MenuItem value={device.deviceId} key={i}>{device.deviceId}: {device.name}</MenuItem>
+                                    ))}
+                            </Select>
+                        </FormControl>
+                   
+
+                    {this.state.deviceSelected != "" && (
+                        <TextField
+                            label={"Device Name"}
+                            value={this.state.deviceSelected.name}
+                            onChange={(evt) => {
+                                let device = this.state.deviceSelected;
+                                device.name = evt.target.value;
+
+                                this.handleDeviceSave(device);
+                                this.setState({
+                                    deviceSelected: device
+                                })
+                            }}
+                            margin="normal"
+                        />
+
+                    )}
+
+                     </form>
+
                 </div>
+
+                <div style={{ overflow: "auto" }}>
+                    <DeviceIoPortEditor device={this.state.deviceSelected} />
+                </div>
+
+
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
-            </div>
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
+            </div >
         );
     }
 }

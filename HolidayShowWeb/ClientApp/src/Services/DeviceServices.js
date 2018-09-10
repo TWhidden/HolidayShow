@@ -16,9 +16,7 @@ class DeviceServices{
                 }
         }
 
-        //let response = await fetch(`/api/Devices/${device.deviceId}`, options)
-        let response = await fetch(`/api/Devices/${device.deviceId}`, options)
-        return await response.json();
+        await fetch(`/api/Devices/${device.deviceId}`, options)
     }
     
 } 

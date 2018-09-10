@@ -12,9 +12,7 @@ import FindReplace from '@material-ui/icons/FindReplace'
 import * as Enumerable from "linq-es2015";
 import ErrorContent from './controls/ErrorContent';
 
-const styles = theme => ({
-
-});
+const styles = theme => ({});
 
 class DeviceIoPortEditor extends Component {
 
@@ -35,6 +33,8 @@ class DeviceIoPortEditor extends Component {
 
         let { device } = this.props
 
+        if (device == null) return;
+
         if (this.props.device.deviceId === prevProps.device.deviceId) return;
 
         try {
@@ -50,13 +50,13 @@ class DeviceIoPortEditor extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         clearTimeout(this.timer);
     }
 
@@ -66,7 +66,9 @@ class DeviceIoPortEditor extends Component {
     }
 
     handleIoPortNameChange = async (ioPort, evt) => {
+
         ioPort.description = evt.target.value;
+
         await this.handleSave(ioPort);
     }
 
@@ -75,9 +77,9 @@ class DeviceIoPortEditor extends Component {
             this.setIsBusy(true);
 
             await this.DeviceIoPortServices.ioPortUpdate(ioPort);
-            
+
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -88,22 +90,22 @@ class DeviceIoPortEditor extends Component {
             this.setIsBusy(true);
             await this.DeviceIoPortServices.ioPortIdentify(ioPortId);
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
 
     }
 
-    
+
     setIsBusy(busyState) {
         clearTimeout(this.timer);
-        if(!busyState){
+        if (!busyState) {
             this.setState({ isBusy: false });
             return;
         }
 
-        this.timer = setTimeout( () => this.setState({ isBusy: true }), 250);
+        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
     }
 
     render() {
@@ -114,21 +116,27 @@ class DeviceIoPortEditor extends Component {
                         {
                             this.state.ports.length > 0 && this.state.ports.map((ioPort, i) => {
                                 return (
-                                    <div style={{ display: "flex", flexDirection: "row" }} key={i}>
+                                    <div style={{ display: "flex", flexDirection: "row", verticalAlign: "center" }} key={i}>
 
                                         <TextField
+                                        style={{marginTop: "0px", marginBottom: "0px"}}
                                             label={"PIN: " + ioPort.commandPin + ""}
                                             value={ioPort.description}
                                             onChange={(evt) => this.handleIoPortNameChange(ioPort, evt)}
                                             margin="normal"
                                         />
 
-                                        <Switch
-                                            checked={ioPort.isDanger}
-                                            onChange={(evt) => this.handleIoPortDangerChange(ioPort, evt)}
-                                        />
+                                        <div style={{ verticalAlign: "center" }}>
+                                            <Switch
+                                            style={{marginTop: "0px", marginBottom: "0px"}}
+                                                checked={ioPort.isDanger}
+                                                onChange={(evt) => this.handleIoPortDangerChange(ioPort, evt)}
+                                            />
+                                        </div>
 
-                                        <Button onClick={(evt) => this.handleIoPortDetect(ioPort.deviceIoPortId)}><FindReplace /></Button>
+                                        <Button onClick={(evt) => this.handleIoPortDetect(ioPort.deviceIoPortId)}
+                                        style={{marginTop: "0px", marginBottom: "0px"}}
+                                        ><FindReplace /></Button>
                                     </div>
                                 )
                             })
@@ -138,7 +146,7 @@ class DeviceIoPortEditor extends Component {
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div>
         );
     }

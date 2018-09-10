@@ -23,16 +23,9 @@ import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
 
 const styles = theme => ({
-    root: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
     formControl: {
         margin: 0,
         minWidth: 120,
-    },
-    selectEmpty: {
-        marginTop: theme.spacing.unit * 2,
     },
 });
 
