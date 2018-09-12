@@ -18,6 +18,11 @@ class DeviceIoPortServices{
         return await response.json();
     }
 
+    ioPortGetAll = async () => {
+        let response =  await fetch(`/api/DeviceIoPorts`)
+        return await response.json();
+    }
+
     ioPortUpdate = async (ioPort) => {
         let options = {
             method: 'put',
