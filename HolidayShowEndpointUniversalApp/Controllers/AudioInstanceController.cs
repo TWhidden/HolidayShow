@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 #if !CORE
 using Windows.ApplicationModel.Core;
@@ -15,12 +16,25 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 #if !CORE
         private MediaElement _mediaElement;
 #endif
+        private Process _externalPlayerProcess;
 
         public event EventHandler<IAudioRequestController> Complete;
-
+        
         public async void PlayMediaUri(IAudioRequestController c, Uri uri)
         {
-#if !CORE
+#if CORE
+            Console.WriteLine($"Audio File Play: {uri.AbsolutePath}");
+
+            _externalPlayerProcess = new Process()
+            {
+                StartInfo = new ProcessStartInfo("play", uri.AbsolutePath),
+
+            };
+            var result = _externalPlayerProcess.Start();
+            
+            Console.WriteLine($"Start Result: {result}");
+
+#else
             _currentRequest = c;
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
@@ -29,7 +43,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
                     _mediaElement.Play();
                 });
 #endif
-            
+
         }
 #if !CORE
         public void SetMediaElement(MediaElement mediaElement)
@@ -43,8 +57,11 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public async void StopPlayback()
         {
+#if CORE
+            _externalPlayerProcess?.Close();
+            _externalPlayerProcess?.Dispose();
 
-#if !CORE
+#else
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
                 {
@@ -52,7 +69,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
                     InvokeOnComplete(_currentRequest);
                 });
 #endif
-           
+
         }
 
 #if !CORE

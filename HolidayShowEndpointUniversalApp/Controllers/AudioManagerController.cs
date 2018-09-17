@@ -73,13 +73,13 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public async Task<IAudioRequestController> RequestAndPlay(string fileName)
         {
-            var newReuqest = _resolverService.Resolve<IAudioRequestController>();
-            newReuqest.FileName = fileName;
-            var playerController = await TryPlayAudio(newReuqest);
+            var newRequest = _resolverService.Resolve<IAudioRequestController>();
+            newRequest.FileName = fileName;
+            var playerController = await TryPlayAudio(newRequest);
             if (playerController != null)
             {
-                newReuqest.OnStop += ((s, e) => { playerController.StopPlayback(); });
-                return newReuqest;
+                newRequest.OnStop += ((s, e) => { playerController.StopPlayback(); });
+                return newRequest;
             }
             else
             {

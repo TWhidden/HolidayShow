@@ -36,8 +36,10 @@ namespace HolidayShowEndpointUniversalApp.Containers
                             Directory.CreateDirectory(pathOnly);
                         }
 
-                        File.WriteAllBytes(_fileDownloadContainer.DestinationPath,
-                            Convert.FromBase64String(message.MessageParts[ProtocolMessage.FILEBYTES]));
+                        var fileBytes = Convert.FromBase64String(message.MessageParts[ProtocolMessage.FILEBYTES]);
+
+                        Console.WriteLine($"Writing {fileBytes.Length:N} bytes to file {_fileDownloadContainer.DestinationPath}");
+                        File.WriteAllBytes(_fileDownloadContainer.DestinationPath, fileBytes);
                     }
                     _tcs.SetResult(true);
                 }
@@ -58,6 +60,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         protected override void NewConnectionEstablished()
         {
+            Console.WriteLine($"Requesting Missing File '{_fileDownloadContainer.FileName}'");
+
             var dic = new Dictionary<string, string>
                 {
                     {ProtocolMessage.FILEDOWNLOAD, _fileDownloadContainer.FileName},

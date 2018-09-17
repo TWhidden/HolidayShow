@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HolidayShowEndpointUniversalApp.Containers;
 using HolidayShowLibUniversal.Controllers;
@@ -18,7 +19,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         {
             _resolverService = resolverService;
 #if CORE
-            _rootStoragePath = HolidayShowClient.Core.Program.StoragePath;
+            _rootStoragePath = Path.Combine(HolidayShowClient.Core.Program.StoragePath, StoragePathFolder);
 #else
             var applicationData = Windows.Storage.ApplicationData.Current;
             var localFolder = applicationData.LocalFolder.Path;
@@ -38,7 +39,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         }
 
         /// <summary>
-        /// The Filename requested for playback. This shouldnt be the path. Just the filename.
+        /// The Filename requested for playback. This shouldn't be the path. Just the filename.
         /// </summary>
         public string FileName { get; set; }
 
@@ -47,18 +48,24 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         /// </summary>
         /// <summary>
         /// Verify that the file exists, and pull the file from the server if its not available
-        /// Then returns the path of the file. If the file can not be found or aquired, it will return an empty string.
+        /// Then returns the path of the file. If the file can not be found or acquired, it will return an empty string.
         /// </summary>
         /// <returns></returns>
         public async Task<Uri> FileReady()
         {
             // Find out if the file exists.
-            var audioPath = Path.Combine(_rootStoragePath, FileName);
-            if (File.Exists(audioPath)) return new Uri(audioPath);
+            var audioPath = Path.Combine(_rootStoragePath, Regex.Replace(FileName, "[^a-zA-Z0-9.\\-]", "_"));
+            if (File.Exists(audioPath))
+            {
+                Console.WriteLine($"Audio File Exists: {audioPath}");
+                return new Uri(audioPath);
+            }
+
+            Console.WriteLine($"Audio File DOES NOT Exist: {audioPath}");
 
             var fd = new FileDownloadContainer(FileName, audioPath);
 
-            // Download the file from the serfer
+            // Download the file from the server
             var fileDownloader = _resolverService.Resolve<FileDownloadClient>(fd);
             if (!await fileDownloader.FileFinsihed())
             {
