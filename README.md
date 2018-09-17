@@ -1,11 +1,12 @@
 HolidayShow
 ===========
 
-This project is designed to host any number of Raspberry Pi 2 running Windows IoT.  Each RP2 will connect to a running windows server, and receive its instructions real time. The server will control the client GPIOs or play audio files.  The client application will, on-demand, download the audio files from the server if it does not have them and store them in the Windows IoT data store. There is also a WPF editor and SQL Database that hosts and manages all of the controls.
+This project is designed to host any number of Raspberry Pi 2/3 running Windows IoT or <b>dotnetcore / ubuntu</b>.  Each RP will connect to a running windows server <b>[or linux server running .net core version]</b>, and receive its instructions real time. The server will control the client GPIOs or play audio files.  The client application will, on-demand, download the audio files from the server if it does not have them and store them in the server data store. There is also a WPF editor and SQL Database that hosts and manages all of the controls. New for 2018 - .net Core Web with React. <b>Dropping WPF dev and will build using this instead.</b>
 
-This project has been expanding since 2013.   Used in conjunction with Solid State Relays as well as gas valves, we created a light and fire show using propane.   Needless to say, it was the most insane house in the neighborhood.
+This project has been expanding since 2013.   Used in conjunction with Solid State Relays as well as gas valves, we created a light and fire show using propane. Needless to say, it was the most insane house in the neighborhood.
 
-Updated 2015/09 to support exclusively  Windows IoT projects (in this case, RasperryPi2, but nothing specifically written for it)
+Updated 2015/09 to support exclusively  Windows IoT projects (in this case, RasperryPi3, but nothing specifically written for it)
+Update 2018/09 to now support .net Core.  Also will support Docker containers for rapid deployments.
 
 <b>Compoents:</b>
 
@@ -21,7 +22,7 @@ Updated 2015/09 to support exclusively  Windows IoT projects (in this case, Rasp
 <ol>
 <li>Windows 10</li>
 <li>Visual Studios 2015 (Community Edition works great)</li>
-<li>Raspberry Pi 2 or other supported Windows IoT devices</li>
+ <li>Raspberry Pi 2/3 or other supported Windows IoT devices OR <b>Ubuntu/Linux</b></li>
 </ol>
 
 <b>Setup:</b>
