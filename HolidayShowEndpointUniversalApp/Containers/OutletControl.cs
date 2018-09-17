@@ -1,5 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+#if CORE
+using Unosquare.RaspberryIO.Gpio;
+#else
 using Windows.Devices.Gpio;
+#endif
 
 namespace HolidayShowEndpointUniversalApp.Containers
 {
@@ -22,8 +27,13 @@ namespace HolidayShowEndpointUniversalApp.Containers
         {
             if (_piRelayPin.HasValue)
             {
+#if CORE
+                PiRelayPlate.NetCore.RelayPlate.SetPinState(_piRelayPin.Value, 1);
+#else
                 PiPlateRelay.PiRelay.RelayOnAsync(_piRelayPin.Value);
-            }else
+#endif
+            }
+            else
             {
                 _gpioPin?.Write(GpioPinValue.High);
             }
@@ -33,7 +43,11 @@ namespace HolidayShowEndpointUniversalApp.Containers
         {
             if (_piRelayPin.HasValue)
             {
+#if CORE
+                PiRelayPlate.NetCore.RelayPlate.SetPinState(_piRelayPin.Value, 0);
+#else
                 PiPlateRelay.PiRelay.RelayOffAsync(_piRelayPin.Value);
+#endif
             }
             else
             {

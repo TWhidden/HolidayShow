@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Windows.UI.Xaml.Controls;
 
 namespace HolidayShowLibUniversal.Controllers
 {
@@ -10,7 +8,9 @@ namespace HolidayShowLibUniversal.Controllers
 
         void PlayMediaUri(IAudioRequestController request, Uri uri);
 
-        void SetMediaElement(MediaElement mediaElement);
+#if !CORE
+        void SetMediaElement(Windows.UI.Xaml.Controls.MediaElement mediaElement);
+#endif
 
         void StopPlayback();
     }

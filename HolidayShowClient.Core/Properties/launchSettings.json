@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HolidayShowClient.Core": {
+      "commandName": "Project",
+      "commandLineArgs": "-s 10.64.128.100 -p 5556"
+    }
+  }
+}

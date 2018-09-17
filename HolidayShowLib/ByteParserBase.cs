@@ -48,9 +48,6 @@ namespace HolidayShowLib
             {
                 // Write the data to the memory stream
                 _messageBuffer.Write(byteBuffer, 0, byteBuffer.Length);
-#if DEBUG
-                buffersReceived++;
-#endif
             }
 
             // Initiate a buffer search
@@ -82,14 +79,6 @@ namespace HolidayShowLib
             }
         }
 
-#if DEBUG
-
-        private long buffersReceived;
-        private long bufferSearches;
-        private long buffersReturned;
-
-#endif
-
         private void SearchBuffer()
         {
   
@@ -97,10 +86,6 @@ namespace HolidayShowLib
             var stopWatch = Stopwatch.StartNew();
 
         top:
-
-#if DEBUG
-            bufferSearches++;
-#endif
 
             bool searchBufferAgain = false;
             lock (_byteListLock)
@@ -179,12 +164,7 @@ namespace HolidayShowLib
                         _messageBuffer.Position = newLength;
 
                         // nothing left to do, exit function
-#if DEBUG && !WINDOWS_UWP
-                        // goto end for debug parse output.
-                        goto end;
-#else
                         return;
-#endif
                     }
 
                     if (lowestParser.Start != -1 && lowestParser.End != -1)
@@ -218,9 +198,6 @@ namespace HolidayShowLib
                         {
                             // Sends off for processing
                             ProcessPacket(bytesRead, parser);
-#if DEBUG
-                            buffersReturned++;
-#endif
                         }
 
                         // truncates the messageBuffer
@@ -261,12 +238,6 @@ namespace HolidayShowLib
                 //_loggerService.Debug("SearchAgain!");
                 goto top; // do this until the entire buffer is processed
             }
-
-
-#if DEBUG && !WINDOWS_UWP
-            end:
-            Console.WriteLine("{0}; ReSearch {1}; Received: {2}; Searches: {3}; Returned: {4}", stopWatch.Elapsed, searchAgain, buffersReceived, bufferSearches, buffersReturned);
-#endif
         }
 
         public abstract void ProcessPacket(byte[] bytes, ParserProtocolContainer parser);

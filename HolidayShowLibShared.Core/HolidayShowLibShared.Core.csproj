@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\HolidayShowLibUniversal\Controllers\IAudioInstanceController.cs" Link="Controllers\IAudioInstanceController.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Controllers\IAudioManagerController.cs" Link="Controllers\IAudioManagerController.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Controllers\IAudioRequestController.cs" Link="Controllers\IAudioRequestController.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Controllers\IController.cs" Link="Controllers\IController.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Helpers\SerializationHelper.cs" Link="Helpers\SerializationHelper.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Services\IResolverService.cs" Link="Services\IResolverService.cs" />
+    <Compile Include="..\HolidayShowLibUniversal\Services\ResolverService.cs" Link="Services\ResolverService.cs" />
+    <Compile Include="..\HolidayShowLib\ByteParserBase.cs" Link="BaseClasses\ByteParserBase.cs" />
+    <Compile Include="..\HolidayShowLib\MessageTypeId.cs" Link="Protocol\MessageTypeId.cs" />
+    <Compile Include="..\HolidayShowLib\ParserProtocolContainer.cs" Link="BaseClasses\ParserProtocolContainer.cs" />
+    <Compile Include="..\HolidayShowLib\ProtocolHelper.cs" Link="Helpers\ProtocolHelper.cs" />
+    <Compile Include="..\HolidayShowLib\ProtocolMessage.cs" Link="Protocol\ProtocolMessage.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BaseClasses\" />
+    <Folder Include="Controllers\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Services\" />
+    <Folder Include="Protocol\" />
+  </ItemGroup>
+
+</Project>

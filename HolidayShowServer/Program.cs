@@ -680,31 +680,25 @@ namespace HolidayShowServer
 
                                         Timer timerStart = null;
 
-                                        timerStart = new Timer(x =>
+                                        timerStart = new Timer(instructionState =>
                                             {
-                                                var item = x as DeviceInstructions;
-
-                                                if (item != null)
+                                                if (instructionState is DeviceInstructions item)
                                                 {
-                                                    //LogMessage("Sending Instruction: " + item.ToString());
+                                                    LogMessage("Sending Instruction: " + item.ToString());
                                                     SendInstruction(item);
                                                 }
 
-                                        
-                                                if (timerStart != null)
+                                                if (timerStart == null) return;
+                                                timerStart.Dispose();
+                                                if (QueuedTimers.ContainsKey(timerStart))
                                                 {
-                                                    timerStart.Dispose();
-                                                    if (QueuedTimers.ContainsKey(timerStart))
-                                                    {
-                                                        bool t;
-                                                        QueuedTimers.TryRemove(timerStart, out t);
-                                                    }
+                                                    QueuedTimers.TryRemove(timerStart, out _);
                                                 }
-                                                
+
                                             },
-                                                               di,
-                                                               TimeSpan.FromMilliseconds(di.OnAt),
-                                                               TimeSpan.FromMilliseconds(-1));
+                                            di,
+                                            TimeSpan.FromMilliseconds(di.OnAt),
+                                            TimeSpan.FromMilliseconds(-1));
 
                                         // Tracks the timer, just incase we need to cancel everything.
                                         QueuedTimers.TryAdd(timerStart, true);
@@ -718,10 +712,9 @@ namespace HolidayShowServer
                                                 setExecuting = false;
                                                 stoppedTimer.Dispose();
                                             },
-                                                                 null,
-                                                                 TimeSpan.FromMilliseconds(topDuration +
-                                                                                           delayBetweenSets),
-                                                                 TimeSpan.FromMilliseconds(-1));
+                                            null,
+                                            TimeSpan.FromMilliseconds(topDuration + delayBetweenSets),
+                                            TimeSpan.FromMilliseconds(-1));
 
                                             QueuedTimers.TryAdd(stoppedTimer, true);
                                     }

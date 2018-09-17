@@ -64,11 +64,15 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 };
 
             var message = new ProtocolMessage(MessageTypeIdEnum.RequestFile, dic);
+#if CORE
+            BeginSend(message);
+#else
             if (!BeginSend(message))
             {
                 Disconnect(false);
                 _tcs.SetResult(false);
             }
+#endif
         }
 
         protected override void ErrorDetected(Exception ex)

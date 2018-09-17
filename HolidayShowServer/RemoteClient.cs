@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace HolidayShowServer
         private const int StoreHistoryForSeconds = 10;
 
         private readonly List<long> _eventHistory = new List<long>();
+
+        private readonly ConcurrentQueue<byte[]> _dataToSendQueue = new ConcurrentQueue<byte[]>();
 
         public long MessageCountTotal { get; private set; }
 
@@ -103,6 +106,22 @@ namespace HolidayShowServer
                 return;
             }
 
+            _dataToSendQueue.Enqueue(data);
+
+            SendNextPacket();
+        }
+
+        private bool _isSending = false;
+
+        private void SendNextPacket()
+        {
+            if (_isSending) return;
+
+            // dequeue the next chunk
+            if (!_dataToSendQueue.TryDequeue(out var data)) return;
+
+            _isSending = true;
+
             try
             {
                 _client.GetStream().BeginWrite(data, 0, data.Length, EndBeginSendBytes, null);
@@ -125,6 +144,11 @@ namespace HolidayShowServer
                 Console.WriteLine("Could not send data to remote client. Error: " + ex.Message);
                 Disconnect();
             }
+            finally
+            {
+                _isSending = false;
+                SendNextPacket();
+            }
         }
 
 
@@ -133,6 +157,11 @@ namespace HolidayShowServer
             if (_client.Connected)
                 _client.Close();
             InvokeOnConnectionClosed();
+
+            // Dequeue the whole array on disconnect.
+            while (_dataToSendQueue.TryDequeue(out var data)) ;
+
+            _isSending = false;
         }
 
 

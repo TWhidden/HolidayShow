@@ -17,9 +17,14 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         public AudioRequestController(IResolverService resolverService)
         {
             _resolverService = resolverService;
+#if CORE
+            _rootStoragePath = HolidayShowClient.Core.Program.StoragePath;
+#else
             var applicationData = Windows.Storage.ApplicationData.Current;
             var localFolder = applicationData.LocalFolder.Path;
             _rootStoragePath = Path.Combine(localFolder, StoragePathFolder);
+#endif
+
             // Validate the path exists. If it doesnt, create it
             if (!Directory.Exists(_rootStoragePath))
             {

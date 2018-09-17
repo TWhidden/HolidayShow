@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;CORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\ClientLiveControl.cs" Link="Containers\ClientLiveControl.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\FileDownloadClient.cs" Link="Containers\FileDownloadClient.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\FileDownloadContainer.cs" Link="Containers\FileDownloadContainer.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\OutletControl.cs" Link="Containers\OutletControl.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioInstanceController.cs" Link="Controllers\AudioInstanceController.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioManagerController.cs" Link="Controllers\AudioManagerController.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioRequestController.cs" Link="Controllers\AudioRequestController.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Services\IServerDetails.cs" Link="Services\IServerDetails.cs" />
+    <Compile Include="..\HolidayShowEndpointUniversalApp\Services\ServerDetails.cs" Link="Services\ServerDetails.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="Unosquare.Raspberry.IO" Version="0.17.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HolidayShowLibShared.Core\HolidayShowLibShared.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PiRelayPlate.NetCore">
+      <HintPath>\\10.64.128.36\dev\GitHub-PiPlateRelay\PiPlateRelay\src\netcore\PiRelayPlate.NetCore\bin\Debug\netcoreapp2.1\PiRelayPlate.NetCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

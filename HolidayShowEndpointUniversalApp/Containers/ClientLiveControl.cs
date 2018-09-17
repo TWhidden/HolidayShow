@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Windows.Devices.Gpio;
 using HolidayShowEndpointUniversalApp.Services;
 using HolidayShowLib;
 using HolidayShowLibUniversal.Controllers;
@@ -67,28 +66,41 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         protected override async void EventControlReceived(ProtocolMessage message)
         {
+
+            Console.WriteLine($"Message: {string.Join(", ", message.MessageParts.Select(y => $"{y.Key}={y.Value}"))}");
             // FOr pin control.
             if (message.MessageParts.ContainsKey(ProtocolMessage.PINID) &&
                 message.MessageParts.ContainsKey(ProtocolMessage.DURATION) &&
                 message.MessageParts.ContainsKey(ProtocolMessage.PINON))
             {
-                int pinIndex;
-                var parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINID], out pinIndex);
-                if (!parsed) return;
+                var parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINID], out var pinIndex);
+                if (!parsed)
+                {
+                    Console.WriteLine($"PINID '{message.MessageParts[ProtocolMessage.PINID]}' could not be parsed!");
+                    return;
+                }
 
-                pinIndex--; // not zero based when its received.
+                if (pinIndex > _availablePins.Count)
+                {
+                    Console.WriteLine($"pinIndex {pinIndex} is greater than pin count {_availablePins.Count}");
+                    return;
+                }
 
-                int durration;
-                parsed = int.TryParse(message.MessageParts[ProtocolMessage.DURATION], out durration);
-                if (!parsed) return;
+                parsed = int.TryParse(message.MessageParts[ProtocolMessage.DURATION], out var durration);
+                if (!parsed)
+                {
+                    Console.WriteLine($"DURATION '{message.MessageParts[ProtocolMessage.DURATION]}' could not be parsed!");
+                    return;
+                }
 
-                int on;
-                parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINON], out on);
-                if (!parsed) return;
+                parsed = int.TryParse(message.MessageParts[ProtocolMessage.PINON], out var @on);
+                if (!parsed)
+                {
+                    Console.WriteLine($"PINON '{message.MessageParts[ProtocolMessage.PINON]}' could not be parsed!");
+                    return;
+                }
 
-                if (pinIndex >= _availablePins.Count) return;
-
-                var gpioPin = _availablePins[pinIndex];
+                var gpioPin = _availablePins[pinIndex - 1]; // not zero based when its received.
 
                 if (on == 1)
                 {
@@ -101,8 +113,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                 if (durration > 0)
                 {
-                    Timer timer;
-                    if (_rootedTimer.TryRemove(gpioPin, out timer))
+                    if (_rootedTimer.TryRemove(gpioPin, out var timer))
                     {
                         timer.Dispose();
                     }
@@ -113,12 +124,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
                         lock (_rootedTimer)
                         {
-                            if (_rootedTimer.ContainsKey(gpioPin))
-                            {
-                                _rootedTimer[gpioPin].Dispose();
-                                Timer t;
-                                _rootedTimer.TryRemove(gpioPin, out t);
-                            }
+                            if (!_rootedTimer.ContainsKey(gpioPin)) return;
+                            _rootedTimer[gpioPin].Dispose();
+                            _rootedTimer.TryRemove(gpioPin, out _);
                         }
 
                     },
@@ -156,7 +164,6 @@ namespace HolidayShowEndpointUniversalApp.Containers
                         RunningAudioFiles.Add(controller);
                     }
                 }
-
             }
         }
 

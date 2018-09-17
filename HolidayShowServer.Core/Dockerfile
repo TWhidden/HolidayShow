@@ -41,8 +41,8 @@ RUN dotnet publish HolidayShowServer.Core.csproj -c ReleaseCore -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-COPY entrypoint.sh .
-#ENTRYPOINT ["dotnet", "holidayshowserver.core.dll", "-p", "$PORT", "-d", "$DBSERVER", "-n", "$DBNAME", "-u","$DBUSER", "-s","$DBPASS"]
-ENTRYPOINT ["/app/entrypoint.sh"]
+COPY server-entrypoint.sh .
+
+ENTRYPOINT ["/app/server-entrypoint.sh"]
 
 

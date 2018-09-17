@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using HolidayShowEndpointUniversalApp.Services;
 using HolidayShowLib;
@@ -82,7 +83,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
                     return;
                 }
 
-                Debug.WriteLine("Bytes Received from server {0}", e.BytesTransferred);
+                Console.WriteLine("Bytes Received from server {0}", e.BytesTransferred);
                 
                 // take the bytes transfered from the array
                 byte[] data;
@@ -95,6 +96,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
                     data = new byte[e.BytesTransferred];
                     Buffer.BlockCopy(e.Buffer, 0, data, 0, e.BytesTransferred);
                 }
+
+                Console.WriteLine($"Data Received. '{Encoding.UTF8.GetString(e.Buffer)}'");
 
                 // Dump into the base class looking for the protocol
                 BytesReceived(data);
@@ -132,6 +135,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         public async void Disconnect(bool recreate = true)
         {
+            Console.WriteLine($"Disconnect!!! Recreate? {recreate}");
+
             if (_client != null && _client.Connected)
             {
                 _client.Shutdown(SocketShutdown.Both);

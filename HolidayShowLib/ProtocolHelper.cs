@@ -10,20 +10,16 @@ namespace HolidayShowLib
 
         public const byte EOH = 0x03;
 
+        public const string Event = "EVENT";
+
         public static byte[] Wrap(ProtocolMessage message)
         {
             var sb = new StringBuilder();
-            sb.Append("EVENT");
-            sb.Append(":");
-            sb.Append((int)message.MessageEvent);
-            sb.Append(";");
+            sb.Append($"{Event}:{(int)message.MessageEvent};");
 
             foreach (var k in message.MessageParts)
             {
-                sb.Append(k.Key);
-                sb.Append(":");
-                sb.Append(k.Value);
-                sb.Append(";");
+                sb.Append($"{k.Key}:{k.Value};");
             }
 
             var b = Encoding.ASCII.GetBytes(sb.ToString());
@@ -45,7 +41,7 @@ namespace HolidayShowLib
             Array.Copy(rawMessage, 1, subMessage, 0, subMessage.Length);
 
             var str = Encoding.ASCII.GetString(subMessage);
-            var s = str.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var s = str.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             if (s.Length == 0) return null;
 
             var t = MessageTypeIdEnum.Unknown;
@@ -53,10 +49,10 @@ namespace HolidayShowLib
             var dic = new Dictionary<string, string>();
             foreach (var pair in s)
             {
-                var p = pair.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var p = pair.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                 if (p.Length != 2) continue;
 
-                if (p[0] == "EVENT")
+                if (p[0] == Event)
                 {
                     if (p[1].Trim().Length == 0) return null;
 
