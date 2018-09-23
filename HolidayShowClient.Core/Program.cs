@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using HolidayShowEndpointUniversalApp.Containers;
@@ -111,8 +112,25 @@ namespace HolidayShowClient.Core
             var t = Load();
             t.Wait();
 
-            Console.WriteLine("Press enter to end program");
-            Console.ReadLine();
+#if NETCOREAPP
+            Thread.Sleep(Timeout.Infinite);
+#endif
+
+            if (Environment.UserInteractive)
+            {
+                Console.WriteLine("Press [ENTER] to stop the server");
+                Console.ReadLine();
+            }
+            else
+            {
+                // Docker has no interactive mode. If there is no console, we need to sleep forever until the task is force quit.
+                Console.WriteLine("End Task to stop the server");
+                Thread.Sleep(Timeout.Infinite);
+            }
+
+#if NETCOREAPP
+            Console.WriteLine($"SHUTTING DOWN! {DateTime.Now}");
+#endif
         }
 
         private async static Task Load()
