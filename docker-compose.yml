@@ -1,8 +1,15 @@
 version: '3.4'
 
 services:
-  holidayshowserver.core:
-    image: ${DOCKER_REGISTRY}holidayshowservercore
+  HolidayShowClient:
+    image: holidayshowclient
     build:
       context: .
-      dockerfile: HolidayShowServer.Core/Dockerfile
+      dockerfile: HolidayShowClient.Core/Dockerfile
+
+
+  HolidayShowServer:
+   image: holidayshowserver
+   build:
+     context: .
+     dockerfile: HolidayShowServer.Core/Dockerfile

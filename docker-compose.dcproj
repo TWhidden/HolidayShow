@@ -20,10 +20,11 @@
     <ProjectGuid>9cba41e6-bd68-4687-be20-a41d0f231f7d</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.override.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
+    <None Include="docker-compose-client.override.yml">
+      <DependentUpon>docker-compose-client.yml</DependentUpon>
     </None>
-    <None Include="docker-compose.yml" />
+    <None Include="docker-compose-client.yml" />
     <None Include=".dockerignore" />
+    <None Include="docker-compose.yml" />
   </ItemGroup>
 </Project>

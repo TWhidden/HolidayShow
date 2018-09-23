@@ -684,7 +684,7 @@ namespace HolidayShowServer
                                             {
                                                 if (instructionState is DeviceInstructions item)
                                                 {
-                                                    LogMessage("Sending Instruction: " + item.ToString());
+                                                    //LogMessage("Sending Instruction: " + item.ToString());
                                                     SendInstruction(item);
                                                 }
 

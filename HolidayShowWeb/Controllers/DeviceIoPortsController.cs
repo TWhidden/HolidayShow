@@ -54,7 +54,7 @@ namespace HolidayShowWeb.Controllers
                 return BadRequest(ModelState);
             }
 
-            var deviceIoPorts = await _context.DeviceIoPorts.Where(x => x.DeviceId == deviceId).ToListAsync();
+            var deviceIoPorts = await _context.DeviceIoPorts.Where(x => x.DeviceId == deviceId).OrderBy(x => x.CommandPin).ToListAsync();
 
             if (deviceIoPorts == null)
             {

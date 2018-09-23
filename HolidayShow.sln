@@ -24,16 +24,22 @@ EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerScripts", "DockerScripts", "{46057768-9E98-4720-A0A5-D5053771E707}"
-	ProjectSection(SolutionItems) = preProject
-		client-entrypoint.sh = client-entrypoint.sh
-		server-entrypoint.sh = server-entrypoint.sh
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HolidayShowWeb", "HolidayShowWeb\HolidayShowWeb.csproj", "{E06AC049-69A0-4417-9A78-664661996853}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HolidayShowClient.Core", "HolidayShowClient.Core\HolidayShowClient.Core.csproj", "{45A4C0E8-1EAF-4491-B574-8B66AD897FF8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HolidayShowLibShared.Core", "HolidayShowLibShared.Core\HolidayShowLibShared.Core.csproj", "{6B5D9B75-1AA4-4B12-93CF-2BC439F3ECB9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{5CBC5C0C-5652-47CD-9EE4-2318C9E6CB27}"
+	ProjectSection(SolutionItems) = preProject
+		Docker\Client\entrypoint.sh = Docker\Client\entrypoint.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{0D2BC627-1638-4ED3-8FFA-0D594141FAAD}"
+	ProjectSection(SolutionItems) = preProject
+		Docker\Server\entrypoint.sh = Docker\Server\entrypoint.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -714,6 +720,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5CBC5C0C-5652-47CD-9EE4-2318C9E6CB27} = {46057768-9E98-4720-A0A5-D5053771E707}
+		{0D2BC627-1638-4ED3-8FFA-0D594141FAAD} = {46057768-9E98-4720-A0A5-D5053771E707}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6319B629-8641-4CF8-ACB8-E5BF1D344FA9}

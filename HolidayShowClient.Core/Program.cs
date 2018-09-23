@@ -117,6 +117,7 @@ namespace HolidayShowClient.Core
 
         private async static Task Load()
         {
+            Console.WriteLine("Loading...");
             _availablePins = new List<OutletControl>();
 
             // Identify if the device has a PiPlate attached.
@@ -125,15 +126,25 @@ namespace HolidayShowClient.Core
 #endif
 
 #if CORE
-            var relaysAvailable = PiRelayPlate.NetCore.RelayPlate.RelaysAvailable();
-            if (relaysAvailable > 0)
+            int relaysAvailable = 0;
+            Console.WriteLine("Finding what Relays are Available...");
+            try
             {
-                // build up the ports
-                var portsAvailable = relaysAvailable * 7;
-                for (byte portIndex = 1; portIndex <= portsAvailable; portIndex++)
+                relaysAvailable = PiRelayPlate.NetCore.RelayPlate.RelaysAvailable();
+                Console.WriteLine($"Relays Found: {relaysAvailable}");
+                if (relaysAvailable > 0)
                 {
-                    _availablePins.Add(new OutletControl(portIndex));
+                    // build up the ports
+                    var portsAvailable = relaysAvailable * 7;
+                    for (byte portIndex = 1; portIndex <= portsAvailable; portIndex++)
+                    {
+                        _availablePins.Add(new OutletControl(portIndex));
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not load pi relays. Error: {ex.Message}");
             }
 #else
             if (PiPlateRelay.PiRelay.RelaysAvailable.Count > 0)
@@ -148,9 +159,9 @@ namespace HolidayShowClient.Core
             }
 #endif
 
-            else
+            if(relaysAvailable == 0)
             {
-
+                Console.WriteLine("Loading GPIO Instance");
                 // Identify the pings available.
                 // Get the default GPIO controller on the system
 #if CORE
@@ -160,7 +171,10 @@ namespace HolidayShowClient.Core
 #endif
 
                 if (gpio == null)
-                    return; // GPIO not available on this system
+                {
+                    Console.WriteLine("No detected GPIO - Cant do anything :(");
+                    return;
+                }; // GPIO not available on this system
 
                 // Reference: https://ms-iot.github.io/content/en-US/win10/samples/PinMappingsRPi2.htm
                 //Pin Added #4 - Gpio#: 4
@@ -195,18 +209,6 @@ namespace HolidayShowClient.Core
                     pin.PinMode = GpioPinDriveMode.Output;
                     pin.Write(GpioPinValue.Low);
                     _availablePins.Add(new OutletControl(pin)); // This is a pin we can use.
-
-                    //GpioOpenStatus status;
-                    //if (!gpio.TryOpenPin(i, GpioSharingMode.Exclusive, out GpioPin pin, out status)) continue;
-                    //if (blockedIds.Contains(pin.PinNumber)) continue; // Dont process blocked pins.
-
-                    //var supportsOutputMode = pin.IsDriveModeSupported(GpioPinDriveMode.Output);
-                    //if (!supportsOutputMode) continue;
-                    //_availablePins.Add(new OutletControl(pin)); // This is a pin we can use.
-                    //pin.SetDriveMode(GpioPinDriveMode.Output); // We need this set to Output
-                    //pin.Write(GpioPinValue.Low); // Init with a low value.
-                    //pin.DebounceTimeout = TimeSpan.Zero; // Not all GPIO pins have this value set. 
-                    //Debug.WriteLine("Pin Added #{0} - Gpio#: {1}", i, pin.PinNumber);
                 }
             }
 
@@ -215,21 +217,26 @@ namespace HolidayShowClient.Core
 
         private static void CreateClient()
         {
+            Console.WriteLine("Creating Client to connect");
+
             DestroyClient();
 
-            if (DeviceId != 0)
-            {
-                var endPoint = new DnsEndPoint(ServerAddress, ServerPort);
-                var serverDetails = ResloverService.Resolve<ServerDetails>(endPoint);
-                ResloverService.Register<IServerDetails, IServerDetails>(serverDetails);
+            if (DeviceId == 0) return;
 
-                _protocolClient = ResloverService.Resolve<ClientLiveControl>(DeviceId, _availablePins);
-            }
+            var endPoint = new DnsEndPoint(ServerAddress, ServerPort);
+            Console.WriteLine($"Connecting to {endPoint.Host}:{endPoint.Port}");
+            var serverDetails = ResloverService.Resolve<ServerDetails>(endPoint);
+            ResloverService.Register<IServerDetails, IServerDetails>(serverDetails);
+
+            Console.WriteLine("Starting TCP Client");
+            _protocolClient = ResloverService.Resolve<ClientLiveControl>(DeviceId, _availablePins);
+            Console.WriteLine("Client Started.");
 
         }
 
         private static void DestroyClient()
         {
+            Console.WriteLine("Destroying any existing client...");
             _protocolClient?.Disconnect(false);
         }
     }

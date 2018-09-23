@@ -41,7 +41,7 @@
 
   <ItemGroup>
     <Reference Include="PiRelayPlate.NetCore">
-      <HintPath>\\10.64.128.36\dev\GitHub-PiPlateRelay\PiPlateRelay\src\netcore\PiRelayPlate.NetCore\bin\Debug\netcoreapp2.1\PiRelayPlate.NetCore.dll</HintPath>
+      <HintPath>..\References\PiRelayPlate.NetCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

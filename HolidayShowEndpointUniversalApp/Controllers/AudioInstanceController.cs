@@ -28,6 +28,7 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             _externalPlayerProcess = new Process()
             {
                 StartInfo = new ProcessStartInfo("play", uri.AbsolutePath),
+                
 
             };
             var result = _externalPlayerProcess.Start();
@@ -57,6 +58,8 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public async void StopPlayback()
         {
+            Console.WriteLine($"StopPlayback() called for {_currentRequest.FileName}");
+
 #if CORE
             _externalPlayerProcess?.Close();
             _externalPlayerProcess?.Dispose();
