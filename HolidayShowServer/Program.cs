@@ -42,6 +42,8 @@ namespace HolidayShowServer
 
         public static string ConnectionString = ConfigurationManager.ConnectionStrings["EfHolidayContext"].ConnectionString;
 
+        private static int _serverPort = -1;
+
 #if NETCOREAPP
         private static ILogger<Program> _logger;
 #endif
@@ -65,7 +67,7 @@ namespace HolidayShowServer
 #endif
 
             var result = Parser.Default.ParseArguments<InputParams>(args);
-            var serverPort = 0;
+            _serverPort = 0;
             string dbServer = null;
             string dbName = null;
             string dbUser = null;
@@ -74,7 +76,7 @@ namespace HolidayShowServer
             (
                 options =>
                 {
-                    serverPort = options.ServerPort;
+                    _serverPort = options.ServerPort;
                     dbServer = options.DbServer;
                     dbName = options.DbName;
                     dbPass = options.Password;
@@ -108,7 +110,7 @@ namespace HolidayShowServer
             }
 
             // Setup the listeners
-            _server = new TcpServer((ushort)serverPort);
+            _server = new TcpServer((ushort)_serverPort);
             _server.OnClientConnected += _server_OnClientConnected;
             _server.Start();
 
@@ -744,7 +746,7 @@ namespace HolidayShowServer
         }
 
         private const string ConsoleDisplayFormat =
-            "Holiday Show Version {0}\n" +
+            "Holiday Show Version {0}; Port: {3}\n" +
             "-----------------------------------------------------\n" +
             "Connected Endpoints:\n" +
             "{1}" +
@@ -773,7 +775,7 @@ namespace HolidayShowServer
             {
                 logMessages = string.Join("\n", LogMessages);
             }
-            var output = string.Format(ConsoleDisplayFormat, version, sb, logMessages);
+            var output = string.Format(ConsoleDisplayFormat, version, sb, logMessages, _serverPort);
 
             Console.Clear();
             Console.Write(output);

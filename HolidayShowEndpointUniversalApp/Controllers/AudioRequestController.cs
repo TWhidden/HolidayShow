@@ -66,9 +66,10 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             var fd = new FileDownloadContainer(FileName, audioPath);
 
             // Download the file from the server
-            var fileDownloader = _resolverService.Resolve<FileDownloadClient>(fd);
-            if (!await fileDownloader.FileFinsihed())
+            var downloadClient = _resolverService.Resolve<FileDownloadClient>(fd);
+            if (!await downloadClient.FileFinished())
             {
+                Console.WriteLine($"FileDownloadClient returned false for downloading. Cant download");
                 return null;
             }
             return new Uri(audioPath);

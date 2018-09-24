@@ -25,7 +25,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 // Get the guts of the message here
                 if (message.MessageParts.ContainsKey(ProtocolMessage.FILEBYTES))
                 {
-                    // Make sure it doesnt exist first
+                    // Make sure it doesn't exist first
                     if (!File.Exists(_fileDownloadContainer.DestinationPath))
                     {
                         // Ensure the entire path is available, because files might be in sub directories for
@@ -33,7 +33,9 @@ namespace HolidayShowEndpointUniversalApp.Containers
                         var pathOnly = Path.GetDirectoryName(_fileDownloadContainer.DestinationPath);
                         if (!Directory.Exists(pathOnly))
                         {
+                            Console.WriteLine($"Creating '{pathOnly}'");
                             Directory.CreateDirectory(pathOnly);
+                            Console.WriteLine($"Created '{pathOnly}'");
                         }
 
                         var fileBytes = Convert.FromBase64String(message.MessageParts[ProtocolMessage.FILEBYTES]);
@@ -81,12 +83,16 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
         protected override void ErrorDetected(Exception ex)
         {
+            Console.WriteLine($"Error detected in FileDownloadClient: {ex.Message}");
             Disconnect(false);
+            _tcs.SetResult(false);
         }
 
         protected override void ResetReceived()
         {
-            Disconnect(false);
+            Console.WriteLine("Reset Received in FileDownloadClient");
+            //Disconnect(false);
+            //_tcs.SetResult(false);
         }
 
         protected override void EventControlReceived(ProtocolMessage message)
@@ -95,7 +101,7 @@ namespace HolidayShowEndpointUniversalApp.Containers
             
         }
 
-        public Task<bool> FileFinsihed()
+        public Task<bool> FileFinished()
         {
             Disconnect(false);
             return _tcs.Task;
