@@ -59,6 +59,10 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         public async void StopPlayback()
         {
 #if CORE
+            // x3 idea from https://stackoverflow.com/a/283357/1004187
+            _externalPlayerProcess?.StandardInput.WriteLine("\x3");
+            _externalPlayerProcess?.StandardInput.Close();
+            _externalPlayerProcess?.Kill();
             _externalPlayerProcess?.Close();
             _externalPlayerProcess?.Dispose();
 

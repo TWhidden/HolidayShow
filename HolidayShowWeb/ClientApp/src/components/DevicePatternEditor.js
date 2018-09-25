@@ -29,6 +29,9 @@ const styles = theme => ({
     },
 });
 
+const sessionLastDeviceSelected = "PatternEdit-selectedDevice";
+const sessionLastPatternSelected = "PatternEdit-selectedPattern";
+
 class DevicePattern extends Component {
     displayName = DevicePattern.name
 
@@ -70,7 +73,7 @@ class DevicePattern extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -78,7 +81,7 @@ class DevicePattern extends Component {
         await this.getDevices();
     }
 
-    getDevices  = async () => {
+    getDevices = async () => {
         let deviceIdSelected = 0;
 
         try {
@@ -87,8 +90,22 @@ class DevicePattern extends Component {
             let devices = await this.DeviceServices.getAllDevices();
 
             let deviceSelected = Enumerable.asEnumerable(devices).FirstOrDefault();
-            
-            if(deviceSelected != null){
+
+            let lastSelectedDeviceId = sessionStorage.getItem(sessionLastDeviceSelected);
+            if (lastSelectedDeviceId != null) {
+
+                console.log(`${sessionLastDeviceSelected}: ${parseInt(lastSelectedDeviceId)}`)
+
+                let lastSelectedDevice = Enumerable.asEnumerable(devices)
+                    .Where(d => d.deviceId == parseInt(lastSelectedDeviceId))
+                    .FirstOrDefault();
+
+                if(lastSelectedDevice != null){
+                    deviceSelected = lastSelectedDevice;
+                }
+            }
+
+            if (deviceSelected != null) {
                 deviceIdSelected = deviceSelected.deviceId;
             }
 
@@ -99,7 +116,7 @@ class DevicePattern extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -118,6 +135,10 @@ class DevicePattern extends Component {
 
         if (device == null) return;
 
+        console.log(`setting ${sessionLastDeviceSelected}: ${deviceId}`)
+
+        sessionStorage.setItem(sessionLastDeviceSelected, deviceId);
+
         this.setState({
             deviceIdSelected: deviceId,
             deviceSelected: device
@@ -135,7 +156,24 @@ class DevicePattern extends Component {
             this.setIsBusy(true);
             let patterns = await this.PatternServices.getDevicePatternsByDeviceId(device.deviceId);
 
-            patternId = Enumerable.asEnumerable(patterns).Select(x=> x.devicePatternId).FirstOrDefault();
+            let lastSelectedPatternId = sessionStorage.getItem(sessionLastPatternSelected);
+            if (lastSelectedPatternId != null) {
+
+                console.log(`${sessionLastPatternSelected}: ${parseInt(lastSelectedPatternId)}`)
+
+                let lastSelectedPattern = Enumerable.asEnumerable(patterns)
+                    .Where(d => d.devicePatternId == parseInt(lastSelectedPatternId))
+                    .FirstOrDefault();
+
+                if(lastSelectedPattern != null){
+                    patternId = lastSelectedPattern.devicePatternId;
+                }
+            }
+
+            // If the state returned something that didint exist, select the first one.
+            if(patternId == 0){
+                patternId = Enumerable.asEnumerable(patterns).Select(x => x.devicePatternId).FirstOrDefault();
+            }
 
             this.setState({
                 patterns,
@@ -144,7 +182,7 @@ class DevicePattern extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -153,7 +191,7 @@ class DevicePattern extends Component {
     }
 
     getIoPortsForSelectedDevice = async (device) => {
-        
+
         try {
             this.setIsBusy(true);
             let ports = await this.DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
@@ -165,7 +203,7 @@ class DevicePattern extends Component {
             })
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -173,11 +211,15 @@ class DevicePattern extends Component {
 
     handlePatternChange = async (patternId) => {
 
-        if(patternId == null) return;
+        if (patternId == null) return;
 
         let patternSelected = Enumerable.asEnumerable(this.state.patterns)
             .Where(x => x.devicePatternId === patternId)
             .FirstOrDefault();
+
+        console.log(`setting ${sessionLastPatternSelected}: ${patternId}`)
+
+        sessionStorage.setItem(sessionLastPatternSelected, patternId);
 
         this.setState({
             patternSelected,
@@ -199,7 +241,7 @@ class DevicePattern extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -227,7 +269,7 @@ class DevicePattern extends Component {
             })
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -254,7 +296,7 @@ class DevicePattern extends Component {
             })
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -283,7 +325,7 @@ class DevicePattern extends Component {
 
             this.setState({});
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -319,7 +361,7 @@ class DevicePattern extends Component {
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -336,7 +378,7 @@ class DevicePattern extends Component {
                 patternSequences: []
             })
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
             this.setIsBusy(false);
         }
@@ -425,33 +467,33 @@ class DevicePattern extends Component {
                             <div>
 
                                 <div style={{ display: "flex", flexDirection: "row" }}>
-                                    <div className="child"  style={{ width: "100px" }}>
+                                    <div className="child" style={{ width: "100px" }}>
                                         <Typography variant="body2" gutterBottom>
-                                        On At:
+                                            On At:
                                         </Typography>
                                     </div>
 
                                     <div className="child" style={{ width: "100px" }}>
-                                    <Typography variant="body2" gutterBottom>
-                                        Duration:
-                                        </Typography>
-                                     </div>
-
-                                    <div className="child">
-                                    <Typography variant="body2" gutterBottom>
-                                        Gpio Port:
-                                        </Typography>
-                                     </div>
-
-                                    <div className="child">
-                                    <Typography variant="body2" gutterBottom>
-                                        Audio File:
+                                        <Typography variant="body2" gutterBottom>
+                                            Duration:
                                         </Typography>
                                     </div>
 
                                     <div className="child">
-                                    <Typography variant="body2" gutterBottom>
-                                        Delete
+                                        <Typography variant="body2" gutterBottom>
+                                            Gpio Port:
+                                        </Typography>
+                                    </div>
+
+                                    <div className="child">
+                                        <Typography variant="body2" gutterBottom>
+                                            Audio File:
+                                        </Typography>
+                                    </div>
+
+                                    <div className="child">
+                                        <Typography variant="body2" gutterBottom>
+                                            Delete
                                         </Typography>
                                     </div>
 
@@ -479,7 +521,7 @@ class DevicePattern extends Component {
                 {
                     this.state.isBusy && (<BusyContent />)
                 }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div >
         );
     }
@@ -514,7 +556,7 @@ class EditPattern extends Component {
         try {
             await this.DevicePatternSequenceServices.sequenceSave(sequenceId, sequence);
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.setState({ errorMessage: e.message })
         } finally {
 
         }
@@ -586,7 +628,7 @@ class EditPattern extends Component {
                 <Tooltip title="Delete Command">
                     <IconButton onClick={(evt) => this.props.onDelete(this.props.sequence)}><DeleteIcon /></IconButton>
                 </Tooltip>
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
+                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div>
         )
     }

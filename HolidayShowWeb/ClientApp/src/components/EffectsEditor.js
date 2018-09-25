@@ -86,6 +86,7 @@ const moveAndReorder = (
     return [sourceResult, destinationResult]
 };
 
+const sessionEffectSelected = "EffectEdit-EffectSelected";
 
 class EffectsEditor extends Component {
     displayName = EffectsEditor.name
@@ -160,6 +161,22 @@ class EffectsEditor extends Component {
             let effects = await this.EffectServices.getAllEffects();
 
             let effectSelected = Enumerable.AsEnumerable(effects).FirstOrDefault();
+
+
+            let lastSelectedId = sessionStorage.getItem(sessionEffectSelected);
+            if (lastSelectedId != null) {
+
+                console.log(`${sessionEffectSelected}: ${parseInt(lastSelectedId)}`)
+
+                let lastSelected = Enumerable.asEnumerable(effects)
+                    .Where(d => d.effectId == parseInt(lastSelectedId))
+                    .FirstOrDefault();
+
+                if(lastSelected != null){
+                    effectSelected = lastSelected;
+                }
+            }
+
             let effectIdSelected = 0;
             if (effectSelected != null) {
                 effectIdSelected = effectSelected.effectId;
@@ -190,6 +207,9 @@ class EffectsEditor extends Component {
             .FirstOrDefault();
 
         if (effect == null) return;
+
+        console.log(`setting ${sessionEffectSelected}: ${effectId}`)
+        sessionStorage.setItem(sessionEffectSelected, effectId);
 
         this.setState({
             effectSelected: effect,

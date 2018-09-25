@@ -20,6 +20,8 @@ const styles = theme => ({
     },
 });
 
+const sessionDeviceSelected = "DeviceEdit-DeviceSelected";
+
 class DeviceManager extends Component {
     displayName = DeviceManager.name
 
@@ -45,6 +47,21 @@ class DeviceManager extends Component {
             let devices = await this.DeviceServices.getAllDevices();
 
             let deviceSelected = devices[0];
+
+            let lastSelectedId = sessionStorage.getItem(sessionDeviceSelected);
+            if (lastSelectedId != null) {
+
+                console.log(`${sessionDeviceSelected}: ${parseInt(lastSelectedId)}`)
+
+                let lastSelected = Enumerable.asEnumerable(devices)
+                    .Where(d => d.deviceId == parseInt(lastSelectedId))
+                    .FirstOrDefault();
+
+                if(lastSelected != null){
+                    deviceSelected = lastSelected;
+                }
+            }
+            
             if (deviceSelected != null) {
                 this.setState({
                     devices,
@@ -119,6 +136,7 @@ class DeviceManager extends Component {
                                             deviceIdSelected: 0
                                         });
                                     } else {
+                                        sessionStorage.setItem(sessionDeviceSelected, device.deviceId);
                                         this.setState({
                                             deviceSelected: device,
                                             deviceIdSelected: device.deviceId

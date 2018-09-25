@@ -37,6 +37,8 @@ const styles = theme => ({
     },
 });
 
+const sessionSetSelected = "SetEdit-SetSelected";
+
 class SetsEditor extends Component {
     displayName = SetsEditor.name
 
@@ -111,6 +113,20 @@ class SetsEditor extends Component {
             let sets = await this.SetServices.getAllSets();
 
             let setSelected = Enumerable.asEnumerable(sets).FirstOrDefault();
+
+            let lastSelectedId = sessionStorage.getItem(sessionSetSelected);
+            if (lastSelectedId != null) {
+
+                console.log(`${sessionSetSelected}: ${parseInt(lastSelectedId)}`)
+
+                let lastSelected = Enumerable.asEnumerable(sets)
+                    .Where(d => d.setId == parseInt(lastSelectedId))
+                    .FirstOrDefault();
+
+                if(lastSelected != null){
+                    setSelected = lastSelected;
+                }
+            }
             
             if(setSelected != null){
                 setIdSelected = setSelected.setId;
@@ -144,6 +160,9 @@ class SetsEditor extends Component {
             .FirstOrDefault();
 
         if (set == null) return;
+
+        console.log(`setting ${sessionSetSelected}: ${parseInt(setId)}`)
+        sessionStorage.setItem(sessionSetSelected, setId);
 
         this.setState({
             setSelected: set,
