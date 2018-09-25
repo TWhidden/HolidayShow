@@ -150,7 +150,7 @@ namespace HolidayShowServer
         }
 #endif
 
-        static void LogMessage(string message, bool persistMessage = false)
+        public static void LogMessage(string message, bool persistMessage = false)
         {
             lock (LogMessages)
             {

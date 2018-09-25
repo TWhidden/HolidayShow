@@ -261,23 +261,28 @@ namespace HolidayShowServer
                     using (var dc = new EfHolidayContext(Program.ConnectionString))
                     {
                         var basePathSetting = await dc.Settings.Where(x=> x.SettingName == SettingKeys.FileBasePath).FirstOrDefaultAsync();
-                        if (basePathSetting == null || String.IsNullOrWhiteSpace(basePathSetting.ValueString) || !Directory.Exists(basePathSetting.ValueString))
+                        if (basePathSetting == null || string.IsNullOrWhiteSpace(basePathSetting.ValueString) || !Directory.Exists(basePathSetting.ValueString))
                         {
-                            Console.WriteLine("System Setting {0} does not exist in settings table. Must be set to support file transfers", SettingKeys.FileBasePath);
+                            Program.LogMessage($"System Setting {SettingKeys.FileBasePath} does not exist in settings table. Must be set to support file transfers");
                             BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
                             return;
                         }
 
                         var fileRequested = message.MessageParts[ProtocolMessage.FILEDOWNLOAD];
 
-                        Console.WriteLine("File Requested {0}", fileRequested);
+                        Program.LogMessage($"File Requested {fileRequested}");
 
-                        var combinedPath = Path.Combine(basePathSetting.ValueString, fileRequested);
+                        var fileRequestedModified = fileRequested.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+                        Program.LogMessage($"Modified File Requested {fileRequestedModified}");
+
+                        // Modify the path separators based on if the server is in linux or windows.
+                        var combinedPath = Path.Combine(basePathSetting.ValueString, fileRequestedModified);
 
                         // See if the requested file exists
                         if (!File.Exists(combinedPath))
                         {
-                            Console.WriteLine("File Requsted does not exist at path {0}", combinedPath);
+                            Program.LogMessage($"File Requested does not exist at path {combinedPath}");
                             BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
                             return;
                         }

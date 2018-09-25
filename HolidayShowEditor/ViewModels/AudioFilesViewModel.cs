@@ -108,7 +108,7 @@ namespace HolidayShowEditor.ViewModels
                         double nanoseconds;
                         double.TryParse(so.Properties.System.Media.Duration.Value.ToString(),
                         out nanoseconds);
-                        Console.WriteLine(@"NanaoSeconds: {0}", nanoseconds);
+                        Console.WriteLine(@"NanoSeconds: {0}", nanoseconds);
                         if (nanoseconds > 0)
                         {
                             int milliseconds = (int)Convert100NanosecondsToMilliseconds(nanoseconds) ;

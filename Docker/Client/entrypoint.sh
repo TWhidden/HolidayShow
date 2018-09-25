@@ -11,4 +11,7 @@ echo "STARTING HOLIDAY SHOW CLIENT CORE..."
 # reference: https://www.raspberrypi.org/documentation/configuration/audio-config.md
 amixer cset numid=3 1
 
+# set the volume level of the PCM device to 100%
+amixer set PCM 100%
+
 ./HolidayShowClient.Core -s "$SERVER" -p $PORT -d $DEVICEID -a "$STORAGE"

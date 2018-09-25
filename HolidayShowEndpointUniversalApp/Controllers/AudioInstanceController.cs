@@ -58,13 +58,12 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public async void StopPlayback()
         {
-            Console.WriteLine($"StopPlayback() called for {_currentRequest.FileName}");
-
 #if CORE
             _externalPlayerProcess?.Close();
             _externalPlayerProcess?.Dispose();
 
 #else
+            Console.WriteLine($"StopPlayback() called for {_currentRequest.FileName}");
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
                 {
