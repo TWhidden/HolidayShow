@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import BusyContent from './controls/BusyContent';
 import ErrorContent from './controls/ErrorContent';
-import * as Enumerable from "linq-es2015";
+import * as Enumerable from "linq-es5";
 
 const delayMs = "SetDelayMs";
 const audioTimeOffAt = "AudioTimeOffAt";

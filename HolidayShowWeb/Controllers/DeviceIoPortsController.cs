@@ -110,13 +110,11 @@ namespace HolidayShowWeb.Controllers
 
             try
             {
-                using (var dc = new EfHolidayContext())
-                {
-
-                    var ioPort = await dc.DeviceIoPorts.Where(x => x.DeviceIoPortId == id).FirstOrDefaultAsync();
+                
+                    var ioPort = await _context.DeviceIoPorts.Where(x => x.DeviceIoPortId == id).FirstOrDefaultAsync();
                     if (ioPort == null) return BadRequest(ModelState);
 
-                    var existingSetting = await dc.Settings.Where(x => x.SettingName == SettingKeys.DetectDevicePin)
+                    var existingSetting = await _context.Settings.Where(x => x.SettingName == SettingKeys.DetectDevicePin)
                         .FirstOrDefaultAsync();
                     if (existingSetting == null)
                     {
@@ -124,24 +122,24 @@ namespace HolidayShowWeb.Controllers
                         {
                             SettingName = SettingKeys.DetectDevicePin
                         };
-                        dc.Settings.Add(existingSetting);
+                        _context.Settings.Add(existingSetting);
                     }
 
                     existingSetting.ValueString = $"{ioPort.DeviceId}:{ioPort.CommandPin}";
-                    await dc.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
 
-                    var option = await dc.Settings.Where(x => x.SettingName == SettingKeys.SetPlaybackOption)
+                    var option = await _context.Settings.Where(x => x.SettingName == SettingKeys.SetPlaybackOption)
                         .FirstOrDefaultAsync();
                     if (option == null)
                     {
                         option = new Settings {SettingName = SettingKeys.SetPlaybackOption};
-                        dc.Settings.Add(option);
+                        _context.Settings.Add(option);
                     }
 
                     option.ValueDouble = (double) SetPlaybackOptionEnum.DevicePinDetect;
-                    await dc.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
 
-                    var setting = await dc.Settings.Where(x => x.SettingName == SettingKeys.Refresh).FirstOrDefaultAsync();
+                    var setting = await _context.Settings.Where(x => x.SettingName == SettingKeys.Refresh).FirstOrDefaultAsync();
 
                     if (setting == null)
                     {
@@ -149,13 +147,13 @@ namespace HolidayShowWeb.Controllers
                         {
                             SettingName = SettingKeys.Refresh,
                         };
-                        dc.Settings.Add(setting);
+                        _context.Settings.Add(setting);
                     }
 
                     setting.ValueString = "None";
 
-                    await dc.SaveChangesAsync();
-                }
+                    await _context.SaveChangesAsync();
+                
             }
             catch (DbUpdateConcurrencyException)
             {

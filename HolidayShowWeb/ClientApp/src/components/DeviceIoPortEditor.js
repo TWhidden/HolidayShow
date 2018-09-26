@@ -9,7 +9,7 @@ import Switch from '@material-ui/core/Switch';
 import BusyContent from './controls/BusyContent';
 import Button from '@material-ui/core/Button';
 import FindReplace from '@material-ui/icons/FindReplace'
-import * as Enumerable from "linq-es2015";
+import * as Enumerable from "linq-es5";
 import ErrorContent from './controls/ErrorContent';
 
 const styles = theme => ({});

@@ -1,8 +1,8 @@
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
 WORKDIR /app
 
-#Default Container Port 5555 will be used.
-ARG DEFAULTPORT=5555
+#Default Container Port 5001 will be used.
+ARG DEFAULTPORT=5001
 
 EXPOSE $DEFAULTPORT
 
@@ -14,8 +14,6 @@ ENV PORT=$DEFAULTPORT
 
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-ENV ASPNETCORE_URLS http://+:80
 
 FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
@@ -42,7 +40,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
 
-EXPOSE 80
 ENTRYPOINT ["dotnet", "HolidayShowWeb.dll"]
 
 

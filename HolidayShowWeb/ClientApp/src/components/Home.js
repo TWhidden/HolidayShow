@@ -8,7 +8,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import BusyContent from './controls/BusyContent';
 import ErrorContent from './controls/ErrorContent';
-import * as Enumerable from "linq-es2015";
+import * as Enumerable from "linq-es5";
 
 const styles = theme => ({
   button: {

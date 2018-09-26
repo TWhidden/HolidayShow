@@ -11,7 +11,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import * as Enumerable from "linq-es2015";
+import * as Enumerable from "linq-es5";
 
 const styles = theme => ({
     formControl: {

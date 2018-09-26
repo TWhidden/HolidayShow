@@ -10,12 +10,17 @@ namespace HolidayShow.Data
 
         public EfHolidayContext()
         {
-            _connectionString = "Server=10.64.128.100,1401;Database=HolidayShow_Dev;User Id=dev;Password=dev123;Trusted_Connection=False;";
+            //_connectionString = "Server=10.64.128.100,1401;Database=HolidayShow_Dev;User Id=dev;Password=dev123;Trusted_Connection=False;";
         }
 
         public EfHolidayContext(string cs)
         {
             _connectionString = cs;
+        }
+
+        public EfHolidayContext(DbContextOptions<EfHolidayContext> options) : base(options)
+        {
+            
         }
 
         public void UpdateDatabase()

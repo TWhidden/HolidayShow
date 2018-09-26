@@ -1,3 +1,4 @@
+using System;
 using HolidayShow.Data;
 using HolidayShowWeb.Resovlers;
 using Microsoft.AspNetCore.Builder;
@@ -31,8 +32,23 @@ namespace HolidayShowWeb
                 configuration.RootPath = "ClientApp/build";
             });
 
+            var server = System.Environment.GetEnvironmentVariable("DBSERVER");
+            var database = System.Environment.GetEnvironmentVariable("DBNAME");
+            var username = System.Environment.GetEnvironmentVariable("DBUSER");
+            var password = System.Environment.GetEnvironmentVariable("DBPASS");
+
+            var connectionString = Configuration.GetConnectionString("EfHolidayContext");
+            if (!string.IsNullOrWhiteSpace(server))
+            {
+                connectionString = $"Server={server};Database={database};User Id={username};Password={password};";
+            }
+            else
+            {
+                throw new Exception("Environment Variables Not Set! Set for DB Connection Information!");
+            }
+
             services.AddDbContext<EfHolidayContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("EfHolidayContext")));
+                options.UseSqlServer(connectionString));
 
             services.AddMvc().AddJsonOptions(options => {
                 //options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();

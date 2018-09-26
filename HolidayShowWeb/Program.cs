@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace HolidayShowWeb
 {
@@ -12,10 +11,20 @@ namespace HolidayShowWeb
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            // get the environment var
+            var portStr = System.Environment.GetEnvironmentVariable("PORT");
+            if (!int.TryParse(portStr, out var port))
+            {
+                port = 5001;
+            }
+
+            return WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls($"http://*:5001");
+                .UseUrls($"http://*:{port}");
+        }
+
 
     }
 }
