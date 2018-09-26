@@ -41,9 +41,9 @@ const styles = theme => ({
 // it takes three parameters- an array and two numbers
 //the stuff after : defines the acceptable types of the parameters
 const reorder = (
-    list: any[],
-    startIndex: number,
-    endIndex: number): any[] => {
+    list,
+    startIndex,
+    endIndex) => {
     const result = Array.from(list);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
@@ -56,12 +56,12 @@ const reorder = (
 //this is a function (see the => below!) with many parameters
 //the stuff after : defines the acceptable types of the parameters
 const moveAndReorder = (
-    sourceList: any[],
-    sourceStartIndex: number,
-    destinationList: any[],
-    destinationEndIndex: number,
-    nextCounterId: 0
-    ): any[] => {
+    sourceList,
+    sourceStartIndex,
+    destinationList,
+    destinationEndIndex,
+    nextCounterId
+    ) => {
     let sourceResult = Array.from(sourceList);
     //designate the draggable to be removed from sourceResult
 
@@ -440,8 +440,8 @@ class EffectsEditor extends Component {
         //and add it into the correct position of the destination.droppableId list.
 
         //prepare to compare the source to the destination
-        const source: DraggableLocation = result.source;
-        const destination: DraggableLocation = result.destination;
+        const source = result.source;
+        const destination = result.destination;
         let sourceId = source.droppableId;
         let destinationId = destination.droppableId;
 

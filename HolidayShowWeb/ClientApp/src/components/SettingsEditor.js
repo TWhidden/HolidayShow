@@ -206,7 +206,7 @@ export default class SettingsEditor extends Component {
 
                 </div>
 
-                 <div style={{ display: "flex", flexDirection: "row" }}>
+                <div style={{ display: "flex", flexDirection: "row" }}>
                     <TextField
                         type="time"
                         defaultValue="16:30"

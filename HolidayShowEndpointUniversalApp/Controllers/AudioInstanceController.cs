@@ -12,11 +12,13 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 {
     public class AudioInstanceController : IAudioInstanceController
     {
+        
+#if CORE
+        private Process _externalPlayerProcess;
+#else
         private IAudioRequestController _currentRequest;
-#if !CORE
         private MediaElement _mediaElement;
 #endif
-        private Process _externalPlayerProcess;
 
         public event EventHandler<IAudioRequestController> Complete;
         
@@ -98,7 +100,10 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         protected virtual void InvokeOnComplete(IAudioRequestController e)
         {
             Complete?.Invoke(this, e);
+
+#if !CORE
             _currentRequest = null;
+#endif
         }
     }
 }

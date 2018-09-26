@@ -8,3 +8,6 @@ docker-compose.yml
 docker-compose.*.yml
 */bin
 */obj
+**/obj/
+**/bin/
+**/node_modules/
