@@ -39,7 +39,6 @@ namespace HolidayShowServer
         private void AcceptClient()
         {
             _listener.BeginAcceptTcpClient(EndAcceptClient, null);
-
         }
 
         private void EndAcceptClient(IAsyncResult a)
@@ -47,6 +46,8 @@ namespace HolidayShowServer
             try
             {
                 var client = _listener.EndAcceptTcpClient(a);
+                client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 1000);
                 InvokeOnClientConnected(new NewClientEventArgs(client));
             }
             catch

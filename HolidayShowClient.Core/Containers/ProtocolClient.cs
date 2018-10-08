@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HolidayShowEndpointUniversalApp.Services;
 using HolidayShowLib;
-using RailwaySharp.ErrorHandling;
 
 namespace HolidayShowEndpointUniversalApp.Containers
 {
@@ -37,6 +34,8 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
             _client = new TcpClient();
             _client.BeginConnect(_endPoint.EndPoint.Host, _endPoint.EndPoint.Port, ClientConnectionCompleted, null);
+            _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 1000);
         }
 
         private void ClientConnectionCompleted(IAsyncResult r)
@@ -48,8 +47,11 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 if (!_client.Connected)
                 {
                     Disconnect();
+                    Console.WriteLine("Connected == False!");
                     return;
                 }
+
+                Console.WriteLine($"Connected to {_endPoint.EndPoint.Host}:{_endPoint.EndPoint.Port}!");
 
                 _stream = _client.GetStream();
 
@@ -72,6 +74,13 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource = new CancellationTokenSource();
                 var bufferRead = await _stream.ReadAsync(_readBuffer, 0, BufferLength, _cancellationTokenSource.Token);
+
+                if (bufferRead == 0)
+                {
+                    // 0 byte indicates a disconnected.
+                    Console.Write("0 bytes detected on receive. Reconnect");
+                    Disconnect();
+                }
 
                 var data = new byte[bufferRead];
                 Buffer.BlockCopy(_readBuffer, 0, data, 0, bufferRead);
