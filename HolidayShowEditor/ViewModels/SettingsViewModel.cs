@@ -281,19 +281,19 @@ namespace HolidayShowEditor.ViewModels
             get
             {
                 var option =
-                    _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.IsDanagerEnabled)
+                    _dbDataContext.Context.Settings.Where(x => x.SettingName == SettingKeys.IsDangerEnabled)
                                   .Select(x => x.ValueDouble)
                                   .FirstOrDefault();
                 return ((int)option == 1);
             }
             set
             {
-                var option = _dbDataContext.Context.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.IsDanagerEnabled);
+                var option = _dbDataContext.Context.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.IsDangerEnabled);
                 if (option == null)
                 {
                     option = new Settings()
                     {
-                        SettingName = SettingKeys.IsDanagerEnabled,
+                        SettingName = SettingKeys.IsDangerEnabled,
                         ValueString = string.Empty
                     };
                     _dbDataContext.Context.Settings.Add(option);

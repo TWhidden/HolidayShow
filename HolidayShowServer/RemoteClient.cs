@@ -261,9 +261,16 @@ namespace HolidayShowServer
                     using (var dc = new EfHolidayContext(Program.ConnectionString))
                     {
                         var basePathSetting = await dc.Settings.Where(x=> x.SettingName == SettingKeys.FileBasePath).FirstOrDefaultAsync();
-                        if (basePathSetting == null || string.IsNullOrWhiteSpace(basePathSetting.ValueString) || !Directory.Exists(basePathSetting.ValueString))
+                        if (basePathSetting == null || string.IsNullOrWhiteSpace(basePathSetting.ValueString))
                         {
                             Program.LogMessage($"System Setting {SettingKeys.FileBasePath} does not exist in settings table. Must be set to support file transfers");
+                            BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
+                            return;
+                        }
+
+                        if (!Directory.Exists(basePathSetting.ValueString))
+                        {
+                            Program.LogMessage($"Path '{basePathSetting.ValueString}' does not exist, cant send file!");
                             BeginSend(new ProtocolMessage(MessageTypeIdEnum.RequestFailed));
                             return;
                         }

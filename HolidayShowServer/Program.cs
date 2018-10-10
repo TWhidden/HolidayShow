@@ -44,6 +44,8 @@ namespace HolidayShowServer
 
         private static int _serverPort = -1;
 
+        private static bool _setExecuting = false;
+
 #if NETCOREAPP
         private static ILogger<Program> _logger;
 #endif
@@ -205,8 +207,6 @@ namespace HolidayShowServer
 
         private static async void RunServer()
         {
-            var setExecuting = false;
-
             LogMessage("3 second Delay to allow connections to come in ...");
 
             Thread.Sleep(3000);
@@ -215,55 +215,64 @@ namespace HolidayShowServer
             var isOff = false;
             while (_running)
             {
-                if (Clients.Count == 0)
-                {
-                    // no clients, wait for a connection.
-                    Thread.Sleep(1000);
-                    continue;
-                }
-
-                using (var dc = new EfHolidayContext(ConnectionString))
-                {
-                    // check to see if we should be running or not.
-                    var schuduleOn = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OnAt);
-                    var schuduleOff = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.OffAt);
-                    if (schuduleOn != null && schuduleOff != null && !string.IsNullOrWhiteSpace(schuduleOn.ValueString))
-                    {
-                        var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(schuduleOn.ValueString);
-                        var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(schuduleOff.ValueString);
-
-                        if (!isAboveBottomTime)
-                        {
-                            LogMessage("Schudule is currently off");
-                            Thread.Sleep(5000);
-                            continue;
-                        }
-
-                        if (isAboveTopTime)
-                        {
-                            LogMessage("Schudule is currently off");
-                            Thread.Sleep(5000);
-                            continue;
-                        }
-                    }
-
-                    var refresh = dc.Settings.FirstOrDefault(x => x.SettingName == SettingKeys.Refresh);
-                    if (refresh != null)
-                    {
-                        dc.Settings.Remove(refresh);
-                        dc.SaveChanges();
-                        InitiateReset();
-                        setExecuting = false;
-                        LogMessage("Reset called and excecuted");
-                    }
-                }
-
                 try
                 {
-                    if (!setExecuting)
+                    if (Clients.Count == 0)
                     {
-                        
-                        setExecuting = true;
+                        // no clients, wait for a connection.
+                        Thread.Sleep(3000);
+                        LogMessage("No Clients Connected!");
+                        continue;
+                    }
+
+                    using (var dc = new EfHolidayContext(ConnectionString))
+                    {
+                        var settingKeysOfInterest = new List<string>()
+                        {
+                            SettingKeys.OnAt,
+                            SettingKeys.OffAt,
+                            SettingKeys.Refresh
+                        };
+
+                        var settings = dc.Settings.Where(x => settingKeysOfInterest.Contains(x.SettingName)).ToList();
+
+                        // check to see if we should be running or not.
+                        var scheduleOn = settings.FirstOrDefault(x => x.SettingName == SettingKeys.OnAt);
+                        var scheduleOff = settings.FirstOrDefault(x => x.SettingName == SettingKeys.OffAt);
+                        if (scheduleOn != null && scheduleOff != null && !string.IsNullOrWhiteSpace(scheduleOn.ValueString))
+                        {
+                            var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOn.ValueString);
+                            var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOff.ValueString);
+
+                            if (!isAboveBottomTime)
+                            {
+                                LogMessage("Schedule is currently off");
+                                Thread.Sleep(5000);
+                                continue;
+                            }
+
+                            if (isAboveTopTime)
+                            {
+                                LogMessage("Schedule is currently off");
+                                Thread.Sleep(5000);
+                                continue;
+                            }
+                        }
+
+                        var refresh = settings.FirstOrDefault(x => x.SettingName == SettingKeys.Refresh);
+                        if (refresh != null)
+                        {
+                            dc.Settings.Remove(refresh);
+                            dc.SaveChanges();
+                            InitiateReset();
+                            _setExecuting = false;
+                            LogMessage("Reset called and executed");
+                        }
+                    }
+                
+                    if (!_setExecuting)
+                    {
+                        _setExecuting = true;
 
                         using (var dc = new EfHolidayContext(ConnectionString))
                         {
@@ -276,10 +285,10 @@ namespace HolidayShowServer
                                 SettingKeys.CurrentSet,
                                 SettingKeys.DetectDevicePin,
                                 SettingKeys.IsAudioEnabled,
-                                SettingKeys.IsDanagerEnabled,
+                                SettingKeys.IsDangerEnabled,
                             };
 
-                            // Aquire all of the keys needed in this function here.
+                            // Acquire all of the keys needed in this function here.
                             var settings = dc.Settings.Where(x => settingKeysOfInterest.Contains(x.SettingName)).ToList();
 
                             var audioOnAt = settings.FirstOrDefault(x => x.SettingName == SettingKeys.AudioOnAt);
@@ -298,13 +307,13 @@ namespace HolidayShowServer
                             var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(audioOnAt.ValueString);
                             var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(audioOffAt.ValueString);
 
-                            var isAudioSchuduleEnabled = (isAboveBottomTime && !isAboveTopTime);
+                            var isAudioScheduleEnabled = (isAboveBottomTime && !isAboveTopTime);
 
                             // Get the set we should be running.
                             var option = settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
                             if (option == null)
                             {
-                                LogMessage("Set Playback opton not set. Cannot start");
+                                LogMessage("Set Playback option not set. Cannot start");
                                 Thread.Sleep(1000);
                                 goto skipStart;
                             }
@@ -327,8 +336,8 @@ namespace HolidayShowServer
                                         isOff = true;
                                         InitiateReset();
                                     }
-                                    
-                                    setExecuting = false;
+
+                                    _setExecuting = false;
 
                                     Thread.Sleep(1000);
                                     goto skipStart;
@@ -389,7 +398,7 @@ namespace HolidayShowServer
                                         {
                                             SettingName = SettingKeys.CurrentSet,
                                             ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
-                                            ValueString = String.Empty
+                                            ValueString = string.Empty
                                         });
                                         await dc.SaveChangesAsync();
                                         goto skipStart;
@@ -465,7 +474,7 @@ namespace HolidayShowServer
                                     break;
                                 default:
                                 {
-                                    LogMessage("Invlid SetPlaybackOption. ");
+                                    LogMessage("Invalid SetPlaybackOption. ");
                                     Thread.Sleep(1000);
                                     goto skipStart;
                                 }
@@ -495,19 +504,19 @@ namespace HolidayShowServer
                                 await dc.SaveChangesAsync();
                             }
 
-                            // check if audio and danager is enabled
+                            // check if audio and danger is enabled
                             var isAudioEnabled =
                                 settings.Where(x => x.SettingName == SettingKeys.IsAudioEnabled)
                                   .Select(x => ((int) x.ValueDouble == 1))
                                   .FirstOrDefault();
 
-                            var isDanagerEnabled =
-                                settings.Where(x => x.SettingName == SettingKeys.IsDanagerEnabled)
+                            var isDangerEnabled =
+                                settings.Where(x => x.SettingName == SettingKeys.IsDangerEnabled)
                                   .Select(x => ((int)x.ValueDouble == 1))
                                   .FirstOrDefault();
 
                             var disabledPins = new Dictionary<int, List<int>>();
-                            if (!isDanagerEnabled)
+                            if (!isDangerEnabled)
                             {
                                 disabledPins =
                                     dc.DeviceIoPorts.Where(x => x.IsDanger)
@@ -517,8 +526,8 @@ namespace HolidayShowServer
                                             y => y.Where(x => x.DeviceId == y.Key).Select(x => x.CommandPin).ToList());
                             }
 
-                            // If the schudule says its off, disable here.
-                            if (!isAudioSchuduleEnabled)
+                            // If the schedule says its off, disable here.
+                            if (!isAudioScheduleEnabled)
                             {
                                 isAudioEnabled = false;
                             }
@@ -532,64 +541,67 @@ namespace HolidayShowServer
 
                                 var startingOffset = setSequence.OnAt;
 
-                                if (deviceId.HasValue)
+                                if (!deviceId.HasValue) continue;
+                                foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequences)
                                 {
-                                    foreach (var pattern in setSequence.DevicePatterns.DevicePatternSequences)
+                                    var onAt = startingOffset + pattern.OnAt;
+
+                                    var di = new DeviceInstructions(deviceId.Value, MessageTypeIdEnum.EventControl)
                                     {
-                                        var onAt = startingOffset + pattern.OnAt;
+                                        OnAt = onAt
+                                    };
 
-                                        var di = new DeviceInstructions(deviceId.Value, MessageTypeIdEnum.EventControl)
-                                        {
-                                            OnAt = onAt
-                                        };
+                                    bool set = false;
+                                    if (pattern.DeviceIoPorts != null
+                                        && pattern.DeviceIoPorts.CommandPin >= 0
+                                        && (!pattern.DeviceIoPorts.IsDanger ||
+                                            (pattern.DeviceIoPorts.IsDanger && isDangerEnabled)))
+                                    {
+                                        di.CommandPin = pattern.DeviceIoPorts.CommandPin;
+                                        di.PinDuration = pattern.Duration;
+                                        set = true;
+                                    }
 
-                                        bool set = false;
-                                        if (pattern.DeviceIoPorts != null
-                                            && pattern.DeviceIoPorts.CommandPin >= 0
-                                            && (!pattern.DeviceIoPorts.IsDanger ||
-                                                (pattern.DeviceIoPorts.IsDanger && isDanagerEnabled)))
-                                        {
-                                            di.CommandPin = pattern.DeviceIoPorts.CommandPin;
-                                            di.PinDuration = pattern.Duration;
-                                            set = true;
-                                        }
+                                    if (!string.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName))
+                                    {
+                                        di.AudioFileName = pattern.AudioOptions.FileName;
+                                        di.AudioDuration = pattern.AudioOptions.AudioDuration;
+                                        set = true;
+                                    }
 
-                                        if (!string.IsNullOrWhiteSpace(pattern.AudioOptions?.FileName))
-                                        {
-                                            di.AudioFileName = pattern.AudioOptions.FileName;
-                                            di.AudioDuration = pattern.AudioOptions.AudioDuration;
-                                            set = true;
-                                        }
-
-                                        if (set)
-                                        {
-                                            deviceInstructions.Add(di);
-                                        }
+                                    if (set)
+                                    {
+                                        deviceInstructions.Add(di);
                                     }
                                 }
                             }
 
                             var l = new List<int> { 0 };
 
-                            var audioTopDurration =
+                            var audioTopDuration =
                                                 deviceInstructions.Where(x => x.AudioDuration != 0)
                                                     .OrderByDescending(x => (x.OnAt + x.AudioDuration))
                                                     .Select(x => (x.OnAt + x.AudioDuration))
                                                     .FirstOrDefault();
-                            if (audioTopDurration.HasValue)
-                                l.Add(audioTopDurration.Value);
+                            if (audioTopDuration.HasValue)
+                                l.Add(audioTopDuration.Value);
 
-                            LogMessage("Top Audio Duration: " + audioTopDurration);
+                            LogMessage(audioTopDuration != null
+                                ? $"Top Audio Duration: {audioTopDuration}"
+                                : "No Audio In set");
 
-                            var pinTopDurration =
+                            var pinTopDuration =
                                 deviceInstructions.OrderByDescending(x => (x.OnAt + x.PinDuration))
                                     .Select(x => (x.OnAt + x.PinDuration))
                                     .FirstOrDefault();
 
-                            LogMessage("Top Pin Duration: " + pinTopDurration);
+                            LogMessage(
+                                pinTopDuration != null ? 
+                                    $"Top Pin Duration: {pinTopDuration}" 
+                                    : "No Pins in set");
 
-                            if (pinTopDurration.HasValue)
-                                l.Add(pinTopDurration.Value);
+                            if (pinTopDuration.HasValue)
+                                l.Add(pinTopDuration.Value);
 
                             var totalSetTimeLength = l.Max();
 
@@ -608,9 +620,9 @@ namespace HolidayShowServer
                             foreach (var setSequence in setData.SetSequences.Where(x => x.DeviceEffects != null).OrderBy(x => x.OnAt))
                             {
                                 // New Feature added 2015 - Effects
-                                // This is something more global, that will be controled at the server side
+                                // This is something more global, that will be controlled at the server side
                                 // They are hard-coded effects. at this userTime, baked into the solution. Later, there may be
-                                // a plugable architecture but for the sake of userTime, this is all hard coded.
+                                // a plug-able architecture but for the sake of userTime, this is all hard coded.
 
                                 if (setSequence.DeviceEffects == null || setSequence.DeviceEffects.EffectInstructionsAvailable.IsDisabled) continue;
 
@@ -655,22 +667,22 @@ namespace HolidayShowServer
                             if (!isAudioEnabled)
                             {
                                 var audio = deviceInstructions.Where(x => x.AudioDuration > 0).ToList();
-                                foreach (var deviceInstructionse in audio)
+                                foreach (var audioInstruction in audio)
                                 {
-                                    deviceInstructionse.AudioDuration = null;
-                                    deviceInstructionse.AudioFileName = string.Empty;
+                                    audioInstruction.AudioDuration = null;
+                                    audioInstruction.AudioFileName = string.Empty;
                                 }
                             }
 
                             // once we have a list of to-dos, create the timers to start the sequence.
 
-                            int topDuration = 0;
+                            var topDuration = 0;
 
                             if (deviceInstructions.Count != 0)
                             {
-                                for (int index = 0; index < deviceInstructions.Count; index++)
+                                for (var currentInstructionIndex = 0; currentInstructionIndex < deviceInstructions.Count; currentInstructionIndex++)
                                 {
-                                    var di = deviceInstructions[index];
+                                    var di = deviceInstructions[currentInstructionIndex];
                                     {
                                         var audioTop = di.AudioDuration ?? 0;
                                         var pinTop = di.PinDuration ?? 0;
@@ -705,42 +717,42 @@ namespace HolidayShowServer
                                         // Tracks the timer, just incase we need to cancel everything.
                                         QueuedTimers.TryAdd(timerStart, true);
                                     }
-                                    if (index == deviceInstructions.Count - 1)
-                                    {
-                                        // setup the timer to say the set is not executing.
-                                        Timer stoppedTimer = null;
-                                        stoppedTimer = new Timer(x =>
-                                            {
-                                                setExecuting = false;
-                                                stoppedTimer.Dispose();
-                                            },
-                                            null,
-                                            TimeSpan.FromMilliseconds(topDuration + delayBetweenSets),
-                                            TimeSpan.FromMilliseconds(-1));
+                                    if (currentInstructionIndex != deviceInstructions.Count - 1) continue;
+                                    // setup the timer to say the set is not executing.
+                                    Timer stoppedTimer = null;
+                                    stoppedTimer = new Timer(x =>
+                                        {
+                                            LogMessage("Set Execution Complete.");
+                                            _setExecuting = false;
+                                            stoppedTimer.Dispose();
+                                        },
+                                        null,
+                                        TimeSpan.FromMilliseconds(topDuration + delayBetweenSets),
+                                        TimeSpan.FromMilliseconds(-1));
 
-                                            QueuedTimers.TryAdd(stoppedTimer, true);
-                                    }
+                                    QueuedTimers.TryAdd(stoppedTimer, true);
                                 }
                             }
                             else
                             {
                                 LogMessage("No patterns in set. Sleeping for one second");
                                 Thread.Sleep(1000);
-                                setExecuting = false;
+                                _setExecuting = false;
                             }
                         }
                     }
 
                     skipStart:
 
-                    if (setExecuting)
-                        Thread.Sleep(10);
+                    // The loop will re-check state ever X Milliseconds
+                    if (_setExecuting)
+                        Thread.Sleep(250);
                 }
                 catch (Exception ex)
                 {
                     LogMessage("Error occured in server thread! Error: " + ex.Message);
                     Thread.Sleep(1000);
-                    setExecuting = false;
+                    _setExecuting = false;
                 }
             }
         }

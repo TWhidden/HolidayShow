@@ -6,10 +6,10 @@
     <Authors>Travis Whidden</Authors>
     <Company>None</Company>
     <AssemblyName>holidayshowserver.core</AssemblyName>
-    <AssemblyVersion>2.18.1007.0</AssemblyVersion>
-    <FileVersion>2.18.0924.0</FileVersion>
+    <AssemblyVersion>2.18.1009.0</AssemblyVersion>
+    <FileVersion>2.18.1009.0</FileVersion>
     <Configurations>Debug;Release;ReleaseCore</Configurations>
-    <Version>2.18.1007</Version>
+    <Version>2.18.1009</Version>
     <PackageReleaseNotes>Reduced Database calls to reduce CPU. Code cleanup</PackageReleaseNotes>
   </PropertyGroup>
 

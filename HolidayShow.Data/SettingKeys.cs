@@ -11,7 +11,7 @@
         public const string OffAt = "TimeOffAt";
         public const string AudioOnAt = "AudioTimeOnAt";
         public const string AudioOffAt = "AudioTimeOffAt";
-        public const string IsDanagerEnabled = "IsDangerEnabled";
+        public const string IsDangerEnabled = "IsDangerEnabled";
         public const string IsAudioEnabled = "IsAudioEnabled";
         public const string FileBasePath = "FileBasePath";
         public const string Refresh = "Refresh";
