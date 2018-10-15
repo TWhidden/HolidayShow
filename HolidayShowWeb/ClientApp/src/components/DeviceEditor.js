@@ -51,10 +51,10 @@ class DeviceManager extends Component {
             let lastSelectedId = sessionStorage.getItem(sessionDeviceSelected);
             if (lastSelectedId != null) {
 
-                console.log(`${sessionDeviceSelected}: ${parseInt(lastSelectedId)}`)
+                console.log(`${sessionDeviceSelected}: ${Number(lastSelectedId)}`)
 
                 let lastSelected = Enumerable.asEnumerable(devices)
-                    .Where(d => d.deviceId == parseInt(lastSelectedId))
+                    .Where(d => d.deviceId === Number(lastSelectedId))
                     .FirstOrDefault();
 
                 if(lastSelected != null){
@@ -157,7 +157,7 @@ class DeviceManager extends Component {
                         </FormControl>
                    
 
-                    {this.state.deviceSelected != "" && (
+                    {this.state.deviceSelected !== "" && (
                         <TextField
                             label={"Device Name"}
                             value={this.state.deviceSelected.name}

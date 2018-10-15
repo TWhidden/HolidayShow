@@ -94,13 +94,13 @@ class DevicePattern extends Component {
             let lastSelectedDeviceId = sessionStorage.getItem(sessionLastDeviceSelected);
             if (lastSelectedDeviceId != null) {
 
-                console.log(`${sessionLastDeviceSelected}: ${parseInt(lastSelectedDeviceId)}`)
+                console.log(`${sessionLastDeviceSelected}: ${Number(lastSelectedDeviceId)}`)
 
                 let lastSelectedDevice = Enumerable.asEnumerable(devices)
-                    .Where(d => d.deviceId == parseInt(lastSelectedDeviceId))
+                    .Where(d => d.deviceId === Number(lastSelectedDeviceId))
                     .FirstOrDefault();
 
-                if(lastSelectedDevice != null){
+                if (lastSelectedDevice != null) {
                     deviceSelected = lastSelectedDevice;
                 }
             }
@@ -159,19 +159,19 @@ class DevicePattern extends Component {
             let lastSelectedPatternId = sessionStorage.getItem(sessionLastPatternSelected);
             if (lastSelectedPatternId != null) {
 
-                console.log(`${sessionLastPatternSelected}: ${parseInt(lastSelectedPatternId)}`)
+                console.log(`${sessionLastPatternSelected}: ${Number(lastSelectedPatternId)}`)
 
                 let lastSelectedPattern = Enumerable.asEnumerable(patterns)
-                    .Where(d => d.devicePatternId == parseInt(lastSelectedPatternId))
+                    .Where(d => d.devicePatternId === Number(lastSelectedPatternId))
                     .FirstOrDefault();
 
-                if(lastSelectedPattern != null){
+                if (lastSelectedPattern != null) {
                     patternId = lastSelectedPattern.devicePatternId;
                 }
             }
 
             // If the state returned something that didint exist, select the first one.
-            if(patternId == 0){
+            if (patternId === 0) {
                 patternId = Enumerable.asEnumerable(patterns).Select(x => x.devicePatternId).FirstOrDefault();
             }
 
@@ -467,31 +467,31 @@ class DevicePattern extends Component {
                             <div>
 
                                 <div style={{ display: "flex", flexDirection: "row" }}>
-                                    <div className="child" style={{ width: "100px" }}>
+                                    <div className="child75">
                                         <Typography variant="body2" gutterBottom>
                                             On At:
                                         </Typography>
                                     </div>
 
-                                    <div className="child" style={{ width: "100px" }}>
+                                    <div className="child75">
                                         <Typography variant="body2" gutterBottom>
                                             Duration:
                                         </Typography>
                                     </div>
 
-                                    <div className="child">
+                                    <div className="child200">
                                         <Typography variant="body2" gutterBottom>
                                             Gpio Port:
                                         </Typography>
                                     </div>
 
-                                    <div className="child">
+                                    <div className="child200">
                                         <Typography variant="body2" gutterBottom>
                                             Audio File:
                                         </Typography>
                                     </div>
 
-                                    <div className="child">
+                                    <div className="child75">
                                         <Typography variant="body2" gutterBottom>
                                             Delete
                                         </Typography>
@@ -568,14 +568,50 @@ class EditPattern extends Component {
         this.saveTimer = setTimeout(() => this.handleSave(), 1000);
     }
 
+    // NameOptionRenderer({ focusedOption, focusedOptionIndex, focusOption, key, labelKey, option, optionIndex, options, selectValue, style, valueArray, valueKey }) {
+    //     const classNames = [styles.nameOption]
+
+    //     if (option.type === 'header') {
+    //         classNames.push(styles.nameHeader)
+
+    //         return (
+    //             <div
+    //                 className={classNames.join(' ')}
+    //                 key={key}
+    //                 style={style}
+    //             >
+    //                {option.label}
+    //             </div>
+    //         )
+    //     } else {
+    //         if (option === focusedOption) {
+    //             classNames.push(styles.nameOptionFocused)
+    //         }
+    //         if (valueArray.indexOf(option) >= 0) {
+    //             classNames.push(styles.nameOptionSelected)
+    //         }
+
+    //         return (
+    //             <div
+    //                 className={classNames.join(' ')}
+    //                 key={key}
+    //                 onClick={() => selectValue(option)}
+    //                 onMouseEnter={() => focusOption(option)}
+    //                 style={style}
+    //             >
+    //                 {option.label}
+    //             </div>
+    //         )
+    //     }
+    // }
+
     render() {
 
         return (
 
             <div style={{ display: "flex", flexDirection: "row", }}>
                 <TextField
-                    className="child"
-                    style={{ width: "100px" }}
+                    className="child75"
                     value={this.state.onAt}
                     onChange={(evt) => {
                         this.setState(
@@ -588,8 +624,7 @@ class EditPattern extends Component {
                 />
 
                 <TextField
-                    style={{ width: "100px" }}
-                    className="child"
+                    className="child75"
                     value={this.state.duration}
                     onChange={(evt) => {
                         this.setState(
@@ -602,7 +637,8 @@ class EditPattern extends Component {
                 />
 
                 <VirtualizedSelect
-                    className="child"
+                    className="child200"
+                    clearable={false}
                     options={this.props.portOptions}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
@@ -614,8 +650,10 @@ class EditPattern extends Component {
                 />
 
                 <VirtualizedSelect
-                    className="child"
+                    className="child200"
                     options={this.props.audioOptions}
+                    clearable={false}
+                    // optionRenderer={this.NameOptionRenderer}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
                         this.setState({ audio: selectValue.value })
@@ -632,4 +670,6 @@ class EditPattern extends Component {
             </div>
         )
     }
+
+
 }

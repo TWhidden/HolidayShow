@@ -47,7 +47,7 @@ class DevicePatternServices {
             }
         }
 
-        let response = await fetch(`/api/DevicePatterns/${pattern.devicePatternId}`, options)
+        await fetch(`/api/DevicePatterns/${pattern.devicePatternId}`, options)
     }
 }
 

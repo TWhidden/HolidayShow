@@ -132,12 +132,10 @@ class EffectsEditor extends Component {
             });
 
             pinsAvailable = Enumerable.asEnumerable(pinsAvailable)
-                .Where(x => x.commandPin != -1)
+                .Where(x => x.commandPin !== -1)
                 .Select(pin => ({ content: `${pin.deviceId}:${pin.commandPin} ${pin.description}`, id: this.currentPinId++, pinData: pin }))
                 .OrderBy(x => x.content)
                 .ToArray();
-
-            //pinsAvailable = pinsAvailable.map(pin => ({ content: pin.description, id: pin.deviceIoPortId, pinData: pin }));
 
             this.setState({
                 effectsAvailable,
@@ -145,7 +143,7 @@ class EffectsEditor extends Component {
                 ioPortsAvailable
             });
 
-            this.parseMetaData();
+            this.parseMetaData(this.state.effectSelected);
 
         } catch (e) {
             this.setState({ errorMessage: e.message })
@@ -166,10 +164,10 @@ class EffectsEditor extends Component {
             let lastSelectedId = sessionStorage.getItem(sessionEffectSelected);
             if (lastSelectedId != null) {
 
-                console.log(`${sessionEffectSelected}: ${parseInt(lastSelectedId)}`)
+                console.log(`${sessionEffectSelected}: ${Number(lastSelectedId)}`)
 
                 let lastSelected = Enumerable.asEnumerable(effects)
-                    .Where(d => d.effectId == parseInt(lastSelectedId))
+                    .Where(d => d.effectId === Number(lastSelectedId))
                     .FirstOrDefault();
 
                 if(lastSelected != null){
@@ -210,6 +208,8 @@ class EffectsEditor extends Component {
 
         console.log(`setting ${sessionEffectSelected}: ${effectId}`)
         sessionStorage.setItem(sessionEffectSelected, effectId);
+
+        this.parseMetaData(effect);
 
         this.setState({
             effectSelected: effect,
@@ -268,9 +268,9 @@ class EffectsEditor extends Component {
         }
     }
 
-    parseMetaData() {
+    parseMetaData(effectSelected) {
 
-        if (this.state.effectSelected == null) {
+        if (effectSelected == null) {
             this.setState({
                 metaDataMap: new Map(),
                 pinOrdering: []
@@ -281,29 +281,29 @@ class EffectsEditor extends Component {
         try {
             // Read the current Config lines
             let metaDataMap = new Map();
-            let keyValues = this.state.effectSelected.instructionMetaData.split(';');
+            let keyValues = effectSelected.instructionMetaData.split(';');
             keyValues.forEach(kv => {
                 let kvArray = kv.split('=');
-                if (kvArray.length == 2) {
+                if (kvArray.length === 2) {
                     metaDataMap.set(kvArray[0], kvArray[1]);
                 }
             });
 
-            this.setState({ metaDataMap });
+            this.buildPinOrdering(metaDataMap);
 
         } catch (e) {
             this.setState({ errorMessage: e.message })
         }
 
-        this.buildPinOrdering();
+        
     }
 
     // when the stat
-    buildPinOrdering() {
+    buildPinOrdering(metaDataMap) {
         try {
             // Read the current Config lines
 
-            let ordering = this.state.metaDataMap.get("DEVPINS");
+            let ordering = metaDataMap.get("DEVPINS");
 
             let pins = ordering.split(',');
 
@@ -318,7 +318,7 @@ class EffectsEditor extends Component {
             });
 
 
-            this.setState({ pinOrdering });
+            this.setState({ pinOrdering, metaDataMap});
 
         } catch (e) {
             this.setState({ errorMessage: e.message })
@@ -388,7 +388,7 @@ class EffectsEditor extends Component {
 
             this.setState({ effectSelected: newEffect });
 
-            this.parseMetaData();
+            this.parseMetaData(newEffect);
 
             await this.EffectServices.saveEffect(newEffect);
         } catch (e) {
@@ -404,7 +404,7 @@ class EffectsEditor extends Component {
             let pinOrdering = this.state.pinOrdering;
 
             pinOrdering = Enumerable.asEnumerable(pinOrdering)
-                .Where(pin => pin.id != id)
+                .Where(pin => pin.id !== id)
                 .ToArray();
 
             console.log("post remove: ");
@@ -566,10 +566,11 @@ class EffectsEditor extends Component {
 
                                 <VirtualizedSelect
                                     className="child"
+                                    clearable={false}
                                     value={this.state.effectSelected.effectInstructionId}
                                     options={this.state.effectsAvailable}
                                     onChange={(selectValue) => {
-                                        if (selectValue == null) return; 6
+                                        if (selectValue === null) return; 
                                         let effect = this.state.effectSelected;
                                         effect.effectInstructionId = selectValue.value;
                                         this.handleEffectSave(effect);
@@ -596,13 +597,14 @@ class EffectsEditor extends Component {
                         </div>
                         <DragDropContext onDragEnd={this.onDragEnd}>
 
-                            <div style={{ display: "flex", flexDirection: "row" }}>
+                            <div style={{ display: "flex", flexDirection: "row", margin: 0}}>
 
                                 <Droppable droppableId="availablePins">
                                     {(provided, snapshot) => (
-                                        <Segment color={snapshot.isDraggingOver && 'blue'}
+                                        <Segment color={snapshot.isDraggingOver ? 'blue' : 'yellow'}
                                             inverted={snapshot.isDraggingOver}
                                             tertiary={snapshot.isDraggingOver}
+                                            style={{margin: 0}}
                                         >
                                             <div
                                                 ref={provided.innerRef}
@@ -610,7 +612,7 @@ class EffectsEditor extends Component {
                                         {this.state.pinsAvailable.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
-                                                            <div>
+                                                            <div style={{margin: '1px'}}>
                                                                 <div
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
@@ -631,12 +633,12 @@ class EffectsEditor extends Component {
                                         </Segment>
                                     )}
                                 </Droppable>
-
                                 <Droppable droppableId="effectOrdering">
                                     {(provided, snapshot) => (
-                                        <Segment color={snapshot.isDraggingOver && 'blue'}
+                                         <Segment color={snapshot.isDraggingOver ? 'blue' : 'yellow'}
                                             inverted={snapshot.isDraggingOver}
                                             tertiary={snapshot.isDraggingOver}
+                                            style={{margin: 0}}
                                         >
                                             <div
                                                 ref={provided.innerRef}
@@ -644,7 +646,7 @@ class EffectsEditor extends Component {
                                         {this.state.pinOrdering.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
-                                                            <div >
+                                                            <div style={{margin: '1px'}}>
                                                                 <div style={{ display: "flex", flexDirection: "row" }}
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
@@ -655,7 +657,7 @@ class EffectsEditor extends Component {
                                                                         color={snapshot.isDragging ? 'green' : (item.pinData.isDanger ? 'red' : 'yellow')}
                                                                         content={item.content} />
 
-                                                                    <IconButton onClick={(evt) => this.handleRemoveFromMap(item.id)}><DeleteIcon /></IconButton>
+                                                                    <IconButton style={{height: 25, width: 25}} onClick={(evt) => this.handleRemoveFromMap(item.id)}><DeleteIcon /></IconButton>
                                                                 </div>
                                                                 {provided.placeholder}
 

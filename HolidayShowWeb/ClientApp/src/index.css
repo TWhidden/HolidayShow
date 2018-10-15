@@ -35,8 +35,12 @@ html, body {
     visibility: hidden;
   }
 
-  .child {
+  .child200 {
     width: 200px;  /* Or whatever */
+  }
+
+  .child75 {
+    width: 75px;  /* Or whatever */
   }
 
   .quickSelectContainer{
@@ -59,4 +63,6 @@ html, body {
     justify-content: center;
   }
 
-  
+  .quickSelected{
+    font-size: 24px
+  }

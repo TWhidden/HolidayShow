@@ -117,10 +117,10 @@ class SetsEditor extends Component {
             let lastSelectedId = sessionStorage.getItem(sessionSetSelected);
             if (lastSelectedId != null) {
 
-                console.log(`${sessionSetSelected}: ${parseInt(lastSelectedId)}`)
+                console.log(`${sessionSetSelected}: ${Number(lastSelectedId)}`)
 
                 let lastSelected = Enumerable.asEnumerable(sets)
-                    .Where(d => d.setId == parseInt(lastSelectedId))
+                    .Where(d => d.setId === Number(lastSelectedId))
                     .FirstOrDefault();
 
                 if(lastSelected != null){
@@ -144,7 +144,7 @@ class SetsEditor extends Component {
             this.setIsBusy(false);
         }
 
-        if(setIdSelected != 0){
+        if(setIdSelected !== 0){
             this.handleSetChange(setIdSelected);
         }
     }
@@ -161,7 +161,7 @@ class SetsEditor extends Component {
 
         if (set == null) return;
 
-        console.log(`setting ${sessionSetSelected}: ${parseInt(setId)}`)
+        console.log(`setting ${sessionSetSelected}: ${Number(setId)}`)
         sessionStorage.setItem(sessionSetSelected, setId);
 
         this.setState({
@@ -232,10 +232,9 @@ class SetsEditor extends Component {
             this.setState({
                 sets,
                 setSelected: set,
-                setIdSelected: set.setId
+                setIdSelected: set.setId,
+                setSequences: []
             });
-
-            await this.getSequencesForSet();
 
         } catch (e) {
             this.setState({errorMessage: e.message})
@@ -270,7 +269,6 @@ class SetsEditor extends Component {
 
             await this.SetServices.saveSet(set)
 
-            
         } catch (e) {
             this.setState({errorMessage: e.message})
         } finally {
@@ -338,7 +336,7 @@ class SetsEditor extends Component {
         const { classes } = this.props;
 
         return (
-            <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "auto"}}>
                 <div style={{ display: "flex", flexDirection: "row" }}>
                     <form className={classes.root} autoComplete="off">
                         <FormControl className={classes.formControl}>
@@ -395,25 +393,25 @@ class SetsEditor extends Component {
                             <div>
 
                                 <div style={{ display: "flex", flexDirection: "row", }}>
-                                    <div className="child">
+                                    <div className="child75">
                                     <Typography variant="body2" gutterBottom>
                                         On At:
                                         </Typography>
                                      </div>
 
-                                     <div className="child">
+                                     <div className="child200">
                                      <Typography variant="body2" gutterBottom>
                                         Device Pattern
                                         </Typography>
                                      </div>
 
-                                     <div className="child">
+                                     <div className="child200">
                                      <Typography variant="body2" gutterBottom>
                                         Effect
                                         </Typography>
                                      </div>
 
-                                       <div className="child">
+                                       <div className="child75">
                                        <Typography variant="body2" gutterBottom>
                                         Delete
                                         </Typography>
@@ -421,7 +419,6 @@ class SetsEditor extends Component {
 
                                 </div>
 
-                                {/* {this.state.patternSequences && this.state.patternSequences.map((sequence, i) => */}
                                 {this.state.setSequences.map((sequence, i) =>
                                     (
                                         <SetSequenceEdit 
@@ -492,7 +489,7 @@ class SetSequenceEdit extends Component {
 
             <div style={{ display: "flex", flexDirection: "row", }}>
                 <TextField
-                    className="child"
+                    className="child75"
                     value={this.state.onAt}
                     onChange={(evt) => {
                         this.setState(
@@ -505,7 +502,8 @@ class SetSequenceEdit extends Component {
                 />
 
                 <VirtualizedSelect
-                    className="child"
+                    className="child200"
+                    clearable={false}
                     options={this.props.patterns}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;
@@ -517,7 +515,8 @@ class SetSequenceEdit extends Component {
                 />
 
                 <VirtualizedSelect
-                    className="child"
+                    className="child200"
+                    clearable={false}
                     options={this.props.effects}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;

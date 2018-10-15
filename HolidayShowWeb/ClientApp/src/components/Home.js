@@ -33,21 +33,28 @@ export class Home extends Component {
       sets: [],
       settings: [],
       errorMessage: null,
+      currentRunningSetId: -1,
     })
   }
 
   componentDidMount = async () => {
     try {
       this.setIsBusy(true);
-
-      await this.SettingServices.executionOff();
       
       let sets = await this.SetServices.getAllSets();
       let settings = await this.SettingServices.getAllSettings();
 
+      var currentSet = Enumerable.asEnumerable(settings)
+                        .Where(setting => setting.settingName === "CurrentSet")
+                        .Select(setting => setting.valueDouble)
+                        .FirstOrDefault();
+
+      console.log(`Current Set Executing: ${currentSet}`)
+
       this.setState({
         sets, 
         settings,
+        currentRunningSetId: currentSet
       });
     } catch (e) {
       this.setState({errorMessage: e.message})
@@ -118,7 +125,8 @@ export class Home extends Component {
           settings.push(setting);
 
             this.setState({
-              settings
+              settings,
+              currentRunningSetId: setId
             });
       }else{
         setting.valueDouble = setId;
@@ -186,8 +194,9 @@ export class Home extends Component {
            {this.state.sets.map((set, i) =>
                                     (
                                       <Button variant="outlined"
-                                      color="primary"
-                                      className="quickSelect"
+                                      color={this.state.currentRunningSetId === set.setId ? 
+                                        'secondary' : 'primary'
+                                      }
                                       onClick={() => this.handleStartSet(set.setId)}
                                       key={i}
                                     >

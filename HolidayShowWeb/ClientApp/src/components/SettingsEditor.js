@@ -89,7 +89,7 @@ export default class SettingsEditor extends Component {
 
             // see if the current state has this key.
             // if it does not, we need to create the object
-            if (this.state.settings.Where(x => x.settingName == settingName).FirstOrDefault() == null) {
+            if (this.state.settings.Where(x => x.settingName === settingName).FirstOrDefault() == null) {
                 await this.SettingServices.createSetting(setting);
                 await this.getAllSetting();
             } else {
@@ -118,7 +118,7 @@ export default class SettingsEditor extends Component {
             <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
 
                 <TextField
-                    style={{ width: "200px" }}
+                    style={{ width: "75px" }}
                     label={`Delay between executions:`}
                     value={this.state.delayBetweenSets}
                     onChange={(evt) => {
@@ -133,7 +133,7 @@ export default class SettingsEditor extends Component {
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={this.state.enableAudio == 1}
+                            checked={this.state.enableAudio === 1}
                             onChange={(evt) => {
                                 let result = evt.target.checked ? 1 : 0;
                                 this.handleSaveSetting(isAudioEnabled, "", result);
@@ -148,7 +148,7 @@ export default class SettingsEditor extends Component {
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={this.state.enableDangerPins == 1}
+                            checked={this.state.enableDangerPins === 1}
                             onChange={(evt) => {
                                 let result = evt.target.checked ? 1 : 0;
                                 this.handleSaveSetting(isDangerEnabled, "", result);

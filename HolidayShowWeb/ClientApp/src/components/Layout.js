@@ -19,7 +19,7 @@ const styles = theme => ({
   root: {
     flexGrow: 1,
     zIndex: 1,
-    overflow: 'hidden',
+    overflow: 'auto',
     position: 'relative',
     display: 'flex',
   },
@@ -75,7 +75,8 @@ const styles = theme => ({
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
-    padding: theme.spacing.unit * 3,
+    padding: theme.spacing.unit,
+    overflow: 'auto'
   },
 });
 

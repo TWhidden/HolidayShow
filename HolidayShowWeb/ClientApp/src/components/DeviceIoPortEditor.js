@@ -65,11 +65,11 @@ class DeviceIoPortEditor extends Component {
         this.handleSave(ioPort);
     }
 
-    handleIoPortNameChange = async (ioPort, evt) => {
+    handleIoPortNameChange = (ioPort, evt) => {
 
         ioPort.description = evt.target.value;
 
-        await this.handleSave(ioPort);
+        this.handleSave(ioPort);
     }
 
     handleSave = async (ioPort) => {
