@@ -30,9 +30,9 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             _externalPlayerProcess = new Process()
             {
                 StartInfo = new ProcessStartInfo("play", uri.AbsolutePath),
-                
-
             };
+            
+            _externalPlayerProcess.Exited += _externalPlayerProcess_Exited;
             var result = _externalPlayerProcess.Start();
             
             Console.WriteLine($"Start Result: {result}");
@@ -48,6 +48,19 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 #endif
 
         }
+
+        private void _externalPlayerProcess_Exited(object sender, EventArgs e)
+        {
+            if (sender is Process p)
+            {
+                p.Exited -= _externalPlayerProcess_Exited;
+                p.Dispose();
+            }
+
+#if CORE
+            _externalPlayerProcess = null;
+#endif
+        }
 #if !CORE
         public void SetMediaElement(MediaElement mediaElement)
         {
@@ -62,11 +75,27 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         {
 #if CORE
             // x3 idea from https://stackoverflow.com/a/283357/1004187
-            _externalPlayerProcess?.StandardInput.WriteLine("\x3");
-            _externalPlayerProcess?.StandardInput.Close();
-            _externalPlayerProcess?.Kill();
-            _externalPlayerProcess?.Close();
-            _externalPlayerProcess?.Dispose();
+            if (_externalPlayerProcess != null)
+            {
+                if (!_externalPlayerProcess.HasExited)
+                {
+                    try
+                    {
+                        _externalPlayerProcess?.StandardInput.WriteLine("\x3");
+                    }catch{}
+                    try { 
+                    _externalPlayerProcess?.StandardInput.Close();
+                    }
+                    catch { }
+                    try { 
+                    _externalPlayerProcess?.Kill();
+                    }
+                    catch { }
+                }
+
+                _externalPlayerProcess?.Close();
+                _externalPlayerProcess?.Dispose();
+            }
 
 #else
             Console.WriteLine($"StopPlayback() called for {_currentRequest.FileName}");
