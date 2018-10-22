@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 #if NETCOREAPP
 using Microsoft.EntityFrameworkCore;
 using HolidayShow.Data.Core;
@@ -392,14 +393,12 @@ namespace HolidayShowServer
                                             x => x.SetId == (int) currentSet.ValueDouble && !x.IsDisabled);
                                     if (set == null)
                                     {
-                                        LogMessage(
-                                            "Current set references a set that does not exist. Setting to random.");
-                                        dc.Settings.Add(new Settings()
-                                        {
-                                            SettingName = SettingKeys.CurrentSet,
-                                            ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom,
-                                            ValueString = string.Empty
-                                        });
+                                        LogMessage("Current set references a set that does not exist. Setting to random.");
+
+                                        currentSet.SettingName = SettingKeys.CurrentSet;
+                                        currentSet.ValueDouble = (int) SetPlaybackOptionEnum.PlaybackRandom;
+                                        currentSet.ValueString = string.Empty;
+
                                         await dc.SaveChangesAsync();
                                         goto skipStart;
                                     }
@@ -486,6 +485,7 @@ namespace HolidayShowServer
                             LogMessage("**************************************");
                             LogMessage("Set: " + setData.SetName);
                             LogMessage("**************************************");
+                            var setBuildSw = Stopwatch.StartNew();
 
                             // Update the current set playing
                             var current = settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
@@ -739,6 +739,8 @@ namespace HolidayShowServer
                                 Thread.Sleep(1000);
                                 _setExecuting = false;
                             }
+
+                            LogMessage($"Set Build Time: {setBuildSw.Elapsed}");
                         }
                     }
 
@@ -814,7 +816,7 @@ namespace HolidayShowServer
 
         }
 
-        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
+        private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
@@ -843,7 +845,7 @@ namespace HolidayShowServer
 
             var list = new List<DeviceInstructions>();
 
-            var endingPosition = setDurrationMs;
+            var endingPosition = setDurationMs;
 
             if (setSequence.DeviceEffects.Duration > 0)
             {
@@ -933,31 +935,27 @@ namespace HolidayShowServer
             var duration = GetDuration(metadataKeyValue);
 
             const string keyDelayBetween = "DELAYBETWEEN";
-            string delayBetweenStr;
-            if (!metadataKeyValue.TryGetValue(keyDelayBetween, out delayBetweenStr))
+            if (!metadataKeyValue.TryGetValue(keyDelayBetween, out var delayBetweenStr))
             {
                 LogMessage("EffectRandomStrobe missing " + keyDelayBetween);
                 return null;
             }
 
-            uint delayBetween;
-            if (!uint.TryParse(delayBetweenStr, out delayBetween))
+            if (!uint.TryParse(delayBetweenStr, out var delayBetween))
             {
                 LogMessage("EffectRandomStrobe Invalid Value Delay Between: " + delayBetweenStr);
             }
 
             const string keyExecuteFor = "EXECUTEFOR";
-            string executeForStr;
-            if (!metadataKeyValue.TryGetValue(keyExecuteFor, out executeForStr))
+            if (!metadataKeyValue.TryGetValue(keyExecuteFor, out var executeForStr))
             {
                 LogMessage("EffectRandomStrobe missing " + keyExecuteFor);
                 return null;
             }
 
-            uint exectuteFor;
-            if (!uint.TryParse(executeForStr, out exectuteFor))
+            if (!uint.TryParse(executeForStr, out var executeFor))
             {
-                LogMessage("EffectRandomStrobe Invalid Value Exectue For: " + delayBetweenStr);
+                LogMessage("EffectRandomStrobe Invalid Value Execute For: " + delayBetweenStr);
             }
 
             // If the duration was incorrect, null will be returned
@@ -979,7 +977,7 @@ namespace HolidayShowServer
             {
                 endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
             }
-            var nextDelayAt = startingPoint + exectuteFor;
+            var nextDelayAt = startingPoint + executeFor;
 
             while (startingPoint < endingPosition)
             {
@@ -994,14 +992,14 @@ namespace HolidayShowServer
                 if (startingPoint >= nextDelayAt)
                 {
                     startingPoint = startingPoint + delayBetween;
-                    nextDelayAt = startingPoint + exectuteFor;
+                    nextDelayAt = startingPoint + executeFor;
                 }
             }
 
             return list;
         }
 
-        private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
+        private static List<DeviceInstructions> EffectStayOn(SetSequences setSequence, int? setDurationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
@@ -1021,7 +1019,7 @@ namespace HolidayShowServer
 
             var list = new List<DeviceInstructions>();
 
-            var timeLeft = setDurrationMs - setSequence.OnAt;
+            var timeLeft = setDurationMs - setSequence.OnAt;
 
             if (setSequence.DeviceEffects.Duration > 0)
             {
@@ -1060,7 +1058,7 @@ namespace HolidayShowServer
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;
 
-            // Devide up the desired duration by the number of items
+            // Divide up the desired duration by the number of items
             // for an even distribution 
             var startingPoint = setSequence.OnAt;
 
@@ -1106,8 +1104,7 @@ namespace HolidayShowServer
         {
             const string keyDur = "DUR";
 
-            string dur;
-            if (!metaDataKeyValues.TryGetValue(keyDur, out dur))
+            if (!metaDataKeyValues.TryGetValue(keyDur, out var dur))
             {
                 LogMessage("DUR= not found in metadata");
                 return null;
@@ -1119,8 +1116,7 @@ namespace HolidayShowServer
                 return null;
             }
 
-            int duration;
-            if (int.TryParse(dur, out duration)) return duration;
+            if (int.TryParse(dur, out var duration)) return duration;
 
             LogMessage("Invalid duration: " + dur);
             return null;
@@ -1142,16 +1138,15 @@ namespace HolidayShowServer
 
             const string keyDevpins = "DEVPINS";
 
-            string devPins;
-            if (!metaDataKeyValue.TryGetValue(keyDevpins, out devPins))
+            if (!metaDataKeyValue.TryGetValue(keyDevpins, out var devPins))
             {
-                 LogMessage("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
+                 LogMessage("Invalid Device:Pin Must be formatted like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
                 return results;
             }
 
             if (string.IsNullOrWhiteSpace(devPins))
             {
-                LogMessage("Invalid Device:Pin Must be formated like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
+                LogMessage("Invalid Device:Pin Must be formatted like: DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3");
                 return results;
             }
             

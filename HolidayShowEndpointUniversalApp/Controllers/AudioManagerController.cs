@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,8 +27,9 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             }
         }
 
-        private void AudioInstanceController_Complete(object sender, IAudioRequestController e)
+        private void AudioInstanceController_Complete(object sender, EventArgs args)
         {
+            Console.WriteLine("AudioInstanceController_Complete. Returning to queue of available players");
             var instance = sender as IAudioInstanceController;
             // When complete is called, it will insert itself back into the queue of available instance controllers
             if (!_availableAudioInstances.Contains(instance))

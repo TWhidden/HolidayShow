@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 #if !CORE
 using Windows.ApplicationModel.Core;
@@ -12,6 +13,9 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 {
     public class AudioInstanceController : IAudioInstanceController
     {
+
+        private static int _playbackCounter = 0;
+        private int playerCount = -1;
         
 #if CORE
         private Process _externalPlayerProcess;
@@ -20,22 +24,26 @@ namespace HolidayShowEndpointUniversalApp.Controllers
         private MediaElement _mediaElement;
 #endif
 
-        public event EventHandler<IAudioRequestController> Complete;
+        public event EventHandler Complete;
         
         public async void PlayMediaUri(IAudioRequestController c, Uri uri)
         {
+            playerCount = Interlocked.Increment(ref _playbackCounter);
+
 #if CORE
-            Console.WriteLine($"Audio File Play: {uri.AbsolutePath}");
+            Console.WriteLine($"[{playerCount}] Audio File Play: {uri.AbsolutePath}");
 
             _externalPlayerProcess = new Process()
             {
-                StartInfo = new ProcessStartInfo("play", uri.AbsolutePath),
+                // play would not support m4a files
+                //StartInfo = new ProcessStartInfo("play", uri.AbsolutePath),
+                StartInfo = new ProcessStartInfo("mplayer", $"-novideo -ao alsa -really-quiet -softvol -softvol-max 300 -af volume=10 {uri.AbsolutePath}"),
             };
-            
+
             _externalPlayerProcess.Exited += _externalPlayerProcess_Exited;
             var result = _externalPlayerProcess.Start();
             
-            Console.WriteLine($"Start Result: {result}");
+            Console.WriteLine($"[{playerCount}] Start Result: {result}");
 
 #else
             _currentRequest = c;
@@ -51,11 +59,14 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         private void _externalPlayerProcess_Exited(object sender, EventArgs e)
         {
+            Console.WriteLine($"[{playerCount}] Audio Process Exited!");
             if (sender is Process p)
             {
                 p.Exited -= _externalPlayerProcess_Exited;
                 p.Dispose();
             }
+
+            InvokeOnComplete();
 
 #if CORE
             _externalPlayerProcess = null;
@@ -73,20 +84,25 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         public async void StopPlayback()
         {
+            Console.WriteLine($"[{playerCount}] StopPlayback();");
 #if CORE
             // x3 idea from https://stackoverflow.com/a/283357/1004187
             if (_externalPlayerProcess != null)
             {
                 if (!_externalPlayerProcess.HasExited)
                 {
+                    Console.WriteLine($"[{playerCount}] Process not exited. Attempting close input;");
                     try
                     {
                         _externalPlayerProcess?.StandardInput.WriteLine("\x3");
                     }catch{}
-                    try { 
+
+                    Console.WriteLine($"[{playerCount}] Attempting Close()");
+                    try {
                     _externalPlayerProcess?.StandardInput.Close();
                     }
                     catch { }
+                    Console.WriteLine($"[{playerCount}] Attempting Kill()");
                     try { 
                     _externalPlayerProcess?.Kill();
                     }
@@ -95,15 +111,15 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
                 _externalPlayerProcess?.Close();
                 _externalPlayerProcess?.Dispose();
+                InvokeOnComplete();
             }
-
 #else
             Console.WriteLine($"StopPlayback() called for {_currentRequest.FileName}");
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
                 {
                     _mediaElement.Stop();
-                    InvokeOnComplete(_currentRequest);
+                    InvokeOnComplete();
                 });
 #endif
 
@@ -117,18 +133,19 @@ namespace HolidayShowEndpointUniversalApp.Controllers
 
         private void _mediaElement_MediaFailed(object sender, Windows.UI.Xaml.ExceptionRoutedEventArgs e)
         {
-            InvokeOnComplete(_currentRequest);
+            InvokeOnComplete();
         }
 
         private void _mediaElement_MediaEnded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            InvokeOnComplete(_currentRequest);
+            InvokeOnComplete();
         }
 #endif
 
-        protected virtual void InvokeOnComplete(IAudioRequestController e)
+        protected virtual void InvokeOnComplete()
         {
-            Complete?.Invoke(this, e);
+            Console.WriteLine($"[{playerCount}] InvokeOnComplete() called.");
+            Complete?.Invoke(this, new EventArgs());
 
 #if !CORE
             _currentRequest = null;

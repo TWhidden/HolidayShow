@@ -4,7 +4,7 @@ namespace HolidayShowLibUniversal.Controllers
 {
     public interface IAudioInstanceController
     {
-        event EventHandler<IAudioRequestController> Complete;
+        event EventHandler Complete;
 
         void PlayMediaUri(IAudioRequestController request, Uri uri);
 

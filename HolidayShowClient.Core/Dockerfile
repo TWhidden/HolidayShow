@@ -44,8 +44,9 @@ WORKDIR /app
 
 #QT is required for the relay plate - this is a big dependancy, and the library should later be staticly linked. 
 # amixer will use the RP3 analog output jack instead of the hdmi (default)
+# sox will not play m4a files, so switching to mplayer
 RUN apt-get update && \
-    apt-get install -y liblttng-ust0 libcurl3 libssl1.0.0 libkrb5-3 zlib1g libicu60 qt5-default sox libsox-fmt-mp3 alsa-utils && \
+    apt-get install -y liblttng-ust0 libcurl3 libssl1.0.0 libkrb5-3 zlib1g libicu60 qt5-default mplayer alsa-utils && \
 	rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/app/entrypoint.sh"]

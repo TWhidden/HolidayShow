@@ -3,9 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyVersion>2.18.1007.0</AssemblyVersion>
+    <AssemblyVersion>2.18.1021.0</AssemblyVersion>
     <FileVersion>2.18.1007.0</FileVersion>
-    <Version>2.18.1007.0</Version>
+    <Version>2.18.1021.0</Version>
     <Authors>Travis Whidden</Authors>
     <Company>None</Company>
     <Description>Client for RP3 devices</Description>
