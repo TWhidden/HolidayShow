@@ -16,7 +16,6 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import VirtualizedSelect from 'react-virtualized-select'
 import ErrorContent from './controls/ErrorContent';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Label, Segment } from 'semantic-ui-react';
@@ -61,7 +60,7 @@ const moveAndReorder = (
     destinationList,
     destinationEndIndex,
     nextCounterId
-    ) => {
+) => {
     let sourceResult = Array.from(sourceList);
     //designate the draggable to be removed from sourceResult
 
@@ -100,9 +99,10 @@ class EffectsEditor extends Component {
 
         this.state = {
             effects: [],
-            effectSelected: null,
+            effectSelected: "",
             effectIdSelected: 0,
-            effectsAvailable: [],
+            effectInstructionsAvailable: [],
+            effectInstructionSelectedId: 0,
             errorMessage: null,
             pinsAvailable: [],
             pinOrdering: [],
@@ -138,7 +138,7 @@ class EffectsEditor extends Component {
                 .ToArray();
 
             this.setState({
-                effectsAvailable,
+                effectInstructionsAvailable: effectsAvailable,
                 pinsAvailable,
                 ioPortsAvailable
             });
@@ -170,7 +170,7 @@ class EffectsEditor extends Component {
                     .Where(d => d.effectId === Number(lastSelectedId))
                     .FirstOrDefault();
 
-                if(lastSelected != null){
+                if (lastSelected != null) {
                     effectSelected = lastSelected;
                 }
             }
@@ -183,7 +183,8 @@ class EffectsEditor extends Component {
             this.setState({
                 effects,
                 effectSelected,
-                effectIdSelected
+                effectIdSelected,
+                effectInstructionSelectedId: effectSelected.effectInstructionId,
             });
 
         } catch (e) {
@@ -214,6 +215,7 @@ class EffectsEditor extends Component {
         this.setState({
             effectSelected: effect,
             effectIdSelected: effect.effectId,
+            effectInstructionSelectedId: effect.effectInstructionId,
         });
     }
 
@@ -240,7 +242,7 @@ class EffectsEditor extends Component {
             this.setIsBusy(true);
 
             // Get the default Instruction to use
-            let effectAvailable = Enumerable.asEnumerable(this.state.effectsAvailable).FirstOrDefault();
+            let effectAvailable = Enumerable.asEnumerable(this.state.effectInstructionsAvailable).FirstOrDefault();
             if (effectAvailable == null) return;
 
             let effect = {
@@ -295,7 +297,7 @@ class EffectsEditor extends Component {
             this.setState({ errorMessage: e.message })
         }
 
-        
+
     }
 
     // when the stat
@@ -318,7 +320,7 @@ class EffectsEditor extends Component {
             });
 
 
-            this.setState({ pinOrdering, metaDataMap});
+            this.setState({ pinOrdering, metaDataMap });
 
         } catch (e) {
             this.setState({ errorMessage: e.message })
@@ -356,7 +358,15 @@ class EffectsEditor extends Component {
 
             effectSelected.instructionMetaData = str.join(';');
 
-            this.setState({ effectSelected });
+            // set the effectInstructionSelected so the dropdown is selected
+            // let effectInstructionSelected = Enumerable.AsEnumerable(this.state.effectInstructionsAvailable)
+            //                                             .Where(x => x.value === effectSelected.effectInstructionId)
+            //                                             .FirstOrDefault();
+
+            this.setState({
+                effectSelected,
+                effectInstructionSelectedId: effectSelected.effectInstructionId
+            });
 
             this.handleEffectSave(effectSelected);
 
@@ -481,8 +491,7 @@ class EffectsEditor extends Component {
         } else { //If it was moved within the same list, then just reorder that list
             console.log(`Source is the same as destination`);
             console.log(`reordering ${sourceId}`);
-            if(sourceId === "effectOrdering") 
-            {
+            if (sourceId === "effectOrdering") {
                 pinOrdering = reorder(
                     this.state.pinOrdering,
                     source.index,
@@ -564,20 +573,33 @@ class EffectsEditor extends Component {
                                     }}
                                 />
 
-                                <VirtualizedSelect
-                                    className="child"
-                                    clearable={false}
-                                    value={this.state.effectSelected.effectInstructionId}
-                                    options={this.state.effectsAvailable}
-                                    onChange={(selectValue) => {
-                                        if (selectValue === null) return; 
-                                        let effect = this.state.effectSelected;
-                                        effect.effectInstructionId = selectValue.value;
-                                        this.handleEffectSave(effect);
-                                    }
-                                    }
+                        
+                                        <FormControl style={{ width: "200px" }} margin="normal">
+                                            <InputLabel htmlFor="instructionsAvailable">Effects</InputLabel>
+                                            <Select
+                                                value={this.state.effectInstructionSelectedId}
+                                                onChange={(evt) => {
+                                                    let effectInstructionId = evt.target.value;
+                                                    if (effectInstructionId === null) return;
 
-                                />
+                                                    let effect = this.state.effectSelected;
+                                                    effect.effectInstructionId = effectInstructionId;
+                                                    this.setState({ effectInstructionSelectedId: effectInstructionId })
+                                                    this.handleEffectSave(effect);
+                                                }
+                                                }
+                                                inputProps={{
+                                                    name: 'dev',
+                                                    id: 'instructionsAvailable',
+                                                }}
+                                            >
+                                                {this.state.effectInstructionsAvailable.map((effect, i) =>
+                                                    (
+                                                        <MenuItem value={effect.value} key={i}>{effect.label}</MenuItem>
+                                                    ))}
+                                            </Select>
+                                        </FormControl>
+                             
                             </div>
                             <div>
 
@@ -597,14 +619,14 @@ class EffectsEditor extends Component {
                         </div>
                         <DragDropContext onDragEnd={this.onDragEnd}>
 
-                            <div style={{ display: "flex", flexDirection: "row", margin: 0}}>
+                            <div style={{ display: "flex", flexDirection: "row", margin: 0 }}>
 
                                 <Droppable droppableId="availablePins">
                                     {(provided, snapshot) => (
                                         <Segment color={snapshot.isDraggingOver ? 'blue' : 'yellow'}
                                             inverted={snapshot.isDraggingOver}
                                             tertiary={snapshot.isDraggingOver}
-                                            style={{margin: 0}}
+                                            style={{ margin: 0 }}
                                         >
                                             <div
                                                 ref={provided.innerRef}
@@ -612,7 +634,7 @@ class EffectsEditor extends Component {
                                         {this.state.pinsAvailable.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
-                                                            <div style={{margin: '1px'}}>
+                                                            <div style={{ margin: '1px' }}>
                                                                 <div
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
@@ -635,10 +657,10 @@ class EffectsEditor extends Component {
                                 </Droppable>
                                 <Droppable droppableId="effectOrdering">
                                     {(provided, snapshot) => (
-                                         <Segment color={snapshot.isDraggingOver ? 'blue' : 'yellow'}
+                                        <Segment color={snapshot.isDraggingOver ? 'blue' : 'yellow'}
                                             inverted={snapshot.isDraggingOver}
                                             tertiary={snapshot.isDraggingOver}
-                                            style={{margin: 0}}
+                                            style={{ margin: 0 }}
                                         >
                                             <div
                                                 ref={provided.innerRef}
@@ -646,7 +668,7 @@ class EffectsEditor extends Component {
                                         {this.state.pinOrdering.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
-                                                            <div style={{margin: '1px'}}>
+                                                            <div style={{ margin: '1px' }}>
                                                                 <div style={{ display: "flex", flexDirection: "row" }}
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
@@ -657,7 +679,7 @@ class EffectsEditor extends Component {
                                                                         color={snapshot.isDragging ? 'green' : (item.pinData.isDanger ? 'red' : 'yellow')}
                                                                         content={item.content} />
 
-                                                                    <IconButton style={{height: 25, width: 25}} onClick={(evt) => this.handleRemoveFromMap(item.id)}><DeleteIcon /></IconButton>
+                                                                    <IconButton style={{ height: 25, width: 25 }} onClick={(evt) => this.handleRemoveFromMap(item.id)}><DeleteIcon /></IconButton>
                                                                 </div>
                                                                 {provided.placeholder}
 

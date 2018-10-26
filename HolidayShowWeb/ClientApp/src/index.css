@@ -35,6 +35,10 @@ html, body {
     visibility: hidden;
   }
 
+  .child300 {
+    width: 300px;  /* Or whatever */
+  }
+
   .child200 {
     width: 200px;  /* Or whatever */
   }

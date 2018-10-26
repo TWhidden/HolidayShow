@@ -18,7 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import VirtualizedSelect from 'react-virtualized-select'
+import ComboSelect from 'react-select';
 import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
 
@@ -65,8 +65,6 @@ class SetsEditor extends Component {
     componentDidMount = async () => {
         try {
             this.setIsBusy(true);
-            
-            await this.getAllSets();
 
             let none = {label: "NONE", value: null};
 
@@ -95,6 +93,8 @@ class SetsEditor extends Component {
                 patterns,
                 effects,
             });
+
+            await this.getAllSets();
 
         } catch (e) {
             this.setState({errorMessage: e.message})
@@ -399,13 +399,13 @@ class SetsEditor extends Component {
                                         </Typography>
                                      </div>
 
-                                     <div className="child200">
+                                     <div className="child300">
                                      <Typography variant="body2" gutterBottom>
                                         Device Pattern
                                         </Typography>
                                      </div>
 
-                                     <div className="child200">
+                                     <div className="child300">
                                      <Typography variant="body2" gutterBottom>
                                         Effect
                                         </Typography>
@@ -422,10 +422,10 @@ class SetsEditor extends Component {
                                 {this.state.setSequences.map((sequence, i) =>
                                     (
                                         <SetSequenceEdit 
-                                            sequence={sequence} 
                                             effects={this.state.effects} 
                                             patterns={this.state.patterns}
                                             onDelete={(s)=>this.handleSequenceDelete(s)}
+                                            sequence={sequence} 
                                             key={i} />
                                     ))}
 
@@ -454,19 +454,45 @@ class SetSequenceEdit extends Component {
 
         this.state = {
             onAt: this.props.sequence.onAt,
-            devicePatternId: this.props.sequence.devicePatternId,
-            effectId: this.props.sequence.effectId,
+            devicePattern: "",
+            effect: "",
         };
 
         this.SetSequenceServices = SetSequenceServices;
+    }
+
+    componentDidMount = async () => {
+
+        let { effects, patterns } = this.props;
+
+        if (effects === null || patterns === null) return;
+
+        try {
+
+            let devicePattern = Enumerable.AsEnumerable(this.props.patterns)
+                                        .Where(x => x.value === this.props.sequence.devicePatternId)
+                                        .FirstOrDefault();
+
+            let effect = Enumerable.AsEnumerable(this.props.effects)
+                                        .Where(x => x.value === this.props.sequence.effectId)
+                                        .FirstOrDefault();
+
+            this.setState({
+                devicePattern,
+                effect
+            });
+
+        } catch (e) {
+           
+        }
     }
 
     handleSave = async () => {
         var sequence = Object.assign(this.props.sequence);
         
         sequence.onAt = this.state.onAt;
-        sequence.devicePatternId = this.state.devicePatternId;
-        sequence.effectId = this.state.effectId;
+        sequence.devicePatternId = this.state.devicePattern.value;
+        sequence.effectId = this.state.effect.value;
 
         try {
             await this.SetSequenceServices.saveSetSequence(sequence);
@@ -501,30 +527,30 @@ class SetSequenceEdit extends Component {
                     }}
                 />
 
-                <VirtualizedSelect
-                    className="child200"
+                <ComboSelect
+                    className="child300"
                     clearable={false}
                     options={this.props.patterns}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;
-                        this.setState({ devicePatternId: selectValue.value })
+                        this.setState({ devicePattern: selectValue })
                         this.handleDelaySave();
                     }
                     }
-                    value={this.state.devicePatternId}
+                    value={this.state.devicePattern}
                 />
 
-                <VirtualizedSelect
-                    className="child200"
+                <ComboSelect
+                    className="child300"
                     clearable={false}
                     options={this.props.effects}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;
-                        this.setState({ effectId: selectValue.value })
+                        this.setState({ effect: selectValue })
                         this.handleDelaySave();
                     }
                     }
-                    value={this.state.effectId}
+                    value={this.state.effect}
                 />
 
                   <Tooltip title="Delete Sequence">

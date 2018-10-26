@@ -1,9 +1,6 @@
 
 // Import default styles.
 // This only needs to be done once; probably during bootstrapping process.
-import 'react-select/dist/react-select.css';
-import 'react-virtualized-select/styles.css';
-import 'react-virtualized/styles.css';
 
 import './index.css';
 import React from 'react';

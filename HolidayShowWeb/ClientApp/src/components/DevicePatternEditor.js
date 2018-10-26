@@ -18,7 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import VirtualizedSelect from 'react-virtualized-select'
+import ComboSelect from 'react-select';
 import Typography from '@material-ui/core/Typography';
 import ErrorContent from './controls/ErrorContent';
 
@@ -66,7 +66,7 @@ class DevicePattern extends Component {
 
             let audioOptions = await this.AudioServices.getAllAudioOptions();
 
-            audioOptions = audioOptions.map((item) => ({ label: item.name, value: item.audioId }));
+            audioOptions = audioOptions.map((item) => ({ value: item.audioId, label: item.name }));
 
             this.setState({
                 audioOptions,
@@ -292,8 +292,11 @@ class DevicePattern extends Component {
             this.setState({
                 patterns,
                 patternSelected: newPattern,
-                patternIdSelected: newPattern.devicePatternId
+                patternIdSelected: newPattern.devicePatternId,
+                patternSequences: [],
             })
+
+            this.handlePatternSequencesLoad(newPattern.devicePatternId);
 
         } catch (e) {
             this.setState({ errorMessage: e.message })
@@ -479,13 +482,13 @@ class DevicePattern extends Component {
                                         </Typography>
                                     </div>
 
-                                    <div className="child200">
+                                    <div className="child300">
                                         <Typography variant="body2" gutterBottom>
                                             Gpio Port:
                                         </Typography>
                                     </div>
 
-                                    <div className="child200">
+                                    <div className="child300">
                                         <Typography variant="body2" gutterBottom>
                                             Audio File:
                                         </Typography>
@@ -536,12 +539,42 @@ class EditPattern extends Component {
         this.state = {
             onAt: this.props.sequence.onAt,
             duration: this.props.sequence.duration,
-            port: this.props.sequence.deviceIoPortId,
-            audio: this.props.sequence.audioId,
+            port: "",
+            audio: "",
             errorMessage: null,
         };
 
         this.DevicePatternSequenceServices = DevicePatternSequenceServices;
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // only update chart if the data has changed
+        if (prevProps.sequence !== this.props.sequence || prevProps.audioOptions !== this.props.audioOptions || prevProps.portOptions !== this.props.portOptions) {
+          
+            try {
+                let selectedAudioItem = Enumerable.AsEnumerable(this.props.audioOptions)
+                                            .Where(x => x.value === this.props.sequence.audioId)
+                                            .FirstOrDefault();
+    
+                let selectIoPort = Enumerable.AsEnumerable(this.props.portOptions)
+                                            .Where(x => x.value === this.props.sequence.deviceIoPortId)
+                                            .FirstOrDefault();
+    
+                this.setState({
+                    audio: selectedAudioItem,
+                    port: selectIoPort
+                });
+    
+            } catch (e) {
+               
+            }
+
+        }
+      }
+
+    componentDidMount = async () => {
+
+       
     }
 
     handleSave = async () => {
@@ -550,8 +583,8 @@ class EditPattern extends Component {
 
         sequence.onAt = this.state.onAt;
         sequence.duration = this.state.duration;
-        sequence.audioId = this.state.audio;
-        sequence.deviceIoPortId = this.state.port;
+        sequence.audioId = this.state.audio.value;
+        sequence.deviceIoPortId = this.state.port.value;
 
         try {
             await this.DevicePatternSequenceServices.sequenceSave(sequenceId, sequence);
@@ -567,43 +600,6 @@ class EditPattern extends Component {
 
         this.saveTimer = setTimeout(() => this.handleSave(), 1000);
     }
-
-    // NameOptionRenderer({ focusedOption, focusedOptionIndex, focusOption, key, labelKey, option, optionIndex, options, selectValue, style, valueArray, valueKey }) {
-    //     const classNames = [styles.nameOption]
-
-    //     if (option.type === 'header') {
-    //         classNames.push(styles.nameHeader)
-
-    //         return (
-    //             <div
-    //                 className={classNames.join(' ')}
-    //                 key={key}
-    //                 style={style}
-    //             >
-    //                {option.label}
-    //             </div>
-    //         )
-    //     } else {
-    //         if (option === focusedOption) {
-    //             classNames.push(styles.nameOptionFocused)
-    //         }
-    //         if (valueArray.indexOf(option) >= 0) {
-    //             classNames.push(styles.nameOptionSelected)
-    //         }
-
-    //         return (
-    //             <div
-    //                 className={classNames.join(' ')}
-    //                 key={key}
-    //                 onClick={() => selectValue(option)}
-    //                 onMouseEnter={() => focusOption(option)}
-    //                 style={style}
-    //             >
-    //                 {option.label}
-    //             </div>
-    //         )
-    //     }
-    // }
 
     render() {
 
@@ -636,27 +632,26 @@ class EditPattern extends Component {
                     }}
                 />
 
-                <VirtualizedSelect
-                    className="child200"
+                <ComboSelect
+                    className="child300"
                     clearable={false}
                     options={this.props.portOptions}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
-                        this.setState({ port: selectValue.value })
+                        this.setState({ port: selectValue })
                         this.handleDelaySave();
                     }
                     }
                     value={this.state.port}
                 />
 
-                <VirtualizedSelect
-                    className="child200"
+                <ComboSelect
+                    className="child300"
                     options={this.props.audioOptions}
                     clearable={false}
-                    // optionRenderer={this.NameOptionRenderer}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
-                        this.setState({ audio: selectValue.value })
+                        this.setState({ audio: selectValue })
                         this.handleDelaySave();
                     }
                     }
