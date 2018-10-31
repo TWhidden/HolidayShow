@@ -39,6 +39,20 @@ class SettingServices {
         await fetch(`/api/Settings/PlaybackOption/2`, options)
     }
 
+    executionRandom = async () => {
+
+        let options = {
+            method: 'put',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }
+
+
+        await fetch(`/api/Settings/PlaybackOption/1`, options)
+    }
+
     getAllSettings = async () =>
     {
         let response = await await fetch(`/api/Settings/`);

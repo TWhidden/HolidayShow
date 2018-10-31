@@ -34,8 +34,15 @@ namespace HolidayShowEndpointUniversalApp.Containers
 
             _client = new TcpClient();
             _client.BeginConnect(_endPoint.EndPoint.Host, _endPoint.EndPoint.Port, ClientConnectionCompleted, null);
-            _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 1000);
+            try
+            {
+                _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                _client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, 1000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: could not set keep alive. Error: {ex.Message}");
+            }
         }
 
         private void ClientConnectionCompleted(IAsyncResult r)
@@ -52,6 +59,13 @@ namespace HolidayShowEndpointUniversalApp.Containers
                 }
 
                 Console.WriteLine($"Connected to {_endPoint.EndPoint.Host}:{_endPoint.EndPoint.Port}!");
+
+                if (_client == null)
+                {
+                    Console.WriteLine("no idea how client is null here...");
+                    Disconnect();
+                    return;
+                }
 
                 _stream = _client.GetStream();
 

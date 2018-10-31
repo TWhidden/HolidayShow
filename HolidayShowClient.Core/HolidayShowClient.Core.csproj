@@ -9,6 +9,7 @@
     <Authors>Travis Whidden</Authors>
     <Company>None</Company>
     <Description>Client for RP3 devices</Description>
+    <StartupObject>HolidayShowClient.Core.Program</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

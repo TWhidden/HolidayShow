@@ -106,6 +106,20 @@ export class Home extends Component {
     }
   }
 
+  handleStartRandomExecution = async () => {
+    try {
+      this.setIsBusy(true);
+
+      await this.SettingServices.executionRandom();
+
+      this.setState({});
+    } catch (e) {
+      this.setState({errorMessage: e.message})
+    } finally {
+      this.setIsBusy(false);
+    }
+  }
+
   handleStartSet = async (setId) => {
     try {
       this.setIsBusy(true);
@@ -189,6 +203,14 @@ export class Home extends Component {
             onClick={() => this.handleStartExecution()}
           >
             START EXECUTION
+          </Button>
+
+          <Button variant="outlined"
+            color="primary"
+            className="quickSelect"
+            onClick={() => this.handleStartRandomExecution()}
+          >
+            START RANDOM
           </Button>
 
            {this.state.sets.map((set, i) =>

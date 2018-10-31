@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -176,58 +177,66 @@ namespace HolidayShowClient.Core
                 }
             }
 #endif
-
-            if(relaysAvailable == 0)
+            try
             {
-                Console.WriteLine("Loading GPIO Instance");
-                // Identify the pings available.
-                // Get the default GPIO controller on the system
+                if (relaysAvailable == 0)
+                {
+                    Console.WriteLine("Loading GPIO Instance");
+                    // Identify the pings available.
+                    // Get the default GPIO controller on the system
 #if CORE
-                var gpio = GpioController.Instance;
+                    var gpio = GpioController.Instance;
 #else
                 var gpio = GpioController.GetDefault();
 #endif
 
-                if (gpio == null)
-                {
-                    Console.WriteLine("No detected GPIO - Cant do anything :(");
-                    return;
-                }; // GPIO not available on this system
+                    if (gpio == null)
+                    {
+                        Console.WriteLine("No detected GPIO - Cant do anything :(");
+                        return;
+                    }
 
-                // Reference: https://ms-iot.github.io/content/en-US/win10/samples/PinMappingsRPi2.htm
-                //Pin Added #4 - Gpio#: 4
-                //Pin Added #5 - Gpio#: 5
-                //Pin Added #6 - Gpio#: 6
-                //Pin Added #12 - Gpio#: 12
-                //Pin Added #13 - Gpio#: 13
-                //Pin Added #16 - Gpio#: 16
-                //Pin Added #18 - Gpio#: 18
-                //Pin Added #22 - Gpio#: 22
-                //Pin Added #23 - Gpio#: 23
-                //Pin Added #24 - Gpio#: 24
-                //Pin Added #25 - Gpio#: 25
-                //Pin Added #26 - Gpio#: 26
-                //Pin Added #27 - Gpio#: 27
-                //Pin Added #35 - Gpio#: 35  // Not a GPIO pin we can use (Red LED)
-                //Pin Added #47 - Gpio#: 47  // Not a GPIO pin we can use (Green LED)
+                    ; // GPIO not available on this system
 
-                var blockedIds = new[] { 35, 47 };
+                    // Reference: https://ms-iot.github.io/content/en-US/win10/samples/PinMappingsRPi2.htm
+                    //Pin Added #4 - Gpio#: 4
+                    //Pin Added #5 - Gpio#: 5
+                    //Pin Added #6 - Gpio#: 6
+                    //Pin Added #12 - Gpio#: 12
+                    //Pin Added #13 - Gpio#: 13
+                    //Pin Added #16 - Gpio#: 16
+                    //Pin Added #18 - Gpio#: 18
+                    //Pin Added #22 - Gpio#: 22
+                    //Pin Added #23 - Gpio#: 23
+                    //Pin Added #24 - Gpio#: 24
+                    //Pin Added #25 - Gpio#: 25
+                    //Pin Added #26 - Gpio#: 26
+                    //Pin Added #27 - Gpio#: 27
+                    //Pin Added #35 - Gpio#: 35  // Not a GPIO pin we can use (Red LED)
+                    //Pin Added #47 - Gpio#: 47  // Not a GPIO pin we can use (Green LED)
+
+                    var blockedIds = new[] {35, 47};
 
 #if CORE
-                var pinCount = gpio.Count;
+                    var pinCount = gpio.Count;
 #else
                 var pinCount = gpio.PinCount;
 #endif
 
-                for (var i = 0; i < pinCount; i++)
-                {
-                    var pin = gpio[i];
-                    if (blockedIds.Contains(pin.BcmPinNumber)) continue;
-                    if (!pin.Capabilities.Contains(PinCapability.GP)) continue;
-                    pin.PinMode = GpioPinDriveMode.Output;
-                    pin.Write(GpioPinValue.Low);
-                    _availablePins.Add(new OutletControl(pin)); // This is a pin we can use.
+                    for (var i = 0; i < pinCount; i++)
+                    {
+                        var pin = gpio[i];
+                        if (blockedIds.Contains(pin.BcmPinNumber)) continue;
+                        if (!pin.Capabilities.Contains(PinCapability.GP)) continue;
+                        pin.PinMode = GpioPinDriveMode.Output;
+                        pin.Write(GpioPinValue.Low);
+                        _availablePins.Add(new OutletControl(pin)); // This is a pin we can use.
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not load GPIO. Error: {ex.Message}");
             }
 
             CreateClient();

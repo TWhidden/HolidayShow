@@ -41,9 +41,16 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             };
 
             _externalPlayerProcess.Exited += _externalPlayerProcess_Exited;
-            var result = _externalPlayerProcess.Start();
-            
-            Console.WriteLine($"[{playerCount}] Start Result: {result}");
+            try
+            {
+                var result = _externalPlayerProcess.Start();
+
+                Console.WriteLine($"[{playerCount}] Start Result: {result}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed starting process to play audio. Error: {ex.Message}");
+            }
 
 #else
             _currentRequest = c;
@@ -89,24 +96,41 @@ namespace HolidayShowEndpointUniversalApp.Controllers
             // x3 idea from https://stackoverflow.com/a/283357/1004187
             if (_externalPlayerProcess != null)
             {
-                if (!_externalPlayerProcess.HasExited)
+                try
                 {
-                    Console.WriteLine($"[{playerCount}] Process not exited. Attempting close input;");
-                    try
+                    if (!_externalPlayerProcess.HasExited)
                     {
-                        _externalPlayerProcess?.StandardInput.WriteLine("\x3");
-                    }catch{}
+                        Console.WriteLine($"[{playerCount}] Process not exited. Attempting close input;");
+                        try
+                        {
+                            _externalPlayerProcess?.StandardInput.WriteLine("\x3");
+                        }
+                        catch
+                        {
+                        }
 
-                    Console.WriteLine($"[{playerCount}] Attempting Close()");
-                    try {
-                    _externalPlayerProcess?.StandardInput.Close();
+                        Console.WriteLine($"[{playerCount}] Attempting Close()");
+                        try
+                        {
+                            _externalPlayerProcess?.StandardInput.Close();
+                        }
+                        catch
+                        {
+                        }
+
+                        Console.WriteLine($"[{playerCount}] Attempting Kill()");
+                        try
+                        {
+                            _externalPlayerProcess?.Kill();
+                        }
+                        catch
+                        {
+                        }
                     }
-                    catch { }
-                    Console.WriteLine($"[{playerCount}] Attempting Kill()");
-                    try { 
-                    _externalPlayerProcess?.Kill();
-                    }
-                    catch { }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error with checking HasExited: {ex.Message}");
                 }
 
                 _externalPlayerProcess?.Close();
