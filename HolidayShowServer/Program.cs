@@ -242,19 +242,15 @@ namespace HolidayShowServer
                         var scheduleOff = settings.FirstOrDefault(x => x.SettingName == SettingKeys.OffAt);
                         if (scheduleOn != null && scheduleOff != null && !string.IsNullOrWhiteSpace(scheduleOn.ValueString))
                         {
-                            var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOn.ValueString);
-                            var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOff.ValueString);
+                            //var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOn.ValueString);
+                            //var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(scheduleOff.ValueString);
+                            var isScheduleEnabled =
+                                IsCurrentTimeBetweenSettingTimes(scheduleOn.ValueString, scheduleOff.ValueString);
 
-                            if (!isAboveBottomTime)
-                            {
-                                LogMessage("Schedule is currently off");
-                                Thread.Sleep(5000);
-                                continue;
-                            }
+                            if (!isScheduleEnabled)
+                            { 
 
-                            if (isAboveTopTime)
-                            {
-                                LogMessage("Schedule is currently off");
+                                LogMessage($"Schedule is currently off. Start: '{scheduleOn.ValueString}' -> '{scheduleOff.ValueString}'; Current Time: '{DateTime.Now.TimeOfDay}'");
                                 Thread.Sleep(5000);
                                 continue;
                             }
@@ -305,10 +301,13 @@ namespace HolidayShowServer
                                 audioOffAt = new Settings();
                             }
 
-                            var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(audioOnAt.ValueString);
-                            var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(audioOffAt.ValueString);
+                            
+                            //var isAboveBottomTime = IsCurrentTimeGreaterThanUserSettingTime(audioOnAt.ValueString);
+                            //var isAboveTopTime = IsCurrentTimeGreaterThanUserSettingTime(audioOffAt.ValueString);
 
-                            var isAudioScheduleEnabled = (isAboveBottomTime && !isAboveTopTime);
+                            //var isAudioScheduleEnabled = (isAboveBottomTime && !isAboveTopTime);
+                            var isAudioScheduleEnabled =
+                                IsCurrentTimeBetweenSettingTimes(audioOnAt.ValueString, audioOffAt.ValueString);
 
                             // Get the set we should be running.
                             var option = settings.FirstOrDefault(x => x.SettingName == SettingKeys.SetPlaybackOption);
@@ -660,7 +659,7 @@ namespace HolidayShowServer
                                         }
                                         break;
                                 }
-                            }
+                            } 
 
                             // #9 - Now that audio and effects have been added, we need to check to see
                             // if audio is enabled, and if its not, remove any audio.
@@ -796,24 +795,69 @@ namespace HolidayShowServer
 
         }
 
-        private static bool IsCurrentTimeGreaterThanUserSettingTime(string userTime)
+        //private static bool IsCurrentTimeGreaterThanUserSettingTime(string userTime)
+        //{
+        //    if (string.IsNullOrWhiteSpace(userTime))
+        //        return false;
+
+        //    DateTime userTimeObject;
+
+        //    if (!DateTime.TryParseExact(userTime,
+        //        "HH:mm",
+        //        new CultureInfo("en-US"),
+        //        DateTimeStyles.None,
+        //        out userTimeObject))
+        //    {
+        //        return false;
+        //    }
+
+        //    return DateTime.Now.TimeOfDay > userTimeObject.TimeOfDay;
+
+        //}
+
+        /// <summary>
+        /// Fix to existing time checking - Idea from
+        /// https://stackoverflow.com/a/21343435
+        /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <returns></returns>
+        private static bool IsCurrentTimeBetweenSettingTimes(string startTime, string endTime)
         {
-            if (string.IsNullOrWhiteSpace(userTime))
-                return false;
-
-            DateTime userTimeObject;
-
-            if (!DateTime.TryParseExact(userTime,
-                "HH:mm",
-                new CultureInfo("en-US"),
-                DateTimeStyles.None,
-                out userTimeObject))
+            if (!TimeSpan.TryParse(startTime, out var start))
             {
+                Console.WriteLine($"Could not parse start time: {startTime}");
                 return false;
             }
 
-            return DateTime.Now.TimeOfDay > userTimeObject.TimeOfDay;
+            if (!TimeSpan.TryParse(endTime, out var end))
+            {
+                Console.WriteLine($"Could not parse end time: {endTime}");
+                return false;
+            }
 
+            TimeSpan now = DateTime.Now.TimeOfDay;
+
+            if (start <= end)
+            {
+                // start and stop times are in the same day
+                if (now >= start && now <= end)
+                {
+                    // current time is between start and stop
+                    return true;
+                }
+            }
+            else
+            {
+                // start and stop times are in different days
+                if (now >= start || now <= end)
+                {
+                    // current time is between start and stop
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static List<DeviceInstructions> EffectRandom(SetSequences setSequence, int? setDurationMs, Dictionary<int, List<int>> disabledPins)
@@ -934,6 +978,9 @@ namespace HolidayShowServer
             var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
             var duration = GetDuration(metadataKeyValue);
 
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
+
             const string keyDelayBetween = "DELAYBETWEEN";
             if (!metadataKeyValue.TryGetValue(keyDelayBetween, out var delayBetweenStr))
             {
@@ -957,9 +1004,6 @@ namespace HolidayShowServer
             {
                 LogMessage("EffectRandomStrobe Invalid Value Execute For: " + delayBetweenStr);
             }
-
-            // If the duration was incorrect, null will be returned
-            if (duration == null) return null;
 
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;
@@ -1050,10 +1094,11 @@ namespace HolidayShowServer
 
             var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
             var duration = GetDuration(metadataKeyValue);
-            var reverse = (metadataKeyValue.ContainsKey(reverseKey) && metadataKeyValue[reverseKey] == "1");
 
             // If the duration was incorrect, null will be returned
             if (duration == null) return null;
+
+            var reverse = (metadataKeyValue.ContainsKey(reverseKey) && metadataKeyValue[reverseKey] == "1");
 
             // If there is nothing, return so we dont have a dev by zero
             if (devicesAndKey.Count == 0) return null;

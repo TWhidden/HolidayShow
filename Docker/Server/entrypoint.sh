@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 echo "HOLIDAY SHOW SERVER CORE"
 echo "LISTENING PORT: $PORT"
 echo "DB SERVER: $DBSERVER"
