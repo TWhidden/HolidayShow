@@ -17,7 +17,7 @@ namespace HolidayShowWeb
             var portStr = System.Environment.GetEnvironmentVariable("PORT");
             if (!int.TryParse(portStr, out var port))
             {
-                port = 5001;
+                port = 8000;
             }
 
             return WebHost.CreateDefaultBuilder(args)

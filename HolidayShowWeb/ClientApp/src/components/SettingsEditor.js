@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
-
+import {inject, observer} from 'mobx-react';
+import {observable, runInAction} from 'mobx';
 import SettingServices from '../Services/SettingServices';
-
 import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
-import BusyContent from './controls/BusyContent';
-import ErrorContent from './controls/ErrorContent';
 import * as Enumerable from "linq-es5";
 
 const delayMs = "SetDelayMs";
@@ -18,25 +16,19 @@ const fileBasePath = "FileBasePath";
 const isAudioEnabled = "IsAudioEnabled";
 const isDangerEnabled = "IsDangerEnabled";
 
-export default class SettingsEditor extends Component {
-    constructor(props) {
-        super(props)
+@inject("appStore")
+@observer
+class SettingsEditor extends Component {
 
-        this.state = {
-            delayBetweenSets: 0,
-            onAt: "",
-            offAt: "",
-            audioOnAt: "",
-            audioOffAt: "",
-            enableDangerPins: "",
-            enableAudio: "",
-            audioFileLocation: "",
-            settings: [],
-            errorMessage: null,
-        };
-
-        this.SettingServices = SettingServices;
-    }
+    @observable delayBetweenSets = 0;
+    @observable onAt = "";
+    @observable offAt = "";
+    @observable audioOnAt = "";
+    @observable audioOffAt = "";
+    @observable enableDangerPins = "";
+    @observable enableAudio = "";
+    @observable audioFileLocation = "";
+    @observable settings = [];
 
     componentDidMount = async () => {
         this.getAllSetting();
@@ -44,7 +36,7 @@ export default class SettingsEditor extends Component {
 
     getAllSetting = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             let settings = await SettingServices.getAllSettings();
 
@@ -59,27 +51,28 @@ export default class SettingsEditor extends Component {
             let enableAudio = settings.Where(x => x.settingName === isAudioEnabled).Select(x => x.valueDouble).FirstOrDefault();
             let audioFileLocation = settings.Where(x => x.settingName === fileBasePath).Select(x => x.valueString).FirstOrDefault();
 
-            this.setState({
-                delayBetweenSets,
-                onAt,
-                offAt,
-                audioOnAt,
-                audioOffAt,
-                enableDangerPins,
-                enableAudio,
-                audioFileLocation,
-                settings,
-            })
+            runInAction(()=>{
+                this.delayBetweenSets = delayBetweenSets;
+                this.onAt = onAt;
+                this.offAt = offAt;
+                this.audioOnAt = audioOnAt;
+                this.audioOffAt = audioOffAt;
+                this.enableDangerPins = enableDangerPins;
+                this.enableAudio = enableAudio;
+                this.audioFileLocation = audioFileLocation;
+                this.settings = settings;
+            });
+
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSaveSetting = async (settingName, valueString, valueDouble) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             let setting = {
                 settingName,
@@ -89,28 +82,28 @@ export default class SettingsEditor extends Component {
 
             // see if the current state has this key.
             // if it does not, we need to create the object
-            if (this.state.settings.Where(x => x.settingName === settingName).FirstOrDefault() == null) {
-                await this.SettingServices.createSetting(setting);
+            if (this.settings.Where(x => x.settingName === settingName).FirstOrDefault() == null) {
+                await SettingServices.createSetting(setting);
                 await this.getAllSetting();
             } else {
-                await this.SettingServices.saveSetting(setting);
+                await SettingServices.saveSetting(setting);
             }
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     setIsBusy(busyState) {
         clearTimeout(this.timer);
         if (!busyState) {
-            this.setState({ isBusy: false });
+            this.props.appStore.isBusySet(false);
             return;
         }
 
-        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
+        this.timer = setTimeout(() => this.props.appStore.isBusySet(true), 250);
     }
 
     render() {
@@ -120,12 +113,12 @@ export default class SettingsEditor extends Component {
                 <TextField
                     style={{ width: "75px" }}
                     label={`Delay between executions:`}
-                    value={this.state.delayBetweenSets}
+                    value={this.delayBetweenSets}
                     onChange={(evt) => {
                         this.handleSaveSetting(delayMs, "", evt.target.value);
-                        this.setState({
-                            delayBetweenSets: evt.target.value
-                        })
+                        runInAction(()=>{
+                            this.delayBetweenSets = evt.target.value;
+                        });
                     }}
                     margin="normal"
                 />
@@ -133,13 +126,13 @@ export default class SettingsEditor extends Component {
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={this.state.enableAudio === 1}
+                            checked={this.enableAudio === 1}
                             onChange={(evt) => {
                                 let result = evt.target.checked ? 1 : 0;
                                 this.handleSaveSetting(isAudioEnabled, "", result);
-                                this.setState({
-                                    enableAudio: result
-                                })
+                                runInAction(()=>{
+                                    this.enableAudio = result;
+                                });
                             }} />
                     }
                     label="Audio Enabled"
@@ -148,13 +141,13 @@ export default class SettingsEditor extends Component {
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={this.state.enableDangerPins === 1}
+                            checked={this.enableDangerPins === 1}
                             onChange={(evt) => {
                                 let result = evt.target.checked ? 1 : 0;
                                 this.handleSaveSetting(isDangerEnabled, "", result);
-                                this.setState({
-                                    enableDangerPins: result
-                                })
+                                runInAction(()=>{
+                                    this.enableDangerPins = result;
+                                });
                             }} />
                     }
                     label="Danger Pins Enabled"
@@ -163,12 +156,12 @@ export default class SettingsEditor extends Component {
                 <TextField
                     style={{ width: "300px" }}
                     label={`Base File Path:`}
-                    value={this.state.audioFileLocation}
+                    value={this.audioFileLocation}
                     onChange={(evt) => {
                         this.handleSaveSetting(fileBasePath, evt.target.value, 0);
-                        this.setState({
-                            audioFileLocation: evt.target.value
-                        })
+                        runInAction(()=>{
+                            this.audioFileLocation = evt.target.value;
+                        });
                     }}
                     margin="normal"
                 />
@@ -179,12 +172,12 @@ export default class SettingsEditor extends Component {
                         defaultValue="16:30"
                         style={{ width: "102px" }}
                         label={`Schudule On:`}
-                        value={this.state.onAt}
+                        value={this.onAt}
                         onChange={(evt) => {
                             this.handleSaveSetting(timeOnAt, evt.target.value, 0);
-                            this.setState({
-                                onAt: evt.target.value
-                            })
+                            runInAction(()=>{
+                                this.onAt = evt.target.value;
+                            });
                         }}
                         margin="normal"
                     />
@@ -194,12 +187,12 @@ export default class SettingsEditor extends Component {
                         defaultValue="23:30"
                         style={{ width: "102px" }}
                         label={`Off:`}
-                        value={this.state.offAt}
+                        value={this.offAt}
                         onChange={(evt) => {
                             this.handleSaveSetting(timeOffAt, evt.target.value, 0);
-                            this.setState({
-                                offAt: evt.target.value
-                            })
+                            runInAction(()=>{
+                                this.offAt = evt.target.value;
+                            });
                         }}
                         margin="normal"
                     />
@@ -212,12 +205,12 @@ export default class SettingsEditor extends Component {
                         defaultValue="16:30"
                         style={{ width: "102px" }}
                         label={`Audio On:`}
-                        value={this.state.audioOnAt}
+                        value={this.audioOnAt}
                         onChange={(evt) => {
                             this.handleSaveSetting(audioTimeOnAt, evt.target.value, 0);
-                            this.setState({
-                                audioOnAt: evt.target.value
-                            })
+                            runInAction(()=>{
+                                this.audioOnAt = evt.target.value;
+                            });
                         }}
                         margin="normal"
                     />
@@ -227,22 +220,20 @@ export default class SettingsEditor extends Component {
                         defaultValue="23:30"
                         style={{ width: "102px" }}
                         label={`Off:`}
-                        value={this.state.audioOffAt}
+                        value={this.audioOffAt}
                         onChange={(evt) => {
                             this.handleSaveSetting(audioTimeOffAt, evt.target.value, 0);
-                            this.setState({
-                                audioOffAt: evt.target.value
-                            })
+                            runInAction(()=>{
+                                this.audioOffAt = evt.target.value;
+                            });
                         }}
                         margin="normal"
                     />
 
                 </div>
-                {
-                    this.state.isBusy && (<BusyContent />)
-                }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div>
         )
     }
 }
+
+export default (SettingsEditor);

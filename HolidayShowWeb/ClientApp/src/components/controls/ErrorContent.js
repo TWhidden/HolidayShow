@@ -1,4 +1,6 @@
 import React from 'react';
+import {observer} from 'mobx-react';
+import {observable, runInAction} from 'mobx';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -29,30 +31,29 @@ const styles = theme => ({
     },
 });
 
+@observer
 class ErrorContent extends React.Component {
 
-    constructor(props) {
-        super(props)
-
-        this.state = {
-            open: false,
-        };
-    }
+    @observable open = false;
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.errorMessage != null && !this.state.open) {
+        if (this.props.errorMessage != null && !this.open) {
             this.handleOpen();
         }
     }
 
     handleOpen = () => {
-        this.setState({ open: true });
+        runInAction(()=>{
+            this.open = true;
+        });
     };
 
     handleClose = () => {
         if (this.props.errorClear != null) this.props.errorClear();
 
-        this.setState({ open: false });
+        runInAction(()=>{
+            this.open = false;
+        });
     };
 
     render() {
@@ -63,13 +64,13 @@ class ErrorContent extends React.Component {
                 <Modal
                     aria-labelledby="simple-modal-title"
                     aria-describedby="simple-modal-description"
-                    open={this.state.open}
+                    open={this.open}
                     onClose={this.handleClose}
                 >
                     <div style={getModalStyle()} className={classes.paper}>
                         <Typography variant="title" id="modal-title">
                             Error Detected
-            </Typography>
+                        </Typography>
                         <Typography variant="subheading" id="simple-modal-description">
                             {this.props.errorMessage}
                         </Typography>

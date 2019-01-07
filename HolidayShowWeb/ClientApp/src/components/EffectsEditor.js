@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
+import {inject, observer} from 'mobx-react';
+import {observable, runInAction} from 'mobx';
 
-import EffectServices from '../Services/EffectServices';
-import EffectsAvailableServices from '../Services/EffectsAvailableServices';
-import DeviceIoPortServices from '../Services/DeviceIoPortServices';
-
-import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -16,7 +13,8 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
-import ErrorContent from './controls/ErrorContent';
+import EffectServices from '../Services/EffectServices';
+
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Label, Segment } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
@@ -87,44 +85,30 @@ const moveAndReorder = (
 
 const sessionEffectSelected = "EffectEdit-EffectSelected";
 
+@inject("appStore")
+@observer
 class EffectsEditor extends Component {
     displayName = EffectsEditor.name
 
-    constructor(props) {
-        super(props)
-
-        this.EffectServices = EffectServices;
-        this.EffectsAvailableServices = EffectsAvailableServices;
-        this.DeviceIoPortServices = DeviceIoPortServices;
-
-        this.state = {
-            effects: [],
-            effectSelected: "",
-            effectIdSelected: 0,
-            effectInstructionsAvailable: [],
-            effectInstructionSelectedId: 0,
-            errorMessage: null,
-            pinsAvailable: [],
-            pinOrdering: [],
-            metaDataMap: new Map(),
-            ioPortsAvailable: new Map(),
-        };
-    }
+    @observable effectSelected = "";
+    @observable effectIdSelected = 0;
+    @observable effectInstructionSelectedId = 0;
+    @observable metaDataMap = new Map();
+    @observable ioPortsAvailable = new Map();
+    @observable pinsAvailable = [];
+    @observable pinOrdering = [];
 
     currentPinId = 1;
 
     componentDidMount = async () => {
 
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             await this.getAllEffects();
+            await this.props.appStore.effectsAvailableLoadAsync();
 
-            let effectsAvailable = await this.EffectsAvailableServices.getAllAvailableEffects();
-
-            effectsAvailable = effectsAvailable.map((item) => ({ label: `${item.displayName}`, value: item.effectInstructionId }));
-
-            let pinsAvailable = await this.DeviceIoPortServices.ioPortGetAll();
+            let pinsAvailable = await this.props.appStore.ioPortsLoadAsync();
 
             let ioPortsAvailable = new Map();
             pinsAvailable.forEach(pin => {
@@ -137,29 +121,28 @@ class EffectsEditor extends Component {
                 .OrderBy(x => x.content)
                 .ToArray();
 
-            this.setState({
-                effectInstructionsAvailable: effectsAvailable,
-                pinsAvailable,
-                ioPortsAvailable
+            runInAction(()=>{
+                this.ioPortsAvailable = ioPortsAvailable;
+                this.pinsAvailable = pinsAvailable;
             });
 
-            this.parseMetaData(this.state.effectSelected);
+            console.log("Effect ID Selected: " + this.effectSelected.effectId);
+
+            this.parseMetaData(this.effectSelected);
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     getAllEffects = async () => {
         try {
-            this.setIsBusy(true);
 
-            let effects = await this.EffectServices.getAllEffects();
+            let effects = await this.props.appStore.effectsLoadAsync();
 
             let effectSelected = Enumerable.AsEnumerable(effects).FirstOrDefault();
-
 
             let lastSelectedId = sessionStorage.getItem(sessionEffectSelected);
             if (lastSelectedId != null) {
@@ -180,17 +163,14 @@ class EffectsEditor extends Component {
                 effectIdSelected = effectSelected.effectId;
             }
 
-            this.setState({
-                effects,
-                effectSelected,
-                effectIdSelected,
-                effectInstructionSelectedId: effectSelected.effectInstructionId,
+            runInAction(()=>{
+                this.effectSelected = effectSelected;
+                this.effectIdSelected = effectIdSelected;
+                this.effectInstructionSelectedId = effectSelected.effectInstructionId
             });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
-        } finally {
-            this.setIsBusy(false);
+            this.props.appStore.errorMessageSet(e.message);
         }
     }
 
@@ -201,7 +181,7 @@ class EffectsEditor extends Component {
     handleEffectChange = async (evt) => {
         let effectId = evt.target.value;
 
-        var effect = Enumerable.asEnumerable(this.state.effects)
+        var effect = Enumerable.asEnumerable(this.props.appStore.effects)
             .Where(x => x.effectId === effectId)
             .FirstOrDefault();
 
@@ -212,25 +192,25 @@ class EffectsEditor extends Component {
 
         this.parseMetaData(effect);
 
-        this.setState({
-            effectSelected: effect,
-            effectIdSelected: effect.effectId,
-            effectInstructionSelectedId: effect.effectInstructionId,
+        runInAction(()=>{
+            this.effectSelected = effect;
+            this.effectIdSelected = effect.effectId;
+            this.effectInstructionSelectedId = effect.effectInstructionId;
         });
     }
 
     handleEffectDelete = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            if (this.state.effectSelected == null) return;
+            if (this.effectSelected == null) return;
 
-            await this.EffectServices.deleteEffect(this.state.effectIdSelected);
+            await this.props.appStore.effectDelete(this.effectIdSelected);
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
         // rebuild the list.
@@ -239,10 +219,10 @@ class EffectsEditor extends Component {
 
     handleEffectCreate = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             // Get the default Instruction to use
-            let effectAvailable = Enumerable.asEnumerable(this.state.effectInstructionsAvailable).FirstOrDefault();
+            let effectAvailable = Enumerable.asEnumerable(this.props.appStore.effectsAvailable).FirstOrDefault();
             if (effectAvailable == null) return;
 
             let effect = {
@@ -252,30 +232,26 @@ class EffectsEditor extends Component {
                 duration: 5000
             };
 
-            effect = await this.EffectServices.createEffect(effect);
+            effect = await this.props.appStore.effectCreate(effect);
 
-            let effects = this.state.effects;
-            effects.push(effect);
-
-            this.setState({
-                effects,
-                effectSelected: effect,
-                effectIdSelected: effect.effectId
+            runInAction(()=>{
+                this.effectSelected = effect;
+                this.effectIdSelected = effect.effectId;
             });
-
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     parseMetaData(effectSelected) {
 
         if (effectSelected == null) {
-            this.setState({
-                metaDataMap: new Map(),
-                pinOrdering: []
+            console.log("effect selected is null. cant select");
+            runInAction(()=>{
+                this.metaDataMap = new Map();
+                this.pinOrdering = [];
             });
             return;
         }
@@ -291,13 +267,13 @@ class EffectsEditor extends Component {
                 }
             });
 
+            console.log("KeyValues: " + keyValues.length);
+
             this.buildPinOrdering(metaDataMap);
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         }
-
-
     }
 
     // when the stat
@@ -313,17 +289,25 @@ class EffectsEditor extends Component {
 
             pins.forEach(devPin => {
 
-                let pin = this.state.ioPortsAvailable.get(devPin);
-                if (pin == null) return;
-
-                pinOrdering.push({ content: `${pin.deviceId}:${pin.commandPin} ${pin.description}`, id: this.currentPinId++, pinData: pin });
+                let pin = this.ioPortsAvailable.get(devPin);
+                if (pin == null) 
+                {
+                    console.log("Pin is null");
+                    return;
+                }
+                
+                let content = `${pin.deviceId}:${pin.commandPin} ${pin.description}`;
+                console.log("content: " + content);
+                pinOrdering.push({ content, id: this.currentPinId++, pinData: pin });
             });
 
-
-            this.setState({ pinOrdering, metaDataMap });
+            runInAction(()=>{
+                this.pinOrdering = pinOrdering;
+                this.metaDataMap = metaDataMap;
+            });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         }
     }
 
@@ -338,10 +322,12 @@ class EffectsEditor extends Component {
 
             console.log(`devpins=${devPins}`);
 
-            this.state.metaDataMap.set("DEVPINS", devPins);
+            runInAction(()=>{
+                this.metaDataMap.set("DEVPINS", devPins);
+            });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         }
 
         this.setMetaData();
@@ -349,88 +335,80 @@ class EffectsEditor extends Component {
 
     setMetaData() {
         try {
-            let effectSelected = Object.assign({}, this.state.effectSelected);
+            //let effectSelected = Object.assign({}, this.effectSelected);
 
             let str = [];
-            this.state.metaDataMap.forEach((value, key) => {
+            this.metaDataMap.forEach((value, key) => {
                 str.push(`${key}=${value}`);
             })
-
-            effectSelected.instructionMetaData = str.join(';');
 
             // set the effectInstructionSelected so the dropdown is selected
             // let effectInstructionSelected = Enumerable.AsEnumerable(this.state.effectInstructionsAvailable)
             //                                             .Where(x => x.value === effectSelected.effectInstructionId)
             //                                             .FirstOrDefault();
 
-            this.setState({
-                effectSelected,
-                effectInstructionSelectedId: effectSelected.effectInstructionId
+            runInAction(()=>{
+                this.effectSelected.instructionMetaData = str.join(';');
+                this.effectInstructionSelectedId = this.effectSelected.effectInstructionId;
+                
             });
 
-            this.handleEffectSave(effectSelected);
+            this.handleEffectSave(this.effectSelected);
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         }
     }
 
-    setIsBusy(busyState) {
-        clearTimeout(this.timer);
-        if (!busyState) {
-            this.setState({ isBusy: false });
-            return;
-        }
-
-        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
-    }
 
     handlePatternNameChange = (effect, evt) => {
-        effect.effectName = evt.target.value;
+        runInAction(()=>{
+            effect.effectName = evt.target.value;
+        });
         this.handleEffectSave(effect);
     }
 
     handleEffectSave = async (effect) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            var newEffect = Object.assign({}, effect);
+            //var newEffect = Object.assign({}, effect);
 
-            this.setState({ effectSelected: newEffect });
+            //this.setState({ effectSelected: newEffect });
 
-            this.parseMetaData(newEffect);
+            this.parseMetaData(effect);
 
-            await this.EffectServices.saveEffect(newEffect);
+            await EffectServices.saveEffect(effect);
+
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleRemoveFromMap(id) {
         try {
 
-            let pinOrdering = this.state.pinOrdering;
+            let pinOrdering = this.pinOrdering;
 
             pinOrdering = Enumerable.asEnumerable(pinOrdering)
                 .Where(pin => pin.id !== id)
                 .ToArray();
 
-            console.log("post remove: ");
+            console.log("post remove: " + id);
             console.log(pinOrdering);
 
             this.setPinOrderingInMap(pinOrdering);
 
-            this.setState({ pinOrdering });
-
+            runInAction(()=>{
+                this.pinOrdering = pinOrdering;
+            });
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
-
-
     }
 
     //when Dragging ends, we look at the place the item was dropped -
@@ -458,8 +436,8 @@ class EffectsEditor extends Component {
         console.log(`moving from ${sourceId} to ${destinationId}`);
 
         //just a short form of the two item arrays from state
-        let items = this.state.pinsAvailable;
-        let pinOrdering = this.state.pinOrdering;
+        let items = this.pinsAvailable;
+        let pinOrdering = this.pinOrdering;
 
         //If the place we moved the draggable out of is different from the place we moved it to, execute this
         if (sourceId !== destinationId) {
@@ -483,7 +461,10 @@ class EffectsEditor extends Component {
                     this.currentPinId++
                 );
                 //so now we set the state to our two lists
-                this.setState({ pinOrdering: lists[1] });
+                runInAction(()=>{
+                    this.pinOrdering = lists[1];
+                });
+                
                 this.setPinOrderingInMap(lists[1]);
 
             }
@@ -493,10 +474,12 @@ class EffectsEditor extends Component {
             console.log(`reordering ${sourceId}`);
             if (sourceId === "effectOrdering") {
                 pinOrdering = reorder(
-                    this.state.pinOrdering,
+                    this.pinOrdering,
                     source.index,
                     destination.index);
-                this.setState({ pinOrdering });
+                    runInAction(()=>{
+                        this.pinOrdering = pinOrdering;
+                    });
                 this.setPinOrderingInMap(pinOrdering);
             }
         }
@@ -514,14 +497,14 @@ class EffectsEditor extends Component {
                         <FormControl className={classes.formControl}>
                             <InputLabel htmlFor="devices1">Effects</InputLabel>
                             <Select
-                                value={this.state.effectIdSelected}
+                                value={this.effectIdSelected}
                                 onChange={(evt) => this.handleEffectChange(evt)}
                                 inputProps={{
                                     name: 'dev',
                                     id: 'devices1',
                                 }}
                             >
-                                {this.state.effects.map((effect, i) =>
+                                {this.props.appStore.effects.map((effect, i) =>
                                     (
                                         <MenuItem value={effect.effectId} key={i}>{effect.effectName}</MenuItem>
                                     ))}
@@ -529,7 +512,7 @@ class EffectsEditor extends Component {
                         </FormControl>
                     </form>
 
-                    {this.state.effectSelected && (
+                    {this.effectSelected && (
 
                         <Tooltip title="Delete Effect">
                             <IconButton onClick={(evt) => this.handleEffectDelete()}><DeleteIcon /></IconButton>
@@ -546,17 +529,18 @@ class EffectsEditor extends Component {
                 </div>
 
 
-                {this.state.effectSelected && (
+                {this.effectSelected && (
                     <div>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", flexDirection: "row" }}>
                                 <TextField
                                     label={"Effect Name"}
-                                    value={this.state.effectSelected.effectName}
+                                    value={this.effectSelected.effectName}
                                     onChange={(evt) => {
-                                        let effect = this.state.effectSelected;
-                                        effect.effectName = evt.target.value;
-                                        this.handleEffectSave(effect);
+                                        runInAction(()=>{
+                                            this.effectSelected.effectName = evt.target.value;
+                                        });
+                                        this.handleEffectSave(this.effectSelected);
                                     }}
                                     margin="normal"
                                 />
@@ -564,12 +548,13 @@ class EffectsEditor extends Component {
                                 <TextField
                                     label={"Duration"}
                                     style={{ width: "100px" }}
-                                    value={this.state.effectSelected.duration}
+                                    value={this.effectSelected.duration}
                                     margin="normal"
                                     onChange={(evt) => {
-                                        let effect = this.state.effectSelected;
-                                        effect.duration = evt.target.value;
-                                        this.handleEffectSave(effect);
+                                        runInAction(()=>{
+                                            this.effectSelected.duration = evt.target.value;
+                                        });
+                                        this.handleEffectSave(this.effectSelected);
                                     }}
                                 />
 
@@ -577,14 +562,17 @@ class EffectsEditor extends Component {
                                         <FormControl style={{ width: "200px" }} margin="normal">
                                             <InputLabel htmlFor="instructionsAvailable">Effects</InputLabel>
                                             <Select
-                                                value={this.state.effectInstructionSelectedId}
+                                                value={this.effectInstructionSelectedId}
                                                 onChange={(evt) => {
                                                     let effectInstructionId = evt.target.value;
                                                     if (effectInstructionId === null) return;
 
-                                                    let effect = this.state.effectSelected;
-                                                    effect.effectInstructionId = effectInstructionId;
-                                                    this.setState({ effectInstructionSelectedId: effectInstructionId })
+                                                    let effect = this.effectSelected;
+
+                                                    runInAction(()=>{
+                                                        effect.effectInstructionId = effectInstructionId;
+                                                        this.effectInstructionSelectedId = effectInstructionId;
+                                                    });
                                                     this.handleEffectSave(effect);
                                                 }
                                                 }
@@ -593,7 +581,7 @@ class EffectsEditor extends Component {
                                                     id: 'instructionsAvailable',
                                                 }}
                                             >
-                                                {this.state.effectInstructionsAvailable.map((effect, i) =>
+                                                {this.props.appStore.effectsAvailable.map((effect, i) =>
                                                     (
                                                         <MenuItem value={effect.value} key={i}>{effect.label}</MenuItem>
                                                     ))}
@@ -606,11 +594,13 @@ class EffectsEditor extends Component {
                                 <TextField
                                     label={"Effect Configuration"}
                                     style={{ width: "100%" }}
-                                    value={this.state.effectSelected.instructionMetaData}
+                                    value={this.effectSelected.instructionMetaData}
                                     margin="normal"
                                     onChange={(evt) => {
-                                        let effect = this.state.effectSelected;
-                                        effect.instructionMetaData = evt.target.value;
+                                        let effect = this.effectSelected;
+                                        runInAction(()=>{
+                                            effect.instructionMetaData = evt.target.value;
+                                        });
                                         this.handleEffectSave(effect);
                                     }}
                                 />
@@ -631,7 +621,7 @@ class EffectsEditor extends Component {
                                             <div
                                                 ref={provided.innerRef}
                                             > Source Pins:
-                                        {this.state.pinsAvailable.map((item, index) => (
+                                        {this.pinsAvailable.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
                                                             <div style={{ margin: '1px' }}>
@@ -665,7 +655,7 @@ class EffectsEditor extends Component {
                                             <div
                                                 ref={provided.innerRef}
                                             > Execution Order:
-                                        {this.state.pinOrdering.map((item, index) => (
+                                        {this.pinOrdering.map((item, index) => (
                                                     <Draggable key={item.id} draggableId={item.id} index={index}>
                                                         {(provided, snapshot) => (
                                                             <div style={{ margin: '1px' }}>
@@ -701,11 +691,6 @@ class EffectsEditor extends Component {
 
                 )
                 }
-
-                {
-                    this.state.isBusy && (<BusyContent />)
-                }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div >
         );
     }

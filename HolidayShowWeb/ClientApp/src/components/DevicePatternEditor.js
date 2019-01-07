@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
-
-import DeviceServices from '../Services/DeviceServices';
+import {inject, observer} from 'mobx-react';
+import {observable, runInAction} from 'mobx';
 import PatternServices from '../Services/DevicePatternServices';
 import DevicePatternSequenceServices from '../Services/DevicePatternSequenceServices';
-import AudioServices from '../Services/AudioServices';
 import DeviceIoPortServices from '../Services/DeviceIoPortServices';
-
-import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -20,7 +17,6 @@ import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import ComboSelect from 'react-select';
 import Typography from '@material-ui/core/Typography';
-import ErrorContent from './controls/ErrorContent';
 
 const styles = theme => ({
     formControl: {
@@ -32,50 +28,31 @@ const styles = theme => ({
 const sessionLastDeviceSelected = "PatternEdit-selectedDevice";
 const sessionLastPatternSelected = "PatternEdit-selectedPattern";
 
+@inject("appStore")
+@observer
 class DevicePattern extends Component {
     displayName = DevicePattern.name
 
-    constructor(props) {
-        super(props)
+    @observable patterns = [];
+    @observable patternSequences = [];
+    @observable ioPortOptions = [];
 
-        this.DeviceServices = DeviceServices;
-        this.PatternServices = PatternServices;
-        this.DevicePatternSequenceServices = DevicePatternSequenceServices;
-        this.AudioServices = AudioServices;
-        this.DeviceIoPortServices = DeviceIoPortServices;
-
-        this.state = {
-            devices: [],
-            deviceSelected: "",
-            deviceIdSelected: 0,
-            patterns: [],
-            patternSelected: "",
-            patternIdSelected: 0,
-            patternSequences: [],
-            isBusy: false,
-            audioOptions: [],
-            ioPortOptions: [],
-            errorMessage: null,
-        };
-    }
-
+    @observable deviceSelected = "";
+    @observable deviceIdSelected = 0;
+    @observable patternSelected = "";
+    @observable patternIdSelected = 0;
+    
     componentDidMount = async () => {
 
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            let audioOptions = await this.AudioServices.getAllAudioOptions();
-
-            audioOptions = audioOptions.map((item) => ({ value: item.audioId, label: item.name }));
-
-            this.setState({
-                audioOptions,
-            });
+            await this.props.appStore.audioLoadAsync();
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
         await this.getDevices();
@@ -85,9 +62,9 @@ class DevicePattern extends Component {
         let deviceIdSelected = 0;
 
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            let devices = await this.DeviceServices.getAllDevices();
+            let devices = await this.props.appStore.devicesGetAllAsync();
 
             let deviceSelected = Enumerable.asEnumerable(devices).FirstOrDefault();
 
@@ -109,16 +86,15 @@ class DevicePattern extends Component {
                 deviceIdSelected = deviceSelected.deviceId;
             }
 
-            this.setState({
-                devices,
-                deviceIdSelected: deviceIdSelected,
-                deviceSelected: deviceSelected
+            runInAction(()=>{
+                this.deviceIdSelected = deviceIdSelected;
+                this.deviceSelected = deviceSelected;
             });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
         this.handleDeviceChange(deviceIdSelected);
@@ -129,7 +105,7 @@ class DevicePattern extends Component {
     }
 
     handleDeviceChange = async (deviceId) => {
-        var device = Enumerable.asEnumerable(this.state.devices)
+        var device = Enumerable.asEnumerable(this.props.appStore.devices)
             .Where(x => x.deviceId === deviceId)
             .FirstOrDefault();
 
@@ -139,9 +115,9 @@ class DevicePattern extends Component {
 
         sessionStorage.setItem(sessionLastDeviceSelected, deviceId);
 
-        this.setState({
-            deviceIdSelected: deviceId,
-            deviceSelected: device
+        runInAction(()=>{
+            this.deviceIdSelected = deviceId;
+            this.deviceSelected = device;
         });
 
         await this.getPatternsForSelectedDevice(device);
@@ -153,8 +129,8 @@ class DevicePattern extends Component {
         let patternId = 0;
 
         try {
-            this.setIsBusy(true);
-            let patterns = await this.PatternServices.getDevicePatternsByDeviceId(device.deviceId);
+            this.props.appStore.isBusySet(true);
+            let patterns = await PatternServices.getDevicePatternsByDeviceId(device.deviceId);
 
             let lastSelectedPatternId = sessionStorage.getItem(sessionLastPatternSelected);
             if (lastSelectedPatternId != null) {
@@ -175,16 +151,16 @@ class DevicePattern extends Component {
                 patternId = Enumerable.asEnumerable(patterns).Select(x => x.devicePatternId).FirstOrDefault();
             }
 
-            this.setState({
-                patterns,
-                patternSequences: [],
-                deviceSelected: device
+            runInAction(()=>{
+                this.patterns = patterns;
+                this.patternSequences = [];
+                this.deviceSelected = device;
             });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
         this.handlePatternChange(patternId);
@@ -193,19 +169,20 @@ class DevicePattern extends Component {
     getIoPortsForSelectedDevice = async (device) => {
 
         try {
-            this.setIsBusy(true);
-            let ports = await this.DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
+            this.props.appStore.isBusySet(true);
+
+            let ports = await DeviceIoPortServices.ioPortGetByDeviceId(device.deviceId);
 
             ports = ports.map((item) => ({ label: `${item.commandPin}: ${item.description}`, value: item.deviceIoPortId }));
 
-            this.setState({
-                ioPortOptions: ports
-            })
+            runInAction(()=>{
+                this.ioPortOptions = ports;
+            });
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
@@ -213,7 +190,7 @@ class DevicePattern extends Component {
 
         if (patternId == null) return;
 
-        let patternSelected = Enumerable.asEnumerable(this.state.patterns)
+        let patternSelected = Enumerable.asEnumerable(this.patterns)
             .Where(x => x.devicePatternId === patternId)
             .FirstOrDefault();
 
@@ -221,9 +198,9 @@ class DevicePattern extends Component {
 
         sessionStorage.setItem(sessionLastPatternSelected, patternId);
 
-        this.setState({
-            patternSelected,
-            patternIdSelected: patternId
+        runInAction(()=>{
+            this.patternSelected = patternSelected;
+            this.patternIdSelected = patternId;
         });
 
         await this.handlePatternSequencesLoad(patternId);
@@ -232,161 +209,164 @@ class DevicePattern extends Component {
     handlePatternSequencesLoad = async (patternId) => {
 
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            let sequences = await this.DevicePatternSequenceServices.sequenceGetByPatternId(patternId);
+            let sequences = await DevicePatternSequenceServices.sequenceGetByPatternId(patternId);
 
-            this.setState({
-                patternSequences: sequences,
+            runInAction(()=>{
+                this.patternSequences = sequences;
             });
-
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
     }
 
     handlePatternDelete = async (evt) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            if (this.state.patternSelected == null) return;
+            if (this.patternSelected == null) return;
 
-            await this.PatternServices.deletePatternByPatternId(this.state.patternIdSelected);
+            await PatternServices.deletePatternByPatternId(this.patternIdSelected);
 
-            let patterns = this.state.patterns;
+            runInAction(()=>{
+                this.patternSelected = "";
+                this.patternIdSelected = 0;
+                this.patternSequences = [];
+                this.patterns.splice(this.patterns.indexOf(this.patternSelected), 1);    
+            });
 
-            // Remove the element from the existing list
-            patterns.splice(patterns.indexOf(this.state.patternSelected), 1);
-
-            this.setState({
-                patternSelected: "",
-                patternIdSelected: 0,
-                patternSequences: [],
-                patterns
-            })
-
+            this.getPatternsForSelectedDevice(this.deviceSelected);
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handlePatternCreate = async (evt) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             let newPattern = {
-                deviceId: this.state.deviceSelected.deviceId,
+                deviceId: this.deviceSelected.deviceId,
                 patternName: "New Pattern",
             };
 
-            newPattern = await this.PatternServices.createPattern(newPattern);
+            newPattern = await PatternServices.createPattern(newPattern);
 
-            let patterns = this.state.patterns;
-            patterns.push(newPattern);
-
-            this.setState({
-                patterns,
-                patternSelected: newPattern,
-                patternIdSelected: newPattern.devicePatternId,
-                patternSequences: [],
-            })
+            runInAction(()=>{
+                this.patterns.push(newPattern);
+                this.patternSelected = newPattern;
+                this.patternIdSelected = newPattern.devicePatternId;
+                this.patternSequences = [];
+            });
 
             this.handlePatternSequencesLoad(newPattern.devicePatternId);
 
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     setIsBusy(busyState) {
         clearTimeout(this.timer);
         if (!busyState) {
-            this.setState({ isBusy: false });
+            this.props.appStore.isBusySet(false);
             return;
         }
 
-        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
+        this.timer = setTimeout(() => this.props.appStore.isBusySet(true), 250);
     }
 
     handlePatternNameChange = (pattern, evt) => {
-        pattern.patternName = evt.target.value;
+        runInAction(()=>{
+            pattern.patternName = evt.target.value;
+        });
         this.handlePatternSave(pattern);
     }
 
     handlePatternSave = async (pattern) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            await this.PatternServices.updatePattern(pattern);
-
-            this.setState({});
+            await PatternServices.updatePattern(pattern);
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSequenceCreate = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             // find the next sequence, and add it at the end.
 
-            var lastOnAt = Enumerable.asEnumerable(this.state.patternSequences)
-                .Select(x => x.onAt)
-                .OrderByDescending(x => x)
+            var lastOnAt = Enumerable.asEnumerable(this.patternSequences)
+                .OrderByDescending(x => x.onAt)
                 .FirstOrDefault();
 
             let nextOnAt = 0;
-            if (lastOnAt != null) nextOnAt = lastOnAt * 1;
+            if (lastOnAt != null) {
+                nextOnAt = lastOnAt.onAt * 1;
+
+
+                // if the last on-at has an audio file, lets move this to the next period
+                // for the user so the time doesnt have to be calculated
+                var audioDuration = Enumerable.asEnumerable(this.props.appStore.audioFiles)
+                                    .Where(x => x.audioId === lastOnAt.audioId)
+                                    .Select(x => x.audioDuration)
+                                    .FirstOrDefault();
+                
+                nextOnAt += audioDuration;
+
+            }
             nextOnAt = nextOnAt + 1000;
+            
 
             let newSequence = {
                 onAt: nextOnAt,
-                devicePatternId: this.state.patternIdSelected,
+                devicePatternId: this.patternIdSelected,
+                audioId: 1
             };
 
-            newSequence = await this.DevicePatternSequenceServices.sequenceCreate(this.state.deviceIdSelected, newSequence);
+            newSequence = await DevicePatternSequenceServices.sequenceCreate(this.deviceIdSelected, newSequence);
 
-            let sequences = this.state.patternSequences;
-            sequences.push(newSequence);
-
-            this.setState({
-                patternSequences: sequences
+            let sequences = this.patternSequences;
+            
+            runInAction(()=>{
+                sequences.push(newSequence);
+                this.patternSequences = sequences;
             });
-
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleCommandDelete = async (pattern) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             // find the next sequence, and add it at the end.
-            await this.DevicePatternSequenceServices.sequenceDelete(pattern.devicePatternSeqenceId);
+            await DevicePatternSequenceServices.sequenceDelete(pattern.devicePatternSeqenceId);
 
-            this.setState({
-                patternSequences: []
-            })
+            runInAction(()=>{
+                this.patternSequences.splice(this.patternSequences.indexOf(pattern), 1);
+             });
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
-
-        await this.handlePatternSequencesLoad(this.state.patternIdSelected);
     }
 
     render() {
@@ -400,33 +380,33 @@ class DevicePattern extends Component {
                         <FormControl className={classes.formControl}>
                             <InputLabel htmlFor="devices1">Devices</InputLabel>
                             <Select
-                                value={this.state.deviceIdSelected}
+                                value={this.deviceIdSelected}
                                 onChange={(evt) => this.handleDeviceChange(evt.target.value)}
                                 inputProps={{
                                     name: 'dev',
                                     id: 'devices1',
                                 }}
                             >
-                                {this.state.devices.map((device, i) =>
+                                {this.props.appStore.devices.map((device, i) =>
                                     (
                                         <MenuItem value={device.deviceId} key={i}>{device.deviceId}: {device.name}</MenuItem>
                                     ))}
                             </Select>
                         </FormControl>
                     </form>
-                    {this.state.patterns && this.state.patterns.length > 0 && (
+                    {this.patterns && this.patterns.length > 0 && (
                         <form className={classes.root} autoComplete="off">
                             <FormControl className={classes.formControl}>
                                 <InputLabel htmlFor="patterns1">Patterns</InputLabel>
                                 <Select
-                                    value={this.state.patternIdSelected}
+                                    value={this.patternIdSelected}
                                     onChange={(evt) => this.handlePatternChange(evt.target.value)}
                                     inputProps={{
                                         name: 'pattern',
                                         id: 'patterns1',
                                     }}
                                 >
-                                    {this.state.patterns && this.state.patterns.map((pattern, i) =>
+                                    {this.patterns && this.patterns.map((pattern, i) =>
                                         (
                                             <MenuItem value={pattern.devicePatternId} key={i}>{pattern.patternName}</MenuItem>
                                         ))}
@@ -435,7 +415,7 @@ class DevicePattern extends Component {
                         </form>
                     )}
 
-                    {this.state.patternSelected && (
+                    {this.patternSelected && (
 
                         <Tooltip title="Delete Pattern">
                             <IconButton onClick={(evt) => this.handlePatternDelete()}><DeleteIcon /></IconButton>
@@ -443,7 +423,7 @@ class DevicePattern extends Component {
 
                     )}
 
-                    {this.state.deviceSelected && (
+                    {this.deviceSelected && (
                         <Tooltip title="Create New Pattern">
                             <IconButton onClick={(evt) => this.handlePatternCreate()}><AddIcon /></IconButton>
                         </Tooltip>
@@ -452,14 +432,14 @@ class DevicePattern extends Component {
                 </div>
 
 
-                {this.state.patternSelected && (
+                {this.patternSelected && (
                     <div>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", flexDirection: "row" }}>
                                 <TextField
                                     label={"Pattern Name"}
-                                    value={this.state.patternSelected.patternName}
-                                    onChange={(evt) => this.handlePatternNameChange(this.state.patternSelected, evt)}
+                                    value={this.patternSelected.patternName}
+                                    onChange={(evt) => this.handlePatternNameChange(this.patternSelected, evt)}
                                     margin="normal"
                                 />
 
@@ -502,13 +482,12 @@ class DevicePattern extends Component {
 
                                 </div>
 
-                                {/* {this.state.patternSequences && this.state.patternSequences.map((sequence, i) => */}
-                                {this.state.patternSequences.map((sequence, i) =>
+                                {this.patternSequences.map((sequence, i) =>
                                     (
                                         <EditPattern
                                             sequence={sequence}
-                                            audioOptions={this.state.audioOptions}
-                                            portOptions={this.state.ioPortOptions}
+                                            audioOptions={this.props.appStore.audioFiles}
+                                            portOptions={this.ioPortOptions}
                                             onDelete={(s) => this.handleCommandDelete(s)}
                                             key={i} />
                                     ))}
@@ -520,11 +499,6 @@ class DevicePattern extends Component {
 
                 )
                 }
-
-                {
-                    this.state.isBusy && (<BusyContent />)
-                }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div >
         );
     }
@@ -532,64 +506,68 @@ class DevicePattern extends Component {
 
 export default withStyles(styles)(DevicePattern);
 
+@inject("appStore")
+@observer
 class EditPattern extends Component {
-    constructor(props) {
-        super(props)
 
-        this.state = {
-            onAt: this.props.sequence.onAt,
-            duration: this.props.sequence.duration,
-            port: "",
-            audio: "",
-            errorMessage: null,
-        };
-
-        this.DevicePatternSequenceServices = DevicePatternSequenceServices;
-    }
+    @observable port = "";
+    @observable audio = "";
 
     componentDidUpdate(prevProps, prevState) {
-        // only update chart if the data has changed
+        // only update if the data has changed
         if (prevProps.sequence !== this.props.sequence || prevProps.audioOptions !== this.props.audioOptions || prevProps.portOptions !== this.props.portOptions) {
-          
-            try {
-                let selectedAudioItem = Enumerable.AsEnumerable(this.props.audioOptions)
-                                            .Where(x => x.value === this.props.sequence.audioId)
-                                            .FirstOrDefault();
-    
-                let selectIoPort = Enumerable.AsEnumerable(this.props.portOptions)
-                                            .Where(x => x.value === this.props.sequence.deviceIoPortId)
-                                            .FirstOrDefault();
-    
-                this.setState({
-                    audio: selectedAudioItem,
-                    port: selectIoPort
-                });
-    
-            } catch (e) {
-               
-            }
-
+            this.updateMe();
         }
-      }
+    }
 
-    componentDidMount = async () => {
+    componentDidMount(){
+        this.updateMe();
+    }
 
-       
+    updateMe(){
+        try {
+            let selectedAudioItem = Enumerable.AsEnumerable(this.props.audioOptions)
+                                        .Where(x => x.value === this.props.sequence.audioId)
+                                        .FirstOrDefault();
+
+            let selectIoPort = Enumerable.AsEnumerable(this.props.portOptions)
+                                        .Where(x => x.value === this.props.sequence.deviceIoPortId)
+                                        .FirstOrDefault();
+
+            runInAction(()=>{
+                this.port = selectIoPort;
+                this.audio = selectedAudioItem;
+            });
+
+        }catch (e) {
+           this.props.appStore.errorMessageSet("Error Setting Compoent: " + e.message);
+        }
     }
 
     handleSave = async () => {
         var sequence = this.props.sequence;
         let sequenceId = sequence.devicePatternSeqenceId;
 
-        sequence.onAt = this.state.onAt;
-        sequence.duration = this.state.duration;
-        sequence.audioId = this.state.audio.value;
-        sequence.deviceIoPortId = this.state.port.value;
+        runInAction(()=>{
+            
+            if(this.audio === null || this.audio === ""){
+                sequence.audioId = 1;
+            }else{
+                sequence.audioId = this.audio.value;
+            }
+            
+            if(this.port === null || this.port === ""){
+                //sequence.deviceIoPortId = this.port.value;
+            }else{
+                sequence.deviceIoPortId = this.port.value;
+            }
+            
+        });
 
         try {
-            await this.DevicePatternSequenceServices.sequenceSave(sequenceId, sequence);
+            await DevicePatternSequenceServices.sequenceSave(sequenceId, sequence);
         } catch (e) {
-            this.setState({ errorMessage: e.message })
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
 
         }
@@ -608,26 +586,26 @@ class EditPattern extends Component {
             <div style={{ display: "flex", flexDirection: "row", }}>
                 <TextField
                     className="child75"
-                    value={this.state.onAt}
+                    value={this.props.sequence.onAt}
                     onChange={(evt) => {
-                        this.setState(
-                            {
-                                onAt: evt.target.value
-                            }
-                        );
+
+                        runInAction(()=>{
+                            this.props.sequence.onAt = evt.target.value;
+                        });
+
                         this.handleDelaySave();
                     }}
                 />
 
                 <TextField
                     className="child75"
-                    value={this.state.duration}
+                    value={this.props.sequence.duration}
                     onChange={(evt) => {
-                        this.setState(
-                            {
-                                duration: evt.target.value
-                            }
-                        );
+
+                        runInAction(()=>{
+                            this.props.sequence.duration = evt.target.value;
+                        });
+
                         this.handleDelaySave();
                     }}
                 />
@@ -638,11 +616,16 @@ class EditPattern extends Component {
                     options={this.props.portOptions}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
-                        this.setState({ port: selectValue })
+
+                        runInAction(()=>{
+                            this.props.sequence.deviceIoPortId = selectValue.deviceIoPortId;
+                            this.port = selectValue;
+                        });
+
                         this.handleDelaySave();
                     }
                     }
-                    value={this.state.port}
+                    value={this.port}
                 />
 
                 <ComboSelect
@@ -651,17 +634,26 @@ class EditPattern extends Component {
                     clearable={false}
                     onChange={(selectValue) => {
                         if (selectValue == null) return;
-                        this.setState({ audio: selectValue })
+
+                        runInAction(()=>{
+                            console.log("1");
+                            this.props.sequence.audioId = selectValue.audioId;
+                            console.log("2");
+                            this.audio = selectValue;
+                            console.log("3");
+                        });
+
+                        console.log("4");
                         this.handleDelaySave();
+                        console.log("5");
                     }
                     }
-                    value={this.state.audio}
+                    value={this.audio}
                 />
 
                 <Tooltip title="Delete Command">
                     <IconButton onClick={(evt) => this.props.onDelete(this.props.sequence)}><DeleteIcon /></IconButton>
                 </Tooltip>
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={() => { this.setState({ errorMessage: null }) }} />
             </div>
         )
     }

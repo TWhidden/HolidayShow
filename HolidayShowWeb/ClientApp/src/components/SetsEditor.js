@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
+import {inject, observer} from 'mobx-react';
+import {observable, runInAction} from 'mobx';
 
 import DevicePatternServices from '../Services/DevicePatternServices';
-import SetServices from '../Services/SetServices';
-import SetSequenceServices from '../Services/SetSequenceServices';
 import EffectServices from '../Services/EffectServices';
-import DeviceServices from '../Services/DeviceServices';
+import SetSequenceServices from '../Services/SetSequenceServices';
+import SetServices from '../Services/SetServices';
 
-import BusyContent from './controls/BusyContent';
 import { withStyles } from '@material-ui/core/styles';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -20,7 +20,6 @@ import AddIcon from '@material-ui/icons/Add';
 import Tooltip from '@material-ui/core/Tooltip';
 import ComboSelect from 'react-select';
 import Typography from '@material-ui/core/Typography';
-import ErrorContent from './controls/ErrorContent';
 
 
 const styles = theme => ({
@@ -39,38 +38,27 @@ const styles = theme => ({
 
 const sessionSetSelected = "SetEdit-SetSelected";
 
+@inject("appStore")
+@observer
 class SetsEditor extends Component {
     displayName = SetsEditor.name
 
-    constructor(props) {
-        super(props)
-
-        this.DeviceServices = DeviceServices;
-        this.DevicePatternServices = DevicePatternServices;
-        this.SetServices = SetServices;
-        this.SetSequenceServices = SetSequenceServices;
-        this.EffectServices = EffectServices;
-
-        this.state = {
-            sets: [],
-            setIdSelected: 0,
-            setSelected: null,
-            setSequences: [],
-            patterns: [],
-            effects: [],
-            errorMessage: null,
-        };
-    }
+    @observable setIdSelected = 0;
+    @observable setSelected = null;
+    @observable setSequences = [];
+    @observable patterns = [];
+    @observable effects = [];
+    @observable sets = [];
 
     componentDidMount = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
+
+            let devices = await this.props.appStore.devicesGetAllAsync();
 
             let none = {label: "NONE", value: null};
 
-            let devices = await this.DeviceServices.getAllDevices();
-
-            let patterns = await this.DevicePatternServices.getAllPatterns();
+            let patterns = await DevicePatternServices.getAllPatterns();
 
             patterns = Enumerable.asEnumerable(patterns)
                                 .Join(devices, pattern => pattern.deviceId, device => device.deviceId, (pattern, device)=>{return {deviceName: device.name, deviceId: device.deviceId, patternName: pattern.patternName, patternId: pattern.devicePatternId}})
@@ -79,27 +67,25 @@ class SetsEditor extends Component {
                                 .Select(item => ({ label: `${item.deviceName}: ${item.patternName}` , value: item.patternId }))
                                 .ToArray();
 
-            //patterns = patterns.map((item) => ({ label: `${item.deviceId}: ${item.patternName}` , value: item.devicePatternId }));
-
             patterns.splice(0, 0, none);
 
-            let effects = await this.EffectServices.getAllEffects();
+            let effects = await EffectServices.getAllEffects();
 
             effects = effects.map((item) => ({ label: item.effectName, value: item.effectId }));
 
             effects.splice(0, 0, none);
 
-            this.setState({
-                patterns,
-                effects,
+            runInAction(()=>{
+                this.patterns = patterns;
+                this.effects = effects;
             });
 
             await this.getAllSets();
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
@@ -108,9 +94,9 @@ class SetsEditor extends Component {
         let setIdSelected = 0;
 
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
             
-            let sets = await this.SetServices.getAllSets();
+            let sets = await SetServices.getAllSets();
 
             let setSelected = Enumerable.asEnumerable(sets).FirstOrDefault();
 
@@ -132,16 +118,16 @@ class SetsEditor extends Component {
                 setIdSelected = setSelected.setId;
             }
 
-            this.setState({
-                sets,
-                setIdSelected,
-                setSelected,
+            runInAction(()=>{
+                this.sets = sets;
+                this.setIdSelected = setIdSelected;
+                this.setSelected = setSelected;
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
         if(setIdSelected !== 0){
@@ -155,7 +141,7 @@ class SetsEditor extends Component {
 
     handleSetChange = async (setId) => {
 
-        var set = Enumerable.asEnumerable(this.state.sets)
+        var set = Enumerable.asEnumerable(this.sets)
             .Where(x => x.setId === setId)
             .FirstOrDefault();
 
@@ -164,9 +150,10 @@ class SetsEditor extends Component {
         console.log(`setting ${sessionSetSelected}: ${Number(setId)}`)
         sessionStorage.setItem(sessionSetSelected, setId);
 
-        this.setState({
-            setSelected: set,
-            setIdSelected: setId
+        runInAction(()=>{
+            this.setSelected = set;
+            this.setIdSelected = setId;
+            this.setSequences = [];
         });
 
         await this.getSequencesForSet(set);
@@ -174,115 +161,88 @@ class SetsEditor extends Component {
 
     getSequencesForSet = async (set) => {
         try {
-            this.setIsBusy(true);
-            let setSequences = await this.SetSequenceServices.getSetSequencesBySetId(set.setId)
+            this.props.appStore.isBusySet(true);
+            let setSequences = await SetSequenceServices.getSetSequencesBySetId(set.setId)
 
             if(setSequences == null) setSequences = [];
 
-            this.setState({
-                setSequences,
+            runInAction(()=>{
+                this.setSequences = setSequences;
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSetDelete = async (evt) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            if (this.state.setIdSelected == null) return;
+            if (this.setIdSelected == null) return;
 
-            await this.SetServices.setDelete(this.state.setIdSelected)
+            await SetServices.setDelete(this.setIdSelected)
 
-            let sets = this.state.sets;
-
-            sets.splice(sets.indexOf(this.state.setSelected), 1);
-
-            this.setState({
-                sets,
-                setIdSelected: 0,
-                setSelected: null,
-                setSequences: []
-            })
+            runInAction(()=>{
+                this.sets.splice(this.sets.indexOf(this.setSelected), 1);
+                this.setIdSelected = 0;
+                this.setSelected = null;
+                this.setSequences = [];
+            });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSetCreate = async (evt) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             let set = {
                 setName: "New Set",
             };
 
-            set = await this.SetServices.createSet(set);
+            set = await SetServices.createSet(set);
 
-            let sets = this.state.sets;
-            sets.push(set);
-
-            this.setState({
-                sets,
-                setSelected: set,
-                setIdSelected: set.setId,
-                setSequences: []
+            runInAction(()=>{
+                this.sets.push(set);
+                this.setSelected = set;
+                this.setIdSelected = set.SetId;
+                this.setSequences = [];
             });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
-    }
-
-    setIsBusy(busyState) {
-        clearTimeout(this.timer);
-        if (!busyState) {
-            this.setState({ isBusy: false });
-            return;
-        }
-
-        this.timer = setTimeout(() => this.setState({ isBusy: true }), 250);
-    }
-
-    handlePatternNameChange = (set, evt) => {
-        
-        set = Object.assign({}, set);
-        set.setName = evt.target.value;
-
-        this.setState({ setSelected: set });
-
-        this.handleSetSave(set);
     }
 
     handleSetSave = async (set) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
-            await this.SetServices.saveSet(set)
+            await SetServices.saveSet(set)
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSequenceCreate = async () => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             // find the next sequence, and add it at the end.
 
-            var lastOnAt = Enumerable.asEnumerable(this.state.setSequences)
+            var lastOnAt = Enumerable.asEnumerable(this.setSequences)
                 .Select(x => x.onAt)
                 .OrderByDescending(x => x)
                 .FirstOrDefault();
@@ -293,42 +253,40 @@ class SetsEditor extends Component {
 
             let setSequence = {
                 onAt: nextOnAt,
-                setId: this.state.setIdSelected,
+                setId: this.setIdSelected,
             };
 
-            setSequence = await this.SetSequenceServices.createSetSequence(setSequence);
-
-            let sequences = this.state.setSequences;
-            sequences.push(setSequence);
-
-            this.setState({
-                sequences
-            })
+            setSequence = await SetSequenceServices.createSetSequence(setSequence);
+            
+            runInAction(()=>{
+                this.setSequences.push(setSequence);
+            });
 
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
     }
 
     handleSequenceDelete = async (setSequence) => {
         try {
-            this.setIsBusy(true);
+            this.props.appStore.isBusySet(true);
 
             // find the next sequence, and add it at the end.
-            await this.SetSequenceServices.deleteSetSequence(setSequence.setSequenceId);
+            await SetSequenceServices.deleteSetSequence(setSequence.setSequenceId);
 
-            this.setState({
-                 setSequences: []
-            })
+            runInAction(()=>{
+                this.setSequences = [];
+            });
+
         } catch (e) {
-            this.setState({errorMessage: e.message})
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
-            this.setIsBusy(false);
+            this.props.appStore.isBusySet(false);
         }
 
-        await this.getSequencesForSet(this.state.setSelected);
+        await this.getSequencesForSet(this.setSelected);
     }
 
     render() {
@@ -342,14 +300,14 @@ class SetsEditor extends Component {
                         <FormControl className={classes.formControl}>
                             <InputLabel htmlFor="devices1">Sets</InputLabel>
                             <Select
-                                value={this.state.setIdSelected}
+                                value={this.setIdSelected}
                                 onChange={(evt) => this.handleSetChange(evt.target.value)}
                                 inputProps={{
                                     name: 'dev',
                                     id: 'devices1',
                                 }}
                             >
-                                {this.state.sets.map((set, i) =>
+                                {this.sets.map((set, i) =>
                                     (
                                         <MenuItem value={set.setId} key={i}>{set.setName}</MenuItem>
                                     ))}
@@ -358,7 +316,7 @@ class SetsEditor extends Component {
                         
                     </form>
                    
-                    {this.state.setSelected && (
+                    {this.setSelected && (
 
                         <Tooltip title="Delete Set">
                             <IconButton onClick={(evt) => this.handleSetDelete()}><DeleteIcon /></IconButton>
@@ -375,14 +333,19 @@ class SetsEditor extends Component {
                 </div>
 
 
-                {this.state.setSelected && (
+                {this.setSelected && (
                     <div>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", flexDirection: "row" }}>
                                 <TextField
                                     label={"Set Name"}
-                                    value={this.state.setSelected.setName}
-                                    onChange={(evt) => this.handlePatternNameChange(this.state.setSelected, evt)}
+                                    value={this.setSelected.setName}
+                                    onChange={(evt) => {
+                                        runInAction(()=>{
+                                            this.setSelected.setName = evt.target.value;
+                                        });
+                                        this.handleSetSave(this.setSelected);
+                                    }}
                                     margin="normal"
                                 />
 
@@ -419,11 +382,11 @@ class SetsEditor extends Component {
 
                                 </div>
 
-                                {this.state.setSequences.map((sequence, i) =>
+                                {this.setSequences.map((sequence, i) =>
                                     (
                                         <SetSequenceEdit 
-                                            effects={this.state.effects} 
-                                            patterns={this.state.patterns}
+                                            effects={this.effects} 
+                                            patterns={this.patterns}
                                             onDelete={(s)=>this.handleSequenceDelete(s)}
                                             sequence={sequence} 
                                             key={i} />
@@ -436,11 +399,6 @@ class SetsEditor extends Component {
 
                 )
                 }
-
-                {
-                    this.state.isBusy && (<BusyContent />)
-                }
-                <ErrorContent errorMessage={this.state.errorMessage} errorClear={()=>{this.setState({errorMessage: null})}}/>
             </div >
         );
     }
@@ -448,18 +406,12 @@ class SetsEditor extends Component {
 
 export default withStyles(styles)(SetsEditor);
 
+@inject("appStore")
+@observer
 class SetSequenceEdit extends Component {
-    constructor(props) {
-        super(props)
-
-        this.state = {
-            onAt: this.props.sequence.onAt,
-            devicePattern: "",
-            effect: "",
-        };
-
-        this.SetSequenceServices = SetSequenceServices;
-    }
+    
+    @observable devicePattern = "";
+    @observable effect = "";
 
     componentDidMount = async () => {
 
@@ -477,27 +429,27 @@ class SetSequenceEdit extends Component {
                                         .Where(x => x.value === this.props.sequence.effectId)
                                         .FirstOrDefault();
 
-            this.setState({
-                devicePattern,
-                effect
+            runInAction(()=>{
+                this.devicePattern = devicePattern;
+                this.effect = effect;
             });
 
         } catch (e) {
-           
+            this.props.appStore.errorMessageSet(e.message);
         }
     }
 
     handleSave = async () => {
-        var sequence = Object.assign(this.props.sequence);
-        
-        sequence.onAt = this.state.onAt;
-        sequence.devicePatternId = this.state.devicePattern.value;
-        sequence.effectId = this.state.effect.value;
+
+        runInAction(()=>{
+            this.props.sequence.devicePatternId = this.devicePattern.value;
+            this.props.sequence.effectId = this.effect.value;
+        });
 
         try {
-            await this.SetSequenceServices.saveSetSequence(sequence);
+            await SetSequenceServices.saveSetSequence(this.props.sequence);
         } catch (e) {
-
+            this.props.appStore.errorMessageSet(e.message);
         } finally {
 
         }
@@ -516,13 +468,13 @@ class SetSequenceEdit extends Component {
             <div style={{ display: "flex", flexDirection: "row", }}>
                 <TextField
                     className="child75"
-                    value={this.state.onAt}
+                    value={this.props.sequence.onAt}
                     onChange={(evt) => {
-                        this.setState(
-                            {
-                                onAt: evt.target.value
-                            }
-                        );
+
+                        runInAction(()=>{
+                            this.props.sequence.onAt = evt.target.value;
+                        });
+                        
                         this.handleDelaySave();
                     }}
                 />
@@ -533,11 +485,15 @@ class SetSequenceEdit extends Component {
                     options={this.props.patterns}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;
-                        this.setState({ devicePattern: selectValue })
+
+                        runInAction(()=>{
+                            this.devicePattern = selectValue;
+                        });
+
                         this.handleDelaySave();
                     }
                     }
-                    value={this.state.devicePattern}
+                    value={this.devicePattern}
                 />
 
                 <ComboSelect
@@ -546,11 +502,13 @@ class SetSequenceEdit extends Component {
                     options={this.props.effects}
                     onChange={(selectValue) => {
                         if(selectValue == null) return;
-                        this.setState({ effect: selectValue })
+                        runInAction(()=>{
+                            this.effect = selectValue;
+                        });
                         this.handleDelaySave();
                     }
                     }
-                    value={this.state.effect}
+                    value={this.effect}
                 />
 
                   <Tooltip title="Delete Sequence">

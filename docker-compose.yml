@@ -7,14 +7,14 @@ services:
   #    context: .
   #    dockerfile: HolidayShowClient.Core/Dockerfile
 
-  HolidayShowServer:
-   image: holidayshowserver
+  #HolidayShowServer:
+  # image: holidayshowserver
+  # build:
+  #   context: .
+  #   dockerfile: HolidayShowServer.Core/Dockerfile
+
+  HolidayShowEdit:
+   image: holidayshowedit
    build:
      context: .
-     dockerfile: HolidayShowServer.Core/Dockerfile
-
-#  HolidayShowEdit:
-#   image: holidayshowedit
-#   build:
-#     context: .
-#     dockerfile: HolidayShowWeb/Dockerfile
+     dockerfile: HolidayShowWeb/Dockerfile

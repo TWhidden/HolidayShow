@@ -12,8 +12,7 @@ class SettingServices {
         await fetch(`/api/Settings/RestartExecution`, options)
     }
 
-    executionOff = async () => {
-
+    exectionSet = async (value) => {
         let options = {
             method: 'put',
             headers: {
@@ -22,35 +21,19 @@ class SettingServices {
             }
         }
 
-        await fetch(`/api/Settings/PlaybackOption/0`, options)
+        await fetch(`/api/Settings/PlaybackOption/${value}`, options)
+    }
+
+    executionOff = async () => {
+        await this.exectionSet(0);
     }
 
     executionCurrentOnly = async () => {
-
-        let options = {
-            method: 'put',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }
-
-
-        await fetch(`/api/Settings/PlaybackOption/2`, options)
+        await this.exectionSet(2);
     }
 
     executionRandom = async () => {
-
-        let options = {
-            method: 'put',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }
-
-
-        await fetch(`/api/Settings/PlaybackOption/1`, options)
+        await this.exectionSet(1);
     }
 
     getAllSettings = async () =>

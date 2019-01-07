@@ -111,7 +111,7 @@ class MiniDrawer extends React.Component {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="title" color="inherit" noWrap>
+            <Typography variant="title" color="secondary" noWrap>
               Holiday Show Editor
             </Typography>
           </Toolbar>
