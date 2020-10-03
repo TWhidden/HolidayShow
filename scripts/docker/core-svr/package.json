@@ -1,0 +1,26 @@
+{
+  "name": "holidayshowserver",
+  "version": "0.1.0",
+  "description": "Holiday Show Server- netcore",
+  "author": "Travis Whidden",
+  "scripts": {
+    "build-x64": "../build.sh -d core-svr -a x64",
+    "build-x64-beta": "../build.sh  -d core-svr -a x64 -l beta",
+    "push-x64": "../push.sh -d core-svr -a x64",
+    "push-x64-beta": "../push.sh -d core-svr -a x64 -l beta",
+    "docker-run": "../run.sh -d core-svr",
+    "docker-run-shell": "../run.sh -d core-svr -c /bin/bash",
+    "docker-run-beta": "../run.sh -d core-svr -l beta"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TWhidden/HolidayShow.git"
+  },
+  "license": "UNLICENSED",
+  "skeletonVersion": "1.2.0",
+  "dependencies": {
+    "eventsource": "^1.0.7",
+    "request": "^2.88.2",
+    "ws": "^7.3.1"
+  }
+}

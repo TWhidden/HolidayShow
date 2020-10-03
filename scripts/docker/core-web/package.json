@@ -4,24 +4,14 @@
   "description": "Holiday Show - netcore",
   "author": "Travis Whidden",
   "scripts": {
-    "build-react": "../buildreact.sh",
-    "build-all": "../build.sh",
-    "build-all-beta": "../build.sh -l beta",
-    "build-x64": "../build.sh -a x64",
-    "build-x64-beta": "./build.sh -a x64 -l beta",
-    "build-x64-beta-skip-react": "../build.sh -d core-web -a x64 -l beta -s 0",
-    "push-all": "../push.sh",
-    "push-all-beta": "../push.sh -l beta",
+    "build-x64": "../build.sh -a x64  -s 1",
+    "build-x64-beta": "./build.sh -a x64 -l beta -s 1",
+    "build-x64-beta-skip-react": "../build.sh -d core-web -a x64 -l beta",
     "push-x64": "../push.sh -a x64",
     "push-x64-beta": "../push.sh -a x64 -l beta",
     "docker-run": "../run.sh",
     "docker-run-shell": "../run.sh -c bash",
-    "docker-run-beta": "../run.sh -d core-web -l beta",
-    "docker-run-beta-shell": "../run.sh -l beta -c bash",
-    "create-release-patch": "npm version patch -m \"Release v%s\"",
-    "create-release-minor": "npm version minor -m \"Release v%s\"",
-    "create-release-major": "npm version major -m \"Release v%s\"",
-    "deploy-release": "git push && git push --tags"
+    "docker-run-beta": "../run.sh -d core-web -l beta"
   },
   "repository": {
     "type": "git",

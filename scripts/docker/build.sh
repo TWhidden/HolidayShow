@@ -3,7 +3,7 @@
 arch="all"
 model=""
 label=""
-buildReact="1"
+buildReact="0"
 
 while getopts "a:l:s:u:d:" opt; do
   case ${opt} in

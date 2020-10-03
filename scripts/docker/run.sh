@@ -2,6 +2,7 @@
 
 command=""
 label=""
+model=""
 
 red='\033[0;31m'
 blue='\033[0;34m'
@@ -76,7 +77,7 @@ docker run -it --rm \
   -e DBNAME=HolidayShow_Dev \
   -e DBUSER=dev \
   -e DBPASS=dev123 \
-  ${imageToRun}
+  ${imageToRun} ${command}
 
 
 echo -e "\n${blue}★ ${green}COMPLETE ${blue}★${nc}\n"

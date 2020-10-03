@@ -45,6 +45,12 @@ namespace HolidayShowWeb
             services.AddDbContext<EfHolidayContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            // Update the database
+            using (var dc = new EfHolidayContext(connectionString))
+            {
+                dc.UpdateDatabase();
+            }
+
             // needed to tell the system where the Single Page App files are located.
             services.AddSpaStaticFiles((x) => { x.RootPath = "wwwroot/react"; });
 
