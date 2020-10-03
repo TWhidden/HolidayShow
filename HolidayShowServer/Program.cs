@@ -625,6 +625,18 @@ namespace HolidayShowServer
 
                                 if (setSequence.DeviceEffects == null || setSequence.DeviceEffects.EffectInstructionsAvailable.IsDisabled) continue;
 
+                                var timeOn = setSequence.DeviceEffects.TimeOn;
+                                var timeOff = setSequence.DeviceEffects.TimeOff;
+
+                                if (!string.IsNullOrWhiteSpace(timeOn) && !string.IsNullOrWhiteSpace(timeOff))
+                                {
+                                    if (!IsCurrentTimeBetweenSettingTimes(timeOn, timeOff))
+                                    {
+                                        continue;
+                                    }
+                                }
+                                 
+
                                 switch (setSequence.DeviceEffects.EffectInstructionsAvailable.InstructionName)
                                 {
                                     case EffectsSupported.GPIO_RANDOM:

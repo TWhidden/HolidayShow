@@ -382,3 +382,13 @@ BEGIN
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (6, getUtcDate())
 END
+
+if NOT EXISTS (select * from Versions where VersionNumber = 7)
+BEGIN
+
+	ALTER TABLE dbo.DeviceEffects ADD
+		TimeOn nvarchar(8) NOT NULL CONSTRAINT DF_DeviceEffects_TimeOn DEFAULT '',
+		TimeOff nvarchar(8) NOT NULL CONSTRAINT DF_DeviceEffects_TimeOff DEFAULT ''
+
+	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (7, getUtcDate())
+END

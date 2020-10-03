@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolidayShow.Data", "HolidayShow.Data\HolidayShow.Data.csproj", "{9E26D44B-5773-438D-A095-B88F776500F5}"
 EndProject
@@ -521,7 +521,6 @@ Global
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|ARM.ActiveCfg = Debug|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|ARM.Build.0 = Debug|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|Win32.Build.0 = Debug|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -565,7 +564,6 @@ Global
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|Win32.ActiveCfg = ReleaseCore|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|Win32.Build.0 = ReleaseCore|Any CPU
 		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|x64.ActiveCfg = ReleaseCore|Any CPU
-		{9CBA41E6-BD68-4687-BE20-A41D0F231F7D}.ReleaseCore|x64.Build.0 = ReleaseCore|Any CPU
 		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E06AC049-69A0-4417-9A78-664661996853}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E06AC049-69A0-4417-9A78-664661996853}.Debug|ARM.ActiveCfg = Debug|Any CPU

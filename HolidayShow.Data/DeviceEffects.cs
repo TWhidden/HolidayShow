@@ -25,6 +25,8 @@ namespace HolidayShow.Data
         public string InstructionMetaData { get; set; }
         public int Duration { get; set; }
         public int EffectInstructionId { get; set; }
+        public string TimeOn { get; set; }
+        public string TimeOff { get; set; }
     
         public virtual EffectInstructionsAvailable EffectInstructionsAvailable { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

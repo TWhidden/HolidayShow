@@ -24,6 +24,8 @@
           <Property Name="InstructionMetaData" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="Duration" Type="int" Nullable="false" />
           <Property Name="EffectInstructionId" Type="int" Nullable="false" />
+          <Property Name="TimeOn" Type="nvarchar" MaxLength="8" Nullable="false" />
+          <Property Name="TimeOff" Type="nvarchar" MaxLength="8" Nullable="false" />
         </EntityType>
         <EntityType Name="DeviceIoPorts">
           <Key>
@@ -486,6 +488,8 @@
           <Property Name="EffectInstructionId" Type="Int32" Nullable="false" />
           <NavigationProperty Name="EffectInstructionsAvailable" Relationship="HolidayShow.Data.FK_DeviceEffects_EffectInstructionsAvailable" FromRole="DeviceEffects" ToRole="EffectInstructionsAvailable" />
           <NavigationProperty Name="SetSequences" Relationship="HolidayShow.Data.FK_SetSequences_DeviceEffects" FromRole="DeviceEffects" ToRole="SetSequences" />
+          <Property Name="TimeOn" Type="String" Nullable="false" MaxLength="8" FixedLength="false" Unicode="true" />
+          <Property Name="TimeOff" Type="String" Nullable="false" MaxLength="8" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="EffectInstructionsAvailable">
           <Key>
@@ -648,6 +652,8 @@
           <EntitySetMapping Name="DeviceEffects">
             <EntityTypeMapping TypeName="HolidayShow.Data.DeviceEffects">
               <MappingFragment StoreEntitySet="DeviceEffects">
+                <ScalarProperty Name="TimeOff" ColumnName="TimeOff" />
+                <ScalarProperty Name="TimeOn" ColumnName="TimeOn" />
                 <ScalarProperty Name="EffectInstructionId" ColumnName="EffectInstructionId" />
                 <ScalarProperty Name="Duration" ColumnName="Duration" />
                 <ScalarProperty Name="InstructionMetaData" ColumnName="InstructionMetaData" />

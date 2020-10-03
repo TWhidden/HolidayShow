@@ -1,13 +1,15 @@
 using System;
+using System.IO;
 using HolidayShow.Data;
 using HolidayShowWeb.Resovlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 
 namespace HolidayShowWeb
@@ -24,13 +26,6 @@ namespace HolidayShowWeb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            // In production, the React files will be served from this directory
-            //services.AddSpaStaticFiles(configuration =>
-            //{
-            //    configuration.RootPath = "ClientApp/build";
-            //});
 
             var server = System.Environment.GetEnvironmentVariable("DBSERVER");
             var database = System.Environment.GetEnvironmentVariable("DBNAME");
@@ -50,16 +45,25 @@ namespace HolidayShowWeb
             services.AddDbContext<EfHolidayContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            services.AddMvc().AddJsonOptions(options => {
+            // needed to tell the system where the Single Page App files are located.
+            services.AddSpaStaticFiles((x) => { x.RootPath = "wwwroot/react"; });
+
+
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .AddNewtonsoftJson(options => {
                 //options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.None;
                 options.SerializerSettings.ContractResolver = new EnityFrameworkCustomResolver();
             });
+
+            // Register the web controllers
+            services.AddControllers();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -68,30 +72,33 @@ namespace HolidayShowWeb
             else
             {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
+                //app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-           // app.UseSpaStaticFiles();
+            app.UseRouting();
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action=Index}/{id?}");
+                endpoints.MapControllers();
+
             });
 
-            //app.UseSpa(spa =>
-            //{
-            //    spa.Options.SourcePath = "ClientApp";
+            // set default files like index.html
+            app.UseDefaultFiles();
 
-            //    if (env.IsDevelopment())
-            //    {
-            //        spa.UseReactDevelopmentServer(npmScript: "start");
-            //    }
-            //});
+            // Enable SPA files for single pages (react)
+            app.UseSpaStaticFiles();
+
+            // Specify the location of the react build files
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = Path.Join(env.ContentRootPath, "wwwroot/react");
+            });
+
+            
+
+
+
         }
     }
 }

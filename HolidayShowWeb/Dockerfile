@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1.5-bionic AS base
 WORKDIR /app
 
 #Default Container Port 5001 will be used.
@@ -15,36 +15,32 @@ ENV PORT=$DEFAULTPORT
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-FROM microsoft/dotnet:2.1-sdk AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.301-bionic AS build
 WORKDIR /src
 
 # set up node
-ENV NODE_VERSION 10.15.0
+ENV NODE_VERSION 14.13.0
 ENV NODE_DOWNLOAD_SHA 21fb4690e349f82d708ae766def01d7fec1b085ce1f5ab30d9bda8ee126ca8fc
 RUN curl -SL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" --output nodejs.tar.gz \
     && tar -xzf "nodejs.tar.gz" -C /usr/local --strip-components=1 \
     && rm nodejs.tar.gz \
     && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
 	&& apt-get update \
-	&& apt-get install -y apt-transport-https \
-	&& curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-	&& echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-	&& apt-get update \
-	&& apt-get install -y yarn 
+	&& apt-get install -y apt-transport-https
 
 # Copy the source files
 COPY . .
 
 WORKDIR /src/HolidayShowWeb/ClientApp
 
-RUN yarn
+RUN npm install
 
 WORKDIR /src/HolidayShowWeb
 
 # start the build dotnetcore build publish
 
 FROM build AS publish
-RUN dotnet publish HolidayShowWeb.csproj -c Release -o /app
+RUN dotnet publish HolidayShowWeb.csproj  -r linux-x64 -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
