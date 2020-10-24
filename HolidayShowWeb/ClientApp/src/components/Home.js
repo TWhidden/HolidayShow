@@ -5,9 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import {inject, observer} from 'mobx-react';
 
 const styles = theme => ({
-  button: {
-    margin: theme.spacing.unit,
-  },
+ 
   input: {
     display: 'none',
   },

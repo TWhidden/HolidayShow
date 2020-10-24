@@ -29,7 +29,7 @@ const styles = theme => ({
         minWidth: 120,
     },
     selectEmpty: {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: 2,
     },
 });
 
@@ -229,7 +229,9 @@ class EffectsEditor extends Component {
                 effectName: "New Effect",
                 effectInstructionId: effectAvailable.value,
                 instructionMetaData: "DEVPINS=;DUR=500",
-                duration: 5000
+                duration: 5000,
+                timeOn: "",
+                timeOff: ""
             };
 
             effect = await this.props.appStore.effectCreate(effect);

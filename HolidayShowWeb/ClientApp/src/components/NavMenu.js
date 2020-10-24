@@ -24,7 +24,7 @@ export class NavMenu extends Component {
   render() {
     return (
 
-      <List disablePadding style={{ width: "224px" }}>
+      <List disablePadding >
           <ListItem button component={Link} to={`/`} >
           <ListItemIcon>
             <HomeIcon />

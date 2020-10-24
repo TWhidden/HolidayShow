@@ -4,13 +4,13 @@
   "description": "Holiday Show - netcore",
   "author": "Travis Whidden",
   "scripts": {
-    "build-x64": "../build.sh -a x64  -s 1",
-    "build-x64-beta": "./build.sh -a x64 -l beta -s 1",
+    "build-x64": "../build.sh -d core-web  -a x64  -s 1",
+    "build-x64-beta": "./build.sh -d core-web  -a x64 -l beta -s 1",
     "build-x64-beta-skip-react": "../build.sh -d core-web -a x64 -l beta",
-    "push-x64": "../push.sh -a x64",
-    "push-x64-beta": "../push.sh -a x64 -l beta",
+    "push-x64": "../push.sh -d core-web  -a x64",
+    "push-x64-beta": "../push.sh -d core-web  -a x64 -l beta",
     "docker-run": "../run.sh",
-    "docker-run-shell": "../run.sh -c bash",
+    "docker-run-shell": "../run.sh -d core-web  -c bash",
     "docker-run-beta": "../run.sh -d core-web -l beta"
   },
   "repository": {

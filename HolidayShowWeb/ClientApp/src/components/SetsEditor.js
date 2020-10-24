@@ -32,7 +32,7 @@ const styles = theme => ({
         minWidth: 120,
     },
     selectEmpty: {
-        marginTop: theme.spacing.unit * 2,
+        marginTop: 2,
     },
 });
 
@@ -204,7 +204,7 @@ class SetsEditor extends Component {
             this.props.appStore.isBusySet(true);
 
             let set = {
-                setName: "New Set",
+                setName: "New Set"
             };
 
             set = await SetServices.createSet(set);
@@ -212,7 +212,7 @@ class SetsEditor extends Component {
             runInAction(()=>{
                 this.sets.push(set);
                 this.setSelected = set;
-                this.setIdSelected = set.SetId;
+                this.setIdSelected = set.setId;
                 this.setSequences = [];
             });
 
