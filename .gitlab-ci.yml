@@ -1,8 +1,8 @@
 stages:
   - build
 
-before_script:
-  - echo $CI_JOB_TOKEN | docker login -u traviswhidden --password-stdin
+#before_script:
+  # - echo $CI_JOB_TOKEN | docker login -u traviswhidden --password-stdin
 
 # ===== BUILD JOBS
 
