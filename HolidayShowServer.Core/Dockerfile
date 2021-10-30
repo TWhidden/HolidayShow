@@ -30,6 +30,9 @@ WORKDIR /app
 COPY --from=publish /app .
 COPY /Docker/Server/entrypoint.sh .
 
+# Enable / Disable Auto Updates
+LABEL com.centurylinklabs.watchtower.enable="true"
+
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 

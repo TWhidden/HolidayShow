@@ -1,0 +1,38 @@
+stages:
+  - build
+
+before_script:
+  - echo $CI_JOB_TOKEN | docker login -u traviswhidden --password-stdin
+
+# ===== BUILD JOBS
+
+beta_x86_64:
+  stage: build
+  only:
+    refs:
+      - master
+  except:
+    - tags
+  script:
+    - scripts/docker/core-svr/build.sh -a x64 -l beta
+    - scripts/docker/core-svr/push.sh -a x64 -l beta
+    - exit 0
+  tags:
+    - linux
+
+
+prod_x86_64:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_TITLE =~ /^Release Server v[0-9\.].*$/ 
+  except:
+    - tags
+  script:
+    - scripts/docker/core-svr/build.sh -a x64
+    - scripts/docker/core-svr/push.sh -a x64
+    - exit 0
+  tags:
+    - linux
+
+
