@@ -109,7 +109,13 @@ namespace HolidayShowServer
             // Update the database
             using (var dc = new EfHolidayContext(ConnectionString))
             {
+#if NETCOREAPP
+                _logger.LogInformation("Updating Database...");
+#endif
                 dc.UpdateDatabase();
+#if NETCOREAPP
+                _logger.LogInformation("Update Complete.");
+#endif
             }
 
             // Setup the listeners
@@ -660,13 +666,19 @@ namespace HolidayShowServer
                                         break;
                                     case EffectsSupported.GPIO_STROBE_DELAY:
                                         {
-                                            var data = EffectRandomStrobe(setSequence, totalSetTimeLength, disabledPins);
+                                            var data = EffectStrobeDelay(setSequence, totalSetTimeLength, disabledPins);
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
                                     case EffectsSupported.GPIO_SEQUENTIAL:
                                         {
                                             var data = EffectSequential(setSequence, totalSetTimeLength, disabledPins);
+                                            if (data != null) deviceInstructions.AddRange(data);
+                                        }
+                                        break;
+                                    case EffectsSupported.GPIO_RANDOM_DELAY:
+                                        {
+                                            var data = EffectRandomDelay(setSequence, totalSetTimeLength, disabledPins);
                                             if (data != null) deviceInstructions.AddRange(data);
                                         }
                                         break;
@@ -807,26 +819,6 @@ namespace HolidayShowServer
 
         }
 
-        //private static bool IsCurrentTimeGreaterThanUserSettingTime(string userTime)
-        //{
-        //    if (string.IsNullOrWhiteSpace(userTime))
-        //        return false;
-
-        //    DateTime userTimeObject;
-
-        //    if (!DateTime.TryParseExact(userTime,
-        //        "HH:mm",
-        //        new CultureInfo("en-US"),
-        //        DateTimeStyles.None,
-        //        out userTimeObject))
-        //    {
-        //        return false;
-        //    }
-
-        //    return DateTime.Now.TimeOfDay > userTimeObject.TimeOfDay;
-
-        //}
-
         /// <summary>
         /// Fix to existing time checking - Idea from
         /// https://stackoverflow.com/a/21343435
@@ -935,6 +927,100 @@ namespace HolidayShowServer
             return list;
         }
 
+        private static List<DeviceInstructions> EffectRandomDelay(SetSequences setSequence, int? setDurationMs, Dictionary<int, List<int>> disabledPins)
+        {
+            // MetaData stored in Effect should be delimited by semi-colons for each instruction set
+            // THis Effect will want to know the devices and pin numbers included in the effect,
+            // as well as the desired durration
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50;DELAYBETWEEN=10000;EXECUTEFOR=2000
+            var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
+
+            var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);
+            var duration = GetDuration(metadataKeyValue);
+
+            // If the duration was incorrect, null will be returned
+            if (duration == null) return null;
+
+            const string keyDelayBetween = "DELAYBETWEEN";
+            if (!metadataKeyValue.TryGetValue(keyDelayBetween, out var delayBetweenStr))
+            {
+                LogMessage("EffectRandomStrobe missing " + keyDelayBetween);
+                return null;
+            }
+
+            if (!uint.TryParse(delayBetweenStr, out var delayBetween))
+            {
+                LogMessage("EffectRandomStrobe Invalid Value Delay Between: " + delayBetweenStr);
+            }
+
+            const string keyExecuteFor = "EXECUTEFOR";
+            if (!metadataKeyValue.TryGetValue(keyExecuteFor, out var executeForStr))
+            {
+                LogMessage("EffectRandomStrobe missing " + keyExecuteFor);
+                return null;
+            }
+
+            if (!uint.TryParse(executeForStr, out var executeFor))
+            {
+                LogMessage("EffectRandomStrobe Invalid Value Execute For: " + delayBetweenStr);
+            }
+
+            // If there is nothing, return so we dont have a dev by zero
+            if (devicesAndKey.Count == 0) return null;
+
+            // now that we have a Key/Value Pair list with ints for devices and keys, we can now randomize them
+            // and build up the list that we will return
+
+            // Shuffle the list for random
+            devicesAndKey.Shuffle();
+
+            // Devide up the desired duration by the number of items
+            // for an even distribution 
+            long startingPoint = setSequence.OnAt;
+
+            var list = new List<DeviceInstructions>();
+
+            var endingPosition = setDurationMs;
+
+            if (setSequence.DeviceEffects.Duration > 0)
+            {
+                endingPosition = setSequence.OnAt + setSequence.DeviceEffects.Duration;
+            }
+
+            var nextDelayAt = startingPoint + executeFor;
+
+            while (startingPoint < endingPosition)
+            {
+                foreach (var dk in devicesAndKey)
+                {
+                    if (startingPoint + duration.Value > endingPosition.Value)
+                        goto end;
+
+                    var di = new DeviceInstructions(dk.Key, MessageTypeIdEnum.EventControl)
+                    {
+                        OnAt = (int)startingPoint,
+                        CommandPin = dk.Value,
+                        PinDuration = duration
+                    };
+
+                    list.Add(di);
+
+                    startingPoint = startingPoint + (duration.Value * 2);
+                    if (startingPoint >= nextDelayAt)
+                    {
+                        startingPoint = startingPoint + delayBetween;
+                        nextDelayAt = startingPoint + executeFor;
+                    }
+                }
+
+                devicesAndKey.Shuffle();
+            }
+
+            end:
+
+            return list;
+        }
+
         private static List<DeviceInstructions> EffectStrobe(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
@@ -979,12 +1065,12 @@ namespace HolidayShowServer
             return list;
         }
 
-        private static List<DeviceInstructions> EffectRandomStrobe(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
+        private static List<DeviceInstructions> EffectStrobeDelay(SetSequences setSequence, int? setDurrationMs, Dictionary<int, List<int>> disabledPins)
         {
             // MetaData stored in Effect should be delimited by semi-colons for each instruction set
             // THis Effect will want to know the devices and pin numbers included in the effect,
             // as well as the desired durration
-            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50;DELAYBETWEEN=10000
+            // Format should be  DEVPINS=1:1,1:2,1:3,2:1,2:2,2:3;DUR=50;DELAYBETWEEN=10000;EXECUTEFOR=2000
             var metadataKeyValue = GetMetaDataKeyValues(setSequence.DeviceEffects.InstructionMetaData);
 
             var devicesAndKey = GetDevicesAndPins(metadataKeyValue, disabledPins);

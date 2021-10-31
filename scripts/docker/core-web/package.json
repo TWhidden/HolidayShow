@@ -5,7 +5,7 @@
   "author": "Travis Whidden",
   "scripts": {
     "build-x64": "../build.sh -d core-web  -a x64  -s 1",
-    "build-x64-beta": "./build.sh -d core-web  -a x64 -l beta -s 1",
+    "build-x64-beta": "../build.sh -d core-web  -a x64 -l beta -s 1",
     "build-x64-beta-skip-react": "../build.sh -d core-web -a x64 -l beta",
     "push-x64": "../push.sh -d core-web  -a x64",
     "push-x64-beta": "../push.sh -d core-web  -a x64 -l beta",

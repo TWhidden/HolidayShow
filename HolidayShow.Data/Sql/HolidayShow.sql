@@ -392,3 +392,16 @@ BEGIN
 
 	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (7, getUtcDate())
 END
+
+if NOT EXISTS (select * from Versions where VersionNumber = 8)
+BEGIN
+
+	SET @instructionName = 'GPIO_RANDOM_DELAY'
+	IF NOT EXISTS (select * from [EffectInstructionsAvailable] where [InstructionName] = @instructionName)
+	BEGIN
+		INSERT INTO [EffectInstructionsAvailable] ([DisplayName], [InstructionName], [InstructionsForUse], [IsDisabled])
+												VALUES('GPIO Random Delay', @instructionName, 'Randomly execute selected pins for a period of time, then have a delay; DEVPINS=4:1,4:2;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=2000;', 0)
+	END
+
+	INSERT into VERSIONS (VersionNumber, DateUpdated) Values (8, getUtcDate())
+END

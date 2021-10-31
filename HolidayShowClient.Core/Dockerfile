@@ -17,7 +17,8 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-FROM microsoft/dotnet:2.1-sdk AS build
+#FROM microsoft/dotnet:2.1-sdk AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 
 #Copy base projects because we use project links
