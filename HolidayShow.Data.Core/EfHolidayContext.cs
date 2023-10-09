@@ -1,8 +1,7 @@
-﻿using System.Configuration;
-using HolidayShow.Data.Core.Properties;
+﻿using HolidayShowLib.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace HolidayShow.Data
+namespace HolidayShow.Data.Core
 {
     public class EfHolidayContext : DbContext
     {
@@ -23,10 +22,10 @@ namespace HolidayShow.Data
             
         }
 
-        public void UpdateDatabase()
-        {
-            this.Database.ExecuteSqlCommand(Resources.HolidayShow);
-        }
+        //public void UpdateDatabase()
+        //{
+        //    this.Database.ExecuteSqlCommand(Resources.HolidayShow);
+        //}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -44,13 +43,16 @@ namespace HolidayShow.Data
             {
                 entity.HasKey(e => e.AudioId);
 
-                entity.Property(e => e.FileName)
+                entity.Property<string>(e => e.FileName)
                     .IsRequired()
                     .HasMaxLength(255);
 
-                entity.Property(e => e.Name)
+                entity.Property<string>(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(255);
+
+                entity.HasData(
+                    new AudioOptions { AudioId = 1, Name = "NONE", FileName = "", AudioDuration = 0, IsNotVisable = true });
             });
 
             modelBuilder.Entity<DeviceEffects>(entity =>
@@ -91,11 +93,11 @@ namespace HolidayShow.Data
             {
                 entity.HasKey(e => e.DevicePatternId);
 
-                entity.Property(e => e.PatternName)
+                entity.Property<string>(e => e.PatternName)
                     .IsRequired()
                     .HasMaxLength(50);
 
-                entity.HasOne(d => d.Devices)
+                entity.HasOne<Devices>(d => d.Devices)
                     .WithMany(p => p.DevicePatterns)
                     .HasForeignKey(d => d.DeviceId)
                     .HasConstraintName("FK_DevicePatterns_Devices");
@@ -149,6 +151,15 @@ namespace HolidayShow.Data
                 entity.Property(e => e.InstructionsForUse)
                     .IsRequired()
                     .HasMaxLength(2000);
+
+                entity.HasData(
+                    new EffectInstructionsAvailable { EffectInstructionId = 1, DisplayName = "GPIO Random", InstructionName = EffectsSupported.GPIO_RANDOM, InstructionsForUse = "Set the GPIO ports that participate in this. MetaData to look like DEVPINS=4:1,4:2;DUR=75;  DUR is the amount of time the GPIO is ON" },
+                    new EffectInstructionsAvailable { EffectInstructionId = 2, DisplayName = "GPIO Strobe", InstructionName = EffectsSupported.GPIO_STROBE, InstructionsForUse = "Strobes at a regular rate for the length of the current set or the effect duration. Set the effect duration to 0 for set duration. DEVPINS=4:1,4:2;DUR=75;  DUR is the lenght of time the GPIO will be ON" },
+                    new EffectInstructionsAvailable { EffectInstructionId = 3, DisplayName = "GPIO ON", InstructionName = EffectsSupported.GPIO_STAY_ON, InstructionsForUse = "On until duration is done, or set is over. DEVPINS=4:1,4:2,4:3,4:4,4:5,4:6,4:7,4:8;" },
+                    new EffectInstructionsAvailable { EffectInstructionId = 4, DisplayName = "GPIO_STROBE_DELAY", InstructionName = EffectsSupported.GPIO_STROBE_DELAY, InstructionsForUse = "Strobes the lights, but has a programmed delay after a period of time. MetaData to look like DEVPINS=4:1,4:2;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=3000;  DUR is the amount of time the GPIO is ON, DELAYBETWEEN is the amount of time everything is off before restarting, EXECUTEFOR is the amount of time the strobe will run for" },
+                    new EffectInstructionsAvailable { EffectInstructionId = 5, DisplayName = "GPIO Sequential", InstructionName = EffectsSupported.GPIO_SEQUENTIAL, InstructionsForUse = "Sequential processing of the GPIO pins, with the programmed delay, and optional \"Reverase\" for the next pass to go the other direction; DEVPINS=4:1,4:2;DUR=75;REVERSE=1;" },
+                    new EffectInstructionsAvailable { EffectInstructionId = 6, DisplayName = "GPIO Random Delay", InstructionName = EffectsSupported.GPIO_RANDOM_DELAY, InstructionsForUse = "Randomly execute selected pins for a period of time, then have a delay; DEVPINS=4:1,4:2;DUR=75;DELAYBETWEEN=10000;EXECUTEFOR=2000;" }
+                );
             });
 
             modelBuilder.Entity<Sets>(entity =>
@@ -195,15 +206,6 @@ namespace HolidayShow.Data
                     .IsRequired()
                     .IsUnicode(false);
             });
-
-            modelBuilder.Entity<Versions>(entity =>
-            {
-                entity.HasKey(e => e.VersionNumber);
-
-                entity.Property(e => e.VersionNumber).ValueGeneratedNever();
-
-                entity.Property(e => e.DateUpdated).HasColumnType("datetime");
-            });
         }
 
 
@@ -214,7 +216,6 @@ namespace HolidayShow.Data
         public virtual Microsoft.EntityFrameworkCore.DbSet<Devices> Devices { get; set; }
         public virtual Microsoft.EntityFrameworkCore.DbSet<Sets> Sets { get; set; }
         public virtual Microsoft.EntityFrameworkCore.DbSet<Settings> Settings { get; set; }
-        public virtual Microsoft.EntityFrameworkCore.DbSet<Versions> Versions { get; set; }
         public virtual Microsoft.EntityFrameworkCore.DbSet<DeviceEffects> DeviceEffects { get; set; }
         public virtual Microsoft.EntityFrameworkCore.DbSet<EffectInstructionsAvailable> EffectInstructionsAvailable { get; set; }
         public virtual Microsoft.EntityFrameworkCore.DbSet<SetSequences> SetSequences { get; set; }

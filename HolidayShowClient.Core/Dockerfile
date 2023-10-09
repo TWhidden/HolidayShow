@@ -27,7 +27,7 @@ COPY . .
 WORKDIR /src/HolidayShowClient.Core
 
 FROM build AS publish
-RUN dotnet publish -r linux-arm -c Release -o /app HolidayShowClient.Core.csproj
+RUN dotnet publish -r linux-arm -c Release  -o /app HolidayShowClient.Core.csproj
 
 FROM base AS final
 WORKDIR /app

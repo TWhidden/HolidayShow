@@ -1,5 +1,6 @@
 #FROM mcr.microsoft.com/dotnet/core/runtime:3.1.5-bionic AS base
-FROM mcr.microsoft.com/dotnet/runtime:5.0.11-focal AS base
+#FROM mcr.microsoft.com/dotnet/runtime:5.0.11-focal AS base
+FROM ubuntu:20.04
 WORKDIR /app
 COPY ./build .
 ENV DEBIAN_FRONTEND noninteractive
@@ -14,12 +15,20 @@ ENV DBPASS=""
 ENV DBNAME=""
 ENV PORT=$DEFAULTPORT
 
+# Install common dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends tzdata && \
+    apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    tzdata \
+    curl \
+    libicu-dev \
+    wget && \
     rm -rf /var/lib/apt/lists/*
 
 ENV TZ "America/Los_Angeles"
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+LABEL com.centurylinklabs.watchtower.enable="true"
 
 COPY Server/entrypoint.sh .
 

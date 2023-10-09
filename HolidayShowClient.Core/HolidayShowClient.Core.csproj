@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyVersion>2.18.1021.0</AssemblyVersion>
     <FileVersion>2.18.1007.0</FileVersion>
     <Version>2.18.1021.0</Version>
@@ -10,6 +10,8 @@
     <Company>None</Company>
     <Description>Client for RP3 devices</Description>
     <StartupObject>HolidayShowClient.Core.Program</StartupObject>
+	  <LangVersion>latest</LangVersion>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -21,29 +23,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\ClientLiveControl.cs" Link="Containers\ClientLiveControl.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\FileDownloadClient.cs" Link="Containers\FileDownloadClient.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\FileDownloadContainer.cs" Link="Containers\FileDownloadContainer.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Containers\OutletControl.cs" Link="Containers\OutletControl.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioInstanceController.cs" Link="Controllers\AudioInstanceController.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioManagerController.cs" Link="Controllers\AudioManagerController.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Controllers\AudioRequestController.cs" Link="Controllers\AudioRequestController.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Services\IServerDetails.cs" Link="Services\IServerDetails.cs" />
-    <Compile Include="..\HolidayShowEndpointUniversalApp\Services\ServerDetails.cs" Link="Services\ServerDetails.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.2.1" />
-    <PackageReference Include="Unosquare.Raspberry.IO" Version="0.17.1" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="Unosquare.Raspberry.IO" Version="0.27.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\HolidayShowLibShared.Core\HolidayShowLibShared.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
   <ItemGroup>

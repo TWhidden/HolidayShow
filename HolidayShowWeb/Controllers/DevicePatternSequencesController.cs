@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HolidayShow.Data;
+using HolidayShow.Data.Core;
 
 namespace HolidayShowWeb.Controllers
 {

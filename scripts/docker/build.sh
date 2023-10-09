@@ -41,6 +41,7 @@ nc='\033[0m' # No color
 
 echo -e "\n✔︎ ${yellow}Build React: ${buildReact}...${nc}"
 if [ "${buildReact}" == "1" ]; then
+  export NODE_OPTIONS=--openssl-legacy-provider
   . ../buildreact.sh
 fi
 
@@ -49,19 +50,16 @@ if [ "${label}" == "" ]; then
   image="${name}"
   app_version="${version}"
 elif [ "${label}" == "beta" ]; then
-  image="${name}/${label}"
+  image="${name}"
   app_version="${version}"
 else
-  image="${name}/${label}"
+  image="${name}"
   app_version="${version}-${label}"
 fi
 
-# echo -e "\n✔︎ ${yellow}Checking registry login...${nc}\n"
-# docker login ${registry_host} 
+echo -e "\n✔︎ ${yellow}Publishing linux-${arch} image...${nc}"
 
-echo -e "\n✔︎ ${yellow}Publishing linux image...${nc}"
-
-dotnet publish ${csproj} -r linux-x64 -c Release -o ./build
+dotnet publish ${csproj} -r linux-${arch} -c Release --self-contained -o ./build
 
 if [ $? != 0 ]; then
     echo -e "\n${red}Error building image! Aborting process.${nc}"
@@ -80,9 +78,16 @@ buildImage () {
     exit 1;
   fi
 
-  imageToRun=${registry_group}/${image}:latest
+  if [ "${label}" == "" ]; then
+    imageToRun=${registry_group}/${image}:${1}-${majorVersion}
+  else
+    imageToRun=${registry_group}/${image}:${1}-${majorVersion}-${label}
+  fi
 
   echo -e "\n✔ ${yellow}Building ${1} Docker image:${nc}\n"
+
+  echo -e "\n✔ ${green}${imageToRun}${nc}\n"
+
   docker build --network host \
     -f ${dockerfile} \
     --no-cache \

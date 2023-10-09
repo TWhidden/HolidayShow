@@ -1,67 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Configurations>Debug;Release;ReleaseCore</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Data\**" />
     <Compile Remove="Mapping\**" />
+    <Compile Remove="Sql\**" />
     <Compile Remove="Test\**" />
     <EmbeddedResource Remove="Data\**" />
     <EmbeddedResource Remove="Mapping\**" />
+    <EmbeddedResource Remove="Sql\**" />
     <EmbeddedResource Remove="Test\**" />
     <None Remove="Data\**" />
     <None Remove="Mapping\**" />
+    <None Remove="Sql\**" />
     <None Remove="Test\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="AudioOptions.cs" />
     <Compile Remove="AudioOptions1.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\HolidayShow.Data\AudioOptions.cs" Link="AudioOptions.cs" />
-    <Compile Include="..\HolidayShow.Data\AudioOptions.Partial.cs" Link="AudioOptions.Partial.cs" />
-    <Compile Include="..\HolidayShow.Data\DeviceEffects.cs" Link="DeviceEffects.cs" />
-    <Compile Include="..\HolidayShow.Data\DeviceIoPorts.cs" Link="DeviceIoPorts.cs" />
-    <Compile Include="..\HolidayShow.Data\DevicePatterns.cs" Link="DevicePatterns.cs" />
-    <Compile Include="..\HolidayShow.Data\DevicePatterns.Partial.cs" Link="DevicePatterns.Partial.cs" />
-    <Compile Include="..\HolidayShow.Data\DevicePatternSequences.cs" Link="DevicePatternSequences.cs" />
-    <Compile Include="..\HolidayShow.Data\Devices.cs" Link="Devices.cs" />
-    <Compile Include="..\HolidayShow.Data\EffectInstructionsAvailable.cs" Link="EffectInstructionsAvailable.cs" />
-    <Compile Include="..\HolidayShow.Data\Sets.cs" Link="Sets.cs" />
-    <Compile Include="..\HolidayShow.Data\SetSequences.cs" Link="SetSequences.cs" />
-    <Compile Include="..\HolidayShow.Data\SettingKeys.cs" Link="SettingKeys.cs" />
-    <Compile Include="..\HolidayShow.Data\Settings.cs" Link="Settings.cs" />
-    <Compile Include="..\HolidayShow.Data\Versions.cs" Link="Versions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
     <!--<DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.3" />
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />-->
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Sql\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\HolidayShow.Data\Sql\HolidayShow.sql" Link="Sql\HolidayShow.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="EntityFramework">
-      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\HolidayShowLib.Core\HolidayShowLib.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

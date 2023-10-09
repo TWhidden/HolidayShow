@@ -1,0 +1,36 @@
+{
+  "name": "holidayshow",
+  "version": "2.0.0",
+  "description": "Holiday Show",
+  "author": "Travis Whidden <travis@lvfbody.com>",
+  "scripts": {
+    "client-patch": "./scripts/versionbump.sh patch \"Client\" Release",
+    "client-minor": "./scripts/versionbump.sh minor \"Client\" Release",
+
+    "ef-migrate-db": "./scripts/dotnet_ef_migration_create.sh ./HolidayShow.Data.Core EfHolidayContext",
+
+
+    "build-device-init": "./scripts/buildinit.sh",
+    "build-react": "./scripts/docker/buildreact.sh",
+    "build-all": "./scripts/docker/build.sh",
+    "build-all-beta": "./scripts/docker/build.sh -l beta",
+    "build-x64": "./scripts/docker/build.sh -a x64",
+    "build-x64-beta": "./scripts/docker/build.sh -a x64 -l beta",
+    "build-x64-beta-skip-react": "./scripts/docker/build.sh -a x64 -l beta -s 0",
+    "push-all": "./scripts/docker/push.sh",
+    "push-all-beta": "./scripts/docker/push.sh -l beta",
+    "push-x64": "./scripts/docker/push.sh -a x64",
+    "push-x64-beta": "./scripts/docker/push.sh -a x64 -l beta",
+    "docker-run": "./scripts/docker/run.sh",
+    "docker-run-shell": "./scripts/docker/run.sh -c bash",
+    "docker-run-beta": "./scripts/docker/run.sh -l beta",
+    "docker-run-beta-shell": "./scripts/docker/run.sh -l beta -c bash"
+    
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.econnect.tv/dotnet/econnect-classic.git"
+  },
+  "license": "UNLICENSED",
+  "skeletonVersion": "1.2.0"
+}

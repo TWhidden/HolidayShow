@@ -19,7 +19,7 @@ namespace HolidayShow.Data.Core.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,27 +57,6 @@ namespace HolidayShow.Data.Core.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to -- Holiday Show SQL database creator script
-        ///DECLARE @instructionName nvarchar(50);
-        ///
-        ///-- Version table is needed 
-        ///IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N&apos;[dbo].[Versions]&apos;) AND type in (N&apos;U&apos;))
-        ///BEGIN
-        ///CREATE TABLE [dbo].[Versions](
-        ///	[VersionNumber] [int] NOT NULL,
-        ///	[DateUpdated] [datetime] NOT NULL,
-        /// CONSTRAINT [PK_Versions] PRIMARY KEY CLUSTERED 
-        ///(
-        ///	[VersionNumber] ASC
-        ///)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, AL [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string HolidayShow {
-            get {
-                return ResourceManager.GetString("HolidayShow", resourceCulture);
             }
         }
     }

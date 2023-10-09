@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HolidayShowEndpointUniversalApp.Services;
+using HolidayShowClient.Core.Services;
 using HolidayShowLib;
 
-namespace HolidayShowEndpointUniversalApp.Containers
+namespace HolidayShowClient.Core.Containers
 {
     public abstract class ProtocolClient : ByteParserBase
     {

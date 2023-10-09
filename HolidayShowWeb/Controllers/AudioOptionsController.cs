@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HolidayShow.Data;
+using HolidayShow.Data.Core;
+using AudioOptions = HolidayShow.Data.Core.AudioOptions;
 
 namespace HolidayShowWeb.Controllers
 {

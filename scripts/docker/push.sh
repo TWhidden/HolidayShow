@@ -35,7 +35,7 @@ if [ "${label}" == "" ]; then
   image="${name}"
   app_version="${version}"
 else
-  image="${name}/${label}"
+  image="${name}"
   app_version="${version}"
 fi
 
@@ -51,9 +51,16 @@ echo -e "\n✔︎ ${yellow}Checking registry login...${nc}\n"
 docker login ${registry_host} 
 
 pushImage () {
-  echo -e "\n✔︎ ${yellow}Pushing ${1} ${image} Docker image:${nc}\n"
-  #docker push ${registry_host}/${registry_group}/${image}:${1}-v${app_version}
-  docker push ${registry_host}/${registry_group}/${image}:${1}-${majorVersion}
+
+  if [ "${label}" == "" ]; then
+    imageToRun=${registry_group}/${image}:${1}-${majorVersion}
+  else
+    imageToRun=${registry_group}/${image}:${1}-${majorVersion}-${label}
+  fi
+
+  echo -e "\n✔︎ ${yellow}Pushing ${imageToRun}${nc}\n"
+
+  docker push ${imageToRun}
 }
 
 if [ "${arch}" == "all" ]; then

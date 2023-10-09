@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Configurations>Debug;Release;ReleaseCore</Configurations>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\HolidayShowLib\ByteParserBase.cs" Link="ByteParserBase.cs" />
-    <Compile Include="..\HolidayShowLib\MessageTypeId.cs" Link="MessageTypeId.cs" />
-    <Compile Include="..\HolidayShowLib\ParserProtocolContainer.cs" Link="ParserProtocolContainer.cs" />
-    <Compile Include="..\HolidayShowLib\ProtocolHelper.cs" Link="ProtocolHelper.cs" />
-    <Compile Include="..\HolidayShowLib\ProtocolMessage.cs" Link="ProtocolMessage.cs" />
-  </ItemGroup>
 
 </Project>
