@@ -5,13 +5,20 @@ before_script:
   - chmod +x scripts/docker/*.sh
   - echo $DOCKER_ACCESS_TOKEN | docker login -u traviswhidden --password-stdin
 
-# ===== BUILD JOBS
+###################################################
+# Server
+###################################################
 
-beta_x86_64:
+beta_svr:
   stage: build
   only:
     refs:
       - master
+  only:
+    refs:
+      - master
+    changes:
+      - "HolidayShowServer.Core/**/*" # Match any changes within the folder
   except:
     - tags
   script:
@@ -24,19 +31,107 @@ beta_x86_64:
     - linux
 
 
-prod_x86_64:
+prod_svr:
   stage: build
   only:
     variables:
+      - gitlab-ci.yml
       - $CI_COMMIT_TITLE =~ /^Release Server v[0-9\.].*$/ 
   except:
     - tags
   script:
-    - scripts/docker/build.sh -d core-svr -a x64
-    - scripts/docker/push.sh -d core-svr -a x64
+    - cd scripts/docker/core-svr
+    - npm run build-x64
+    - npm run push-x64
     - exit 0
   allow_failure: false
   tags:
     - linux
 
+###################################################
+# WEB
+###################################################
+
+beta_web:
+  stage: build
+  only:
+    refs:
+      - master
+  only:
+    refs:
+      - master
+    changes:
+      - gitlab-ci.yml
+      - "HolidayShowWeb/**/*" # Match any changes within the folder
+  except:
+    - tags
+  script:
+    - cd scripts/docker/core-web
+    - npm run build-x64-beta
+    - npm run push-x64-beta
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux
+
+
+prod_web:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_TITLE =~ /^Release Web v[0-9\.].*$/ 
+  except:
+    - tags
+  script:
+    - cd scripts/docker/core-web
+    - npm run build-x64
+    - npm run push-x64
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux
+
+
+###################################################
+# Client
+###################################################
+
+beta_client:
+  stage: build
+  only:
+    refs:
+      - master
+  only:
+    refs:
+      - master
+    changes:
+      - gitlab-ci.yml
+      - "HolidayShowClient.Core/**/*" # Match any changes within the folder
+  except:
+    - tags
+  script:
+    - cd scripts/docker/core-client
+    - npm run build-x64-beta
+    - npm run push-x64-beta
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux
+
+
+prod_client:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_TITLE =~ /^Release Client v[0-9\.].*$/ 
+  except:
+    - tags
+  script:
+    - cd scripts/docker/core-client
+    - npm run build-x64
+    - npm run push-x64
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux    
 
