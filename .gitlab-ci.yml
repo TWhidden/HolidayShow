@@ -16,8 +16,8 @@ beta_x86_64:
     - tags
   script:
     - cd scripts/docker/core-svr
-    - ../build.sh -d core-svr -a x64 -l beta
-    - ../push.sh -d core-svr -a x64 -l beta
+    - npm run build-x64-beta
+    - npm push-x64-beta
     - exit 0
   allow_failure: false
   tags:
