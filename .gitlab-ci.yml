@@ -18,6 +18,7 @@ beta_svr:
     refs:
       - master
     changes:
+      - gitlab-ci.yml
       - "HolidayShowServer.Core/**/*" # Match any changes within the folder
   except:
     - tags
