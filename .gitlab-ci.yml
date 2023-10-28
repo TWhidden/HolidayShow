@@ -19,7 +19,7 @@ beta_svr:
       - master
     changes:
       - gitlab-ci.yml
-      - "HolidayShowServer.Core/**/*" # Match any changes within the folder
+      - HolidayShowServer.Core/**/* # Match any changes within the folder
   except:
     - tags
   script:
@@ -63,7 +63,7 @@ beta_web:
       - master
     changes:
       - gitlab-ci.yml
-      - "HolidayShowWeb/**/*" # Match any changes within the folder
+      - HolidayShowWeb/**/* # Match any changes within the folder
   except:
     - tags
   script:
@@ -107,7 +107,7 @@ beta_client:
       - master
     changes:
       - gitlab-ci.yml
-      - "HolidayShowClient.Core/**/*" # Match any changes within the folder
+      - HolidayShowClient.Core/**/* # Match any changes within the folder
   except:
     - tags
   script:
