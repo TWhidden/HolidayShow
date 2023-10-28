@@ -14,9 +14,6 @@ beta_svr:
   only:
     refs:
       - master
-  only:
-    refs:
-      - master
     changes:
       - gitlab-ci.yml
       - HolidayShowServer.Core/**/* # Match any changes within the folder
@@ -58,9 +55,6 @@ beta_web:
   only:
     refs:
       - master
-  only:
-    refs:
-      - master
     changes:
       - gitlab-ci.yml
       - HolidayShowWeb/**/* # Match any changes within the folder
@@ -99,9 +93,6 @@ prod_web:
 
 beta_client:
   stage: build
-  only:
-    refs:
-      - master
   only:
     refs:
       - master
