@@ -19,6 +19,7 @@ beta_x86_64:
     - ../build.sh -d core-svr -a x64 -l beta
     - ../push.sh -d core-svr -a x64 -l beta
     - exit 0
+  allow_failure: false
   tags:
     - linux
 
@@ -34,6 +35,7 @@ prod_x86_64:
     - scripts/docker/build.sh -d core-svr -a x64
     - scripts/docker/push.sh -d core-svr -a x64
     - exit 0
+  allow_failure: false
   tags:
     - linux
 
