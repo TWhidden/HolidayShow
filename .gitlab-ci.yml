@@ -33,7 +33,6 @@ prod_svr:
   stage: build
   only:
     variables:
-      - gitlab-ci.yml
       - $CI_COMMIT_TITLE =~ /^Release Server v[0-9\.].*$/ 
   except:
     - tags
