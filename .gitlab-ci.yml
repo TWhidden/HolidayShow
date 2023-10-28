@@ -3,7 +3,7 @@ stages:
 
 before_script:
   - chmod +x scripts/docker/*.sh
-  # - echo $CI_JOB_TOKEN | docker login -u traviswhidden --password-stdin
+  - echo $DOCKER_ACCESS_TOKEN | docker login -u traviswhidden --password-stdin
 
 # ===== BUILD JOBS
 
