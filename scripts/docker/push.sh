@@ -30,11 +30,10 @@ green='\033[0;32m'
 yellow='\033[1;33m'
 nc='\033[0m' # No Color
 
+image="${name}"
 # Form image name
-if [ "${label}" == "" ]; then
-  image="${name}"
-else
-  image="${name}/${label}"
+if [ "${label}" != "" ]; then
+  appendtag="-${label}"
 fi
 
 # Check if we're trying to push production image with uncommitted changes
@@ -50,11 +49,16 @@ docker login ${registry_host}
 
 pushImage () {
 
-  imageToRun=${registry_group}/${image}:${1}-${majorVersion}
+  imageToRun=${registry_group}/${image}:${1}-${majorVersion}${appendtag}
 
   echo -e "\n✔︎ ${yellow}Pushing ${imageToRun}${nc}\n"
 
   docker push ${imageToRun}
+
+  if [ $? != 0 ]; then
+  echo -e "\n${red}Failed.${nc}"
+  exit 1;
+fi
 }
 
 if [ "${arch}" == "all" ]; then

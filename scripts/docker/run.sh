@@ -44,14 +44,13 @@ majorVersion=$(echo v${version}|egrep -o 'v[0-9]*')
 # Source skeleton config variables
 . ./skeleton.cfg
 
+image="${name}"
 # Form image name
-if [ "${label}" == "" ]; then
-  image="${name}"
-else
-  image="${name}/${label}"
+if [ "${label}" != "" ]; then
+  appendtag="-${label}"
 fi
 
-imageToRun=${registry_group}/${image}:${arch}-${majorVersion}
+imageToRun=${registry_group}/${image}:${arch}-${majorVersion}${appendtag}
 
 echo -e "\n✔︎ ${yellow}Running Docker container $name for '${imageToRun}' with storage root '$storageRoot'...${nc}\n"
 
@@ -64,5 +63,10 @@ docker run -it --rm \
   -e DBUSER=${HS_DB_UN} \
   -e DBPASS=${HS_DB_PW} \
   ${imageToRun} ${command}
+
+if [ $? != 0 ]; then
+  echo -e "\n${red}Failed.${nc}"
+  exit 1;
+fi
 
 echo -e "\n${blue}★ ${green}COMPLETE ${blue}★${nc}\n"

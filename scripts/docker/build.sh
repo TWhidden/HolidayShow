@@ -45,16 +45,10 @@ if [ "${buildReact}" == "1" ]; then
   . ../buildreact.sh
 fi
 
-# Form image name and node base image to use
-if [ "${label}" == "" ]; then
-  image="${name}/${label}"
-  app_version="${version}"
-elif [ "${label}" == "beta" ]; then
-  image="${name}/beta"
-  app_version="${version}"
-else
-  image="${name}"
-  app_version="${version}-${label}"
+image="${name}"
+# Form image name
+if [ "${label}" != "" ]; then
+  appendtag="-${label}"
 fi
 
 echo -e "\n✔︎ ${yellow}Publishing linux-${arch} image...${nc}"
@@ -78,9 +72,9 @@ buildImage () {
     exit 1;
   fi
 
-  imageToRun=${registry_group}/${image}:${1}-${majorVersion}
+  imageToRun=${registry_group}/${image}:${1}-${majorVersion}${appendtag}
 
-  echo -e "\n✔ ${yellow}Building ${1} Docker image:${nc}\n"
+  echo -e "\n✔ ${yellow}Building ${imageToRun} Docker image:${nc}\n"
 
   echo -e "\n✔ ${green}${imageToRun}${nc}\n"
 
@@ -98,10 +92,6 @@ buildImage () {
     exit 1;
   fi
 
-   if [ $? != 0 ]; then
-    echo -e "\n${red}Error tagging image! Aborting process.${nc}"
-    exit 1;
-  fi
 }
 
 if [ "${arch}" == "all" ]; then
