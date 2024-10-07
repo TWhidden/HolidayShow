@@ -9,9 +9,9 @@
     "build-x64-beta-skip-react": "../build.sh -d core-web -a x64 -l beta",
     "push-x64": "../push.sh -a x64",
     "push-x64-beta": "../push.sh -a x64 -l beta",
-    "docker-run": "../run.sh",
-    "docker-run-shell": "../run.sh -d core-web  -c bash",
-    "docker-run-beta": "../run.sh -d core-web -l beta"
+    "docker-run": "../run.sh -a x64 -d core-web",
+    "docker-run-shell": "../run.sh -a x64 -d core-web -l beta -c bash",
+    "docker-run-beta": "../run.sh -a x64 -d core-web -l beta"
   },
   "repository": {
     "type": "git",

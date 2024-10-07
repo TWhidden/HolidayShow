@@ -102,8 +102,8 @@ beta_client:
     - tags
   script:
     - cd scripts/docker/core-client
-    - npm run build-x64-beta
-    - npm run push-x64-beta
+    - npm run build-arm32-beta
+    - npm run push-arm32-beta
     - exit 0
   allow_failure: false
   tags:
@@ -119,8 +119,8 @@ prod_client:
     - tags
   script:
     - cd scripts/docker/core-client
-    - npm run build-x64
-    - npm run push-x64
+    - npm run build-arm32
+    - npm run push-arm32
     - exit 0
   allow_failure: false
   tags:

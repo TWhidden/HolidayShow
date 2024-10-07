@@ -47,10 +47,10 @@ fi
 
 # Form image name and node base image to use
 if [ "${label}" == "" ]; then
-  image="${name}"
+  image="${name}/${label}"
   app_version="${version}"
 elif [ "${label}" == "beta" ]; then
-  image="${name}"
+  image="${name}/beta"
   app_version="${version}"
 else
   image="${name}"
@@ -78,11 +78,7 @@ buildImage () {
     exit 1;
   fi
 
-  if [ "${label}" == "" ]; then
-    imageToRun=${registry_group}/${image}:${1}-${majorVersion}
-  else
-    imageToRun=${registry_group}/${image}:${1}-${majorVersion}-${label}
-  fi
+  imageToRun=${registry_group}/${image}:${1}-${majorVersion}
 
   echo -e "\n✔ ${yellow}Building ${1} Docker image:${nc}\n"
 

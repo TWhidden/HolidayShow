@@ -1,7 +1,5 @@
 #FROM mcr.microsoft.com/dotnet/core/runtime:3.1.5-bionic AS base
 FROM ubuntu:20.04
-WORKDIR /app
-COPY ./build .
 
 #Default Container Port 5001 will be used.
 ARG DEFAULTPORT=5001
@@ -29,6 +27,8 @@ ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 LABEL com.centurylinklabs.watchtower.enable="true"
 
+WORKDIR /app
+COPY ./build .
 COPY Server/entrypoint.sh .
 
 ENTRYPOINT ["/app/entrypoint.sh"]
