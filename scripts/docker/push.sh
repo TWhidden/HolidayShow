@@ -33,10 +33,8 @@ nc='\033[0m' # No Color
 # Form image name
 if [ "${label}" == "" ]; then
   image="${name}"
-  app_version="${version}"
 else
-  image="${name}"
-  app_version="${version}"
+  image="${name}/${label}"
 fi
 
 # Check if we're trying to push production image with uncommitted changes
@@ -52,11 +50,7 @@ docker login ${registry_host}
 
 pushImage () {
 
-  if [ "${label}" == "" ]; then
-    imageToRun=${registry_group}/${image}:${1}-${majorVersion}
-  else
-    imageToRun=${registry_group}/${image}:${1}-${majorVersion}-${label}
-  fi
+  imageToRun=${registry_group}/${image}:${1}-${majorVersion}
 
   echo -e "\n✔︎ ${yellow}Pushing ${imageToRun}${nc}\n"
 
