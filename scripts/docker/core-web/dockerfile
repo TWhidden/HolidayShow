@@ -30,6 +30,7 @@ LABEL com.centurylinklabs.watchtower.enable="true"
 WORKDIR /app
 COPY ./build .
 COPY Server/entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 

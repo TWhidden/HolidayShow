@@ -31,6 +31,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 LABEL com.centurylinklabs.watchtower.enable="true"
 
 COPY Server/entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
