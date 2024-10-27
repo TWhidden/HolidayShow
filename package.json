@@ -7,6 +7,12 @@
     "client-patch": "./scripts/versionbump.sh patch \"Client\" Release",
     "client-minor": "./scripts/versionbump.sh minor \"Client\" Release",
 
+    "web-patch": "./scripts/versionbump.sh patch \"Web\" Release",
+    "web-minor": "./scripts/versionbump.sh minor \"Web\" Release",
+
+    "server-patch": "./scripts/versionbump.sh patch \"Server\" Release",
+    "server-minor": "./scripts/versionbump.sh minor \"Server\" Release",
+
     "ef-migrate-db": "./scripts/dotnet_ef_migration_create.sh ./HolidayShow.Data.Core EfHolidayContext",
 
 
