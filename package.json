@@ -1,21 +1,16 @@
 {
   "name": "holidayshow",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Holiday Show",
   "author": "Travis Whidden <travis@lvfbody.com>",
   "scripts": {
     "client-patch": "./scripts/versionbump.sh patch \"Client\" Release",
     "client-minor": "./scripts/versionbump.sh minor \"Client\" Release",
-
     "web-patch": "./scripts/versionbump.sh patch \"Web\" Release",
     "web-minor": "./scripts/versionbump.sh minor \"Web\" Release",
-
     "server-patch": "./scripts/versionbump.sh patch \"Server\" Release",
     "server-minor": "./scripts/versionbump.sh minor \"Server\" Release",
-
     "ef-migrate-db": "./scripts/dotnet_ef_migration_create.sh ./HolidayShow.Data.Core EfHolidayContext",
-
-
     "build-device-init": "./scripts/buildinit.sh",
     "build-react": "./scripts/docker/buildreact.sh",
     "build-all": "./scripts/docker/build.sh",
@@ -31,7 +26,6 @@
     "docker-run-shell": "./scripts/docker/run.sh -c bash",
     "docker-run-beta": "./scripts/docker/run.sh -l beta",
     "docker-run-beta-shell": "./scripts/docker/run.sh -l beta -c bash"
-    
   },
   "repository": {
     "type": "git",
