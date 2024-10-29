@@ -58,6 +58,7 @@ docker run -it --rm \
   -e 'TZ=America/Los_Angeles' \
   --net bridge \
   -p 5050:5001 \
+  -p 5000:5000 \
   -e DBSERVER=${HS_DB_SERVER} \
   -e DBNAME=${HS_DB_CATALOG} \
   -e DBUSER=${HS_DB_UN} \

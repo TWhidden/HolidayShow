@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HolidayShow.Data.Core
 {
@@ -9,7 +10,8 @@ namespace HolidayShow.Data.Core
         {
             this.DevicePatternSequences = new HashSet<DevicePatternSequences>();
         }
-    
+
+        [Required]
         public int AudioId { get; set; }
         public string Name { get; set; }
         public string FileName { get; set; }

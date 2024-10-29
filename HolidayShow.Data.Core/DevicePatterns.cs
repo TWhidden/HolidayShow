@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HolidayShow.Data.Core
 {
@@ -10,7 +11,8 @@ namespace HolidayShow.Data.Core
             this.DevicePatternSequences = new HashSet<DevicePatternSequences>();
             this.SetSequences = new HashSet<SetSequences>();
         }
-    
+
+        [Required]
         public int DevicePatternId { get; set; }
         public int DeviceId { get; set; }
         public string PatternName { get; set; }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HolidayShow.Data.Core
 {
@@ -9,11 +10,13 @@ namespace HolidayShow.Data.Core
         {
             this.SetSequences = new HashSet<SetSequences>();
         }
-    
+
+        [Required]
         public int EffectId { get; set; }
         public string EffectName { get; set; }
         public string InstructionMetaData { get; set; }
         public int Duration { get; set; }
+        [Required]
         public int EffectInstructionId { get; set; }
         public string TimeOn { get; set; }
         public string TimeOff { get; set; }

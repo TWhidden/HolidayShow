@@ -4,12 +4,10 @@ using System.Text;
 
 namespace HolidayShowLib
 {
-    public class ProtocolHelper
+    public static class ProtocolHelper
     {
-        public const byte SOH = 0x02;
-
-        public const byte EOH = 0x03;
-
+        public const byte SOH = 0x02; // Start of Header
+        public const byte EOH = 0x03; // End of Header
         public const string Event = "EVENT";
 
         public static byte[] Wrap(ProtocolMessage message)
@@ -32,49 +30,57 @@ namespace HolidayShowLib
             return buffer;
         }
 
+        // Existing UnWrap method for byte[]
         public static ProtocolMessage UnWrap(byte[] rawMessage)
         {
-            if (rawMessage.Length <= 2) return null;
+            return UnWrap(rawMessage, rawMessage.Length);
+        }
 
-            var subMessage = new byte[rawMessage.Length - 2];
+        // New UnWrap method accepting buffer and count
+        public static ProtocolMessage UnWrap(byte[] buffer, int count)
+        {
+            if (count <= 2)
+                return null;
 
-            Array.Copy(rawMessage, 1, subMessage, 0, subMessage.Length);
+            if (buffer[0] != SOH || buffer[count - 1] != EOH)
+                return null;
+
+            var subMessage = new byte[count - 2];
+            Buffer.BlockCopy(buffer, 1, subMessage, 0, count - 2);
 
             var str = Encoding.ASCII.GetString(subMessage);
-            var s = str.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            if (s.Length == 0) return null;
+            var segments = str.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 0)
+                return null;
 
-            var t = MessageTypeIdEnum.Unknown;
-
+            MessageTypeIdEnum messageType = MessageTypeIdEnum.Unknown;
             var dic = new Dictionary<string, string>();
-            foreach (var pair in s)
+
+            foreach (var segment in segments)
             {
-                var p = pair.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                if (p.Length != 2) continue;
+                var parts = segment.Split(new[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 2)
+                    continue;
 
-                if (p[0] == Event)
+                if (parts[0] == Event)
                 {
-                    if (p[1].Trim().Length == 0) return null;
+                    if (string.IsNullOrWhiteSpace(parts[1]))
+                        return null;
 
-                    var parsed = Enum.TryParse(p[1].Trim(), out t);
-                    if (!parsed)
+                    if (!Enum.TryParse<MessageTypeIdEnum>(parts[1].Trim(), out messageType))
                         return null;
                 }
                 else
                 {
-                    var key = p[0];
-                    var value = p[1];
+                    var key = parts[0];
+                    var value = parts[1];
 
-                    if (dic.ContainsKey(key)) continue;
-
-                    dic.Add(key, value);
+                    if (!dic.ContainsKey(key))
+                        dic.Add(key, value);
                 }
             }
 
-            var message = new ProtocolMessage(t, dic);
-            return message;
+            return new ProtocolMessage(messageType, dic);
         }
     }
-
-    
 }

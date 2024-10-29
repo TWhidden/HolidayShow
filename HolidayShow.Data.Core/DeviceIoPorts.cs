@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HolidayShow.Data.Core
 {
@@ -9,12 +10,15 @@ namespace HolidayShow.Data.Core
         {
             this.DevicePatternSequences = new HashSet<DevicePatternSequences>();
         }
-    
+
+        [Required]
         public int DeviceIoPortId { get; set; }
         public int DeviceId { get; set; }
         public int CommandPin { get; set; }
         public string Description { get; set; }
         public bool IsNotVisable { get; set; }
+
+        [Required]
         public bool IsDanger { get; set; }
     
         public virtual Devices Devices { get; set; }

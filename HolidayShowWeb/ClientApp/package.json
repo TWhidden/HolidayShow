@@ -25,7 +25,7 @@
     "validator": "^10.10.0"
   },
   "scripts": {
-    "start": "set HOST=0.0.0.0 | set DEFAULT_PORT=3000 && craco start",
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider && set HOST=0.0.0.0 | set DEFAULT_PORT=3000 && craco start",
     "build": "craco build",
     "postbuild": "echo removing_files && rm -rf ../wwwroot/react && mkdir -p ../wwwroot/react && cp -R build/* ../wwwroot/react/ && echo done_copying_files",
     "test": "craco test --env=jsdom",

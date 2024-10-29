@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HolidayShow.Data.Core
 {
@@ -10,7 +11,8 @@ namespace HolidayShow.Data.Core
             this.DeviceIoPorts = new HashSet<DeviceIoPorts>();
             this.DevicePatterns = new HashSet<Core.DevicePatterns>();
         }
-    
+
+        [Required]
         public int DeviceId { get; set; }
         public string Name { get; set; }
     

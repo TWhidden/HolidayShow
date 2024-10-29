@@ -85,6 +85,46 @@ prod_web:
   tags:
     - linux
 
+###################################################
+# Full Server
+###################################################
+
+beta_server:
+  stage: build
+  only:
+    refs:
+      - master
+    changes:
+      - gitlab-ci.yml
+      - HolidayShowServer/**/* # Match any changes within the folder
+  except:
+    - tags
+  script:
+    - cd scripts/docker/server
+    - npm run build-x64-beta
+    - npm run push-x64-beta
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux
+
+
+prod_server:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_TITLE =~ /^Release Single Server v[0-9\.].*$/ 
+  except:
+    - tags
+  script:
+    - cd scripts/docker/server
+    - npm run build-x64
+    - npm run push-x64
+    - exit 0
+  allow_failure: false
+  tags:
+    - linux    
+
 
 ###################################################
 # Client
