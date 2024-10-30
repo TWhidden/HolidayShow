@@ -12,12 +12,15 @@ import {
   styled,
   Theme,
   Box,
+  CircularProgress,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import NavMenu from './NavMenu';
+import { AppStoreContextItem } from '../Stores/AppStore';
+import { observer } from 'mobx-react';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 60;
@@ -73,7 +76,7 @@ const Main = styled('main', {
   overflow: 'auto', // Enables scrolling within Main
 }));
 
-const Layout: FC<LayoutProps> = ({ children, toggleTheme, currentMode }) => {
+const Layout: FC<LayoutProps> = observer(({ children, toggleTheme, currentMode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
   const [open, setOpen] = useState(!isMobile);
@@ -86,6 +89,13 @@ const Layout: FC<LayoutProps> = ({ children, toggleTheme, currentMode }) => {
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
+
+  const store = AppStoreContextItem.useStore();
+  const { isInitLoading } = store;
+
+  if(isInitLoading) {
+    return(<CircularProgress color="secondary" />);
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}> {/* Prevent outer scrollbar */}
@@ -160,6 +170,6 @@ const Layout: FC<LayoutProps> = ({ children, toggleTheme, currentMode }) => {
       </Main>
     </Box>
   );
-};
+});
 
 export default Layout;

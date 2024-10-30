@@ -49,6 +49,7 @@ export class AppStore extends DisposableBase implements IInitializable {
       isLoadingAudioOptions: observable,
       isLoadingSetSequences: observable,
       isLoadingSettings: observable,
+      isInitLoading: observable,
 
       // Actions to Set Data
       setSets: action,
@@ -73,6 +74,7 @@ export class AppStore extends DisposableBase implements IInitializable {
       setLoadingAudioOptions: action,
       setLoadingSetSequences: action,
       setLoadingSettings: action,
+      isInitLoadingSet: action,
 
       // Computed Properties
       currentSet: computed,
@@ -95,6 +97,11 @@ export class AppStore extends DisposableBase implements IInitializable {
   // ===========================
   // Observables for Lists
   // ===========================
+
+  isInitLoading : boolean = true;
+  isInitLoadingSet(isInitLoading: boolean) {
+    this.isInitLoading = isInitLoading;
+  }
 
   sets: Sets[] = [];
   devices: Devices[] = [];
@@ -239,6 +246,7 @@ export class AppStore extends DisposableBase implements IInitializable {
 
   // Fetch All Data
   async fetchAllData() {
+    this.isInitLoadingSet(true);
     await Promise.all([
       this.fetchSets(),
       this.fetchDevices(),
@@ -251,6 +259,7 @@ export class AppStore extends DisposableBase implements IInitializable {
       this.fetchSetSequences(),
       this.fetchSettings(),
     ]);
+    this.isInitLoadingSet(false);
   }
 
   // Fetch Sets

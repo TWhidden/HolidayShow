@@ -22,6 +22,7 @@ public class RemoteClient
     public RemoteClient(TcpClient client, IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
+        RemoteAddress = _client.Client.RemoteEndPoint?.ToString() ?? "Unknown Address";
         _stream = _client.GetStream();
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _logger = loggerFactory.CreateLogger<RemoteClient>();
@@ -29,7 +30,7 @@ public class RemoteClient
     }
 
     public DateTime CameOnline { get; } = DateTime.Now;
-    public string RemoteAddress => _client.Client.RemoteEndPoint?.ToString() ?? "N/A";
+    public string RemoteAddress { get; }
     public int DeviceId { get; private set; } = -1;
     public long MessageCountTotal { get; private set; }
 

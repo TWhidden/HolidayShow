@@ -1,21 +1,25 @@
-// src/components/DeviceIoPortEditor.tsx
-
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AppStoreContextItem } from '../Stores/AppStore';
 import { Devices, DeviceIoPorts } from '../Clients/Api';
-import { Button, Switch, TextField } from '@mui/material';
+import { Button, Switch, TextField, Grid, Typography, Tooltip } from '@mui/material';
 import FindReplaceIcon from '@mui/icons-material/FindReplace';
 import { ApiStoreContextItem } from '../Stores/ApiStore';
+import debounce from 'lodash/debounce';
 
 interface DeviceIoPortEditorProps {
   device?: Devices;
+}
+
+interface PendingUpdates {
+  [key: number]: DeviceIoPorts;
 }
 
 const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device }) => {
   const store = AppStoreContextItem.useStore();
   const apiStore = ApiStoreContextItem.useStore();
   const [ports, setPorts] = useState<DeviceIoPorts[]>([]);
+  const pendingUpdatesRef = useRef<PendingUpdates>({});
 
   useEffect(() => {
     const fetchPorts = async () => {
@@ -40,35 +44,66 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
     fetchPorts();
   }, [device, store, apiStore]);
 
+  const processPendingUpdates = useCallback(async () => {
+    const updates = pendingUpdatesRef.current;
+    const updatePromises: Promise<void>[] = [];
 
-  const handleIoPortDangerChange = async (ioPortId: number, checked: boolean) => {
     try {
-      const updatedPort = ports.find(port => port.deviceIoPortId === ioPortId);
-      if (!updatedPort) return;
+      // Process all pending updates
+      Object.entries(updates).forEach(([ioPortId, updatedPort]) => {
+        updatePromises.push(
+          store.updateDeviceIoPort(parseInt(ioPortId), updatedPort)
+        );
+      });
 
-      const newPort = { ...updatedPort, isDanger: checked };
-      setPorts(prevPorts => prevPorts.map(port => port.deviceIoPortId === ioPortId ? newPort : port));
-
-      await store.updateDeviceIoPort(ioPortId, newPort);
+      await Promise.all(updatePromises);
       store.clearError();
+      
+      // Clear the pending updates after successful save
+      pendingUpdatesRef.current = {};
     } catch (error: any) {
-      store.setError(`Failed to update IO port danger status: ${error.message}`);
+      store.setError(`Failed to update IO ports: ${error.message}`);
+      // Keep the failed updates in the pending dictionary for retry
     }
+  }, [store]);
+
+  const debouncedProcessUpdates = useCallback(
+    debounce(() => {
+      processPendingUpdates();
+    }, 2000),
+    [processPendingUpdates]
+  );
+
+  const queuePortUpdate = useCallback((ioPortId: number, updatedPort: DeviceIoPorts) => {
+    // Add or update the port in the pending updates dictionary
+    pendingUpdatesRef.current[ioPortId] = updatedPort;
+    
+    // Trigger the debounced processing
+    debouncedProcessUpdates();
+  }, [debouncedProcessUpdates]);
+
+  const handleIoPortDangerChange = (ioPortId: number, checked: boolean) => {
+    const updatedPort = ports.find(port => port.deviceIoPortId === ioPortId);
+    if (!updatedPort) return;
+
+    const newPort = { ...updatedPort, isDanger: checked };
+    setPorts(prevPorts => prevPorts.map(port => 
+      port.deviceIoPortId === ioPortId ? newPort : port
+    ));
+
+    queuePortUpdate(ioPortId, newPort);
   };
 
-  const handleIoPortNameChange = async (ioPortId: number, value: string) => {
-    try {
-      const updatedPort = ports.find(port => port.deviceIoPortId === ioPortId);
-      if (!updatedPort) return;
+  const handleIoPortNameChange = (ioPortId: number, value: string) => {
+    const updatedPort = ports.find(port => port.deviceIoPortId === ioPortId);
+    if (!updatedPort) return;
 
-      const newPort = { ...updatedPort, description: value };
-      setPorts(prevPorts => prevPorts.map(port => port.deviceIoPortId === ioPortId ? newPort : port));
+    const newPort = { ...updatedPort, description: value };
+    setPorts(prevPorts => prevPorts.map(port => 
+      port.deviceIoPortId === ioPortId ? newPort : port
+    ));
 
-      await store.updateDeviceIoPort(ioPortId, newPort);
-      store.clearError();
-    } catch (error: any) {
-      store.setError(`Failed to update IO port name: ${error.message}`);
-    }
+    queuePortUpdate(ioPortId, newPort);
   };
 
   const handleIoPortDetect = async (ioPortId: number) => {
@@ -80,57 +115,79 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
     }
   };
 
+  // Clean up debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedProcessUpdates.cancel();
+      
+      // Process any remaining updates before unmounting
+      if (Object.keys(pendingUpdatesRef.current).length > 0) {
+        processPendingUpdates();
+      }
+    };
+  }, [debouncedProcessUpdates, processPendingUpdates]);
+
   return (
-    <div style={{ padding: '1rem' }}>
+    <div style={{ padding: '0.5rem' }}>
       {store.error && (
-        <div style={{ color: 'red', marginBottom: '1rem' }}>
+        <Typography color="error" style={{ marginBottom: '0.5rem' }}>
           {store.error}
-        </div>
+        </Typography>
       )}
       {store.isLoadingDeviceIoPorts ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', paddingTop: '1rem' }}>
-          <span>Loading IO Ports...</span>
-        </div>
+        <Typography align="center" style={{ paddingTop: '0.5rem' }}>
+          Loading IO Ports...
+        </Typography>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <Grid container direction="column" spacing={0.5}>
           {ports.length === 0 ? (
-            <div>No IO Ports Available</div>
+            <Typography>No IO Ports Available</Typography>
           ) : (
             ports.map((ioPort) => (
-              <div
-                key={ioPort.deviceIoPortId}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 'rem',
-                }}
-              >
-                <TextField
-                  label={`PIN: ${ioPort.commandPin}`}
-                  value={ioPort.description || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleIoPortNameChange(ioPort.deviceIoPortId, e.target.value)}
-                  margin="normal"
-                  style={{ marginRight: '1rem', flex: 1 }}
-                />
-                <Switch
-                  checked={ioPort.isDanger}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleIoPortDangerChange(ioPort.deviceIoPortId, e.target.checked)}
-                  color="primary"
-                  style={{ marginRight: '1rem' }}
-                />
-                <Button
-                  onClick={() => handleIoPortDetect(ioPort.deviceIoPortId)}
-                  variant="contained"
-                    color="primary"
-                  startIcon={<FindReplaceIcon />}
-                >
-                  Detect
-                </Button>
-              </div>
+              <Grid item key={ioPort.deviceIoPortId}>
+                <Grid container alignItems="center" spacing={1}>
+                  <Grid item xs={1}>
+                    <Typography variant="body2">PIN {ioPort.commandPin}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Description"
+                      value={ioPort.description || ''}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => 
+                        handleIoPortNameChange(ioPort.deviceIoPortId, e.target.value)
+                      }
+                      fullWidth
+                      margin="dense"
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Tooltip title="Danger Pin">
+                    <Switch
+                      checked={ioPort.isDanger}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => 
+                        handleIoPortDangerChange(ioPort.deviceIoPortId, e.target.checked)
+                      }
+                      color="primary"
+                      size="small"
+                    />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Button
+                      onClick={() => handleIoPortDetect(ioPort.deviceIoPortId)}
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      startIcon={<FindReplaceIcon />}
+                    >
+                      Detect
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
             ))
           )}
-        </div>
+        </Grid>
       )}
     </div>
   );

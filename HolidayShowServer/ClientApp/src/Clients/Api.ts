@@ -17,7 +17,6 @@ export interface AudioOptions {
   /** @format int32 */
   audioDuration?: number;
   isNotVisable?: boolean;
-  devicePatternSequences?: DevicePatternSequences[] | null;
   displayName?: string | null;
 }
 
@@ -32,8 +31,6 @@ export interface DeviceEffects {
   effectInstructionId: number;
   timeOn?: string | null;
   timeOff?: string | null;
-  effectInstructionsAvailable?: EffectInstructionsAvailable;
-  setSequences?: SetSequences[] | null;
 }
 
 export interface DeviceIoPorts {
@@ -47,7 +44,6 @@ export interface DeviceIoPorts {
   isNotVisable?: boolean;
   isDanger: boolean;
   devices?: Devices;
-  devicePatternSequences?: DevicePatternSequences[] | null;
 }
 
 export interface DevicePatternSequences {
@@ -63,9 +59,6 @@ export interface DevicePatternSequences {
   audioId?: number;
   /** @format int32 */
   deviceIoPortId?: number;
-  audioOptions?: AudioOptions;
-  deviceIoPorts?: DeviceIoPorts;
-  devicePatterns?: DevicePatterns;
 }
 
 export interface DevicePatterns {
@@ -74,17 +67,12 @@ export interface DevicePatterns {
   /** @format int32 */
   deviceId?: number;
   patternName?: string | null;
-  devices?: Devices;
-  devicePatternSequences?: DevicePatternSequences[] | null;
-  setSequences?: SetSequences[] | null;
 }
 
 export interface Devices {
   /** @format int32 */
   deviceId: number;
   name?: string | null;
-  deviceIoPorts?: DeviceIoPorts[] | null;
-  devicePatterns?: DevicePatterns[] | null;
 }
 
 export interface EffectInstructionsAvailable {
@@ -94,7 +82,6 @@ export interface EffectInstructionsAvailable {
   instructionName?: string | null;
   instructionsForUse?: string | null;
   isDisabled?: boolean;
-  deviceEffects?: DeviceEffects[] | null;
 }
 
 export interface SetSequences {

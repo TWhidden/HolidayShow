@@ -1,10 +1,9 @@
 // src/components/SetsEditor.tsx
 
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AppStoreContextItem } from '../Stores/AppStore';
 import {
-
     Sets,
     SetSequences,
 } from '../Clients/Api';
@@ -17,10 +16,19 @@ import {
     IconButton,
     Tooltip,
     Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button,
+    CircularProgress,
+    Switch,
+    FormControlLabel,
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import SetSequenceEdit from './SetSequenceEdit';
-
+import debounce from 'lodash/debounce';
 
 const sessionSetSelected = 'SetEdit-SetSelected';
 
@@ -29,27 +37,37 @@ const SetsEditor: React.FC = observer(() => {
 
     const [setIdSelected, setSetIdSelected] = useState<number>(0);
     const [setSelected, setSetSelected] = useState<Sets | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    // Fetch patterns and effects on mount
+    // State for confirmation dialog
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+    const [confirmDialogTitle, setConfirmDialogTitle] = useState<string>('');
+    const [confirmDialogContent, setConfirmDialogContent] = useState<string>('');
+    const [confirmDialogAction, setConfirmDialogAction] = useState<() => void>(() => { });
+
+    // Fetch sets when store.sets changes
     useEffect(() => {
         const initialize = async () => {
-            try {
+            if (store.sets.length === 0) {
+                // If sets are not loaded yet, do nothing
+                return;
+            }
 
-                // Fetch all sets
-                getAllSets();
+            try {
+                await getAllSets();
             } catch (error: any) {
                 store.setError(`Initialization failed: ${error.message}`);
+            } finally {
+                setLoading(false);
             }
         };
 
         initialize();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [store]);
+    }, [store.sets]); // Run this effect whenever store.sets changes
 
     const getAllSets = async () => {
         try {
-
-
             let selectedSet: Sets | undefined = store.sets[0];
             const lastSelectedId = sessionStorage.getItem(sessionSetSelected);
 
@@ -83,26 +101,63 @@ const SetsEditor: React.FC = observer(() => {
         setSetSelected(selected);
     };
 
-    const handleSetDelete = async () => {
+    // Debounced save function to limit store updates
+    const debouncedHandleSetSave = useCallback(
+        debounce(async (updatedSet: Sets) => {
+            try {
+                await store.updateSet(updatedSet.setId, updatedSet);
+                store.clearError();
+            } catch (error: any) {
+                store.setError(`Failed to save set: ${error.message}`);
+            }
+        }, 2000),
+        [store]
+    );
+
+    const handleSetSave = (updatedSet: Sets) => {
+        debouncedHandleSetSave(updatedSet);
+    };
+
+    const handleSetDelete = () => {
         if (!setSelected) return;
 
-        try {
-            await store.deleteSet(setSelected.setId); // Ensure this method exists
+        setConfirmDialogTitle('Delete Set');
+        setConfirmDialogContent(`Are you sure you want to delete the set "${setSelected.setName}"? This action cannot be undone.`);
+        setConfirmDialogAction(() => async () => {
+            try {
+                await store.deleteSet(setSelected.setId);
+                setSetIdSelected(0);
+                setSetSelected(null);
+                store.clearError();
+                await getAllSets();
+            } catch (error: any) {
+                store.setError(`Failed to delete set: ${error.message}`);
+            } finally {
+                setConfirmDialogOpen(false);
+            }
+        });
+        setConfirmDialogOpen(true);
+    };
 
-            setSetIdSelected(0);
-            setSetSelected(null);
-
-            store.clearError();
-
-            await getAllSets();
-        } catch (error: any) {
-            store.setError(`Failed to delete set: ${error.message}`);
-        }
+    const handleSequenceDelete = (sequence: SetSequences) => {
+        setConfirmDialogTitle('Delete Sequence');
+        setConfirmDialogContent(`Are you sure you want to delete the sequence with "On At" value ${sequence.onAt}? This action cannot be undone.`);
+        setConfirmDialogAction(() => async () => {
+            try {
+                await store.deleteSetSequence(sequence.setSequenceId);
+                store.clearError();
+            } catch (error: any) {
+                store.setError(`Failed to delete sequence: ${error.message}`);
+            } finally {
+                setConfirmDialogOpen(false);
+            }
+        });
+        setConfirmDialogOpen(true);
     };
 
     const handleSetCreate = async () => {
         try {
-            const newSet = await store.createSet({ setId: 0, setName: 'New Set' }); // Ensure this method exists
+            const newSet = await store.createSet({ setId: 0, setName: 'New Set', isDisabled: false });
 
             if (newSet) {
                 setSetIdSelected(newSet.setId);
@@ -116,20 +171,10 @@ const SetsEditor: React.FC = observer(() => {
         }
     };
 
-    const handleSetSave = async (updatedSet: Sets) => {
-        try {
-            await store.updateSet(updatedSet.setId, updatedSet); // Ensure this method exists
-            store.clearError();
-        } catch (error: any) {
-            store.setError(`Failed to save set: ${error.message}`);
-        }
-    };
-
     const handleSequenceCreate = async () => {
         if (!setSelected) return;
 
         try {
-
             // Determine next onAt value
             let nextOnAt = 1000;
             if (store.setSequences.length > 0) {
@@ -142,27 +187,33 @@ const SetsEditor: React.FC = observer(() => {
             const newSequence: SetSequences = {
                 onAt: nextOnAt,
                 setId: setSelected.setId,
-                setSequenceId: 0, // Assuming backend assigns
+                setSequenceId: 0,
             };
 
-            await store.createSetSequence(newSequence); // Ensure this method exists
+            await store.createSetSequence(newSequence);
             store.clearError();
         } catch (error: any) {
             store.setError(`Failed to create sequence: ${error.message}`);
         }
     };
 
-    const handleSequenceDelete = async (sequence: SetSequences) => {
-        try {
-            await store.deleteSetSequence(sequence.setSequenceId); // Ensure this method exists
-            store.clearError();
-        } catch (error: any) {
-            store.setError(`Failed to delete sequence: ${error.message}`);
-        }
+    const handleToggleDisabled = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!setSelected) return;
+        const updatedSet = { ...setSelected, isDisabled: event.target.checked };
+        setSetSelected(updatedSet);
+        handleSetSave(updatedSet);
     };
 
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+                <CircularProgress />
+            </div>
+        );
+    }
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem' }}>
             {store.error && (
                 <div style={{ color: 'red', marginBottom: '1rem' }}>{store.error}</div>
             )}
@@ -217,6 +268,19 @@ const SetsEditor: React.FC = observer(() => {
                                 style={{ marginRight: '1rem', flex: 1 }}
                             />
 
+                            <Tooltip title={setSelected.isDisabled ? "Enable Set" : "Disable Set"}>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={setSelected.isDisabled}
+                                            onChange={handleToggleDisabled}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={setSelected.isDisabled ? "Disabled" : "Enabled"}
+                                />
+                            </Tooltip>
+
                             <Tooltip title="Create New Sequence">
                                 <IconButton onClick={handleSequenceCreate}>
                                     <AddIcon />
@@ -239,18 +303,43 @@ const SetsEditor: React.FC = observer(() => {
                             </Typography>
                         </div>
 
-                        {store.setSequences.map((sequence) => (
-                            <SetSequenceEdit
-                                key={sequence.setSequenceId}
-                                sequence={sequence}
-                                onDelete={handleSequenceDelete}
-                            />
-                        ))}
+                        {store.setSequences
+                            .slice() // Creates a shallow copy to avoid mutating the original array
+                            .sort((a, b) => a.onAt - b.onAt) // Sorts by onAt in ascending order
+                            .map((sequence) => (
+                                <SetSequenceEdit
+                                    key={sequence.setSequenceId}
+                                    sequence={sequence}
+                                    onDelete={() => handleSequenceDelete(sequence)}
+                                />
+                            ))}
                     </div>
                 </div>
             )}
+
+            <Dialog
+                open={confirmDialogOpen}
+                onClose={() => setConfirmDialogOpen(false)}
+                aria-labelledby="confirm-dialog-title"
+                aria-describedby="confirm-dialog-description"
+            >
+                <DialogTitle id="confirm-dialog-title">{confirmDialogTitle}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="confirm-dialog-description">
+                        {confirmDialogContent}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={confirmDialogAction} color="secondary" autoFocus>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
-    );
+    )
 });
 
 export default SetsEditor;

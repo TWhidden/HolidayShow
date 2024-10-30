@@ -1,10 +1,22 @@
 // src/components/DeviceManager.tsx
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AppStoreContextItem } from '../Stores/AppStore';
 import { Devices } from '../Clients/Api';
 import DeviceIoPortEditor from './DeviceIoPortEditor';
+import {
+  Box,
+  Select,
+  MenuItem,
+  TextField,
+  CircularProgress,
+  Alert,
+  InputLabel,
+  FormControl,
+  SelectChangeEvent,
+} from '@mui/material';
+import debounce from 'lodash/debounce';
 
 const sessionDeviceSelected = "DeviceEdit-DeviceSelected";
 
@@ -13,6 +25,7 @@ const DeviceManager: React.FC = observer(() => {
 
   const [deviceIdSelected, setDeviceIdSelected] = useState<number>(0);
   const [deviceSelected, setDeviceSelected] = useState<Devices | undefined>(undefined);
+  const [nameInput, setNameInput] = useState<string>('');
 
   useEffect(() => {
     const initializeSelection = () => {
@@ -29,79 +42,100 @@ const DeviceManager: React.FC = observer(() => {
       if (selectedDevice) {
         setDeviceIdSelected(selectedDevice.deviceId);
         setDeviceSelected(selectedDevice);
+        setNameInput(selectedDevice.name || '');
       }
     };
 
     initializeSelection();
   }, [store.devices]);
 
-  const handleDeviceChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const id = Number(event.target.value);
+  const handleDeviceChange = (event: SelectChangeEvent<number>) => {
+    const id = Number(event.target.value);  
     const selected = store.devices.find(device => device.deviceId === id);
 
     if (selected) {
       sessionStorage.setItem(sessionDeviceSelected, selected.deviceId.toString());
       setDeviceIdSelected(selected.deviceId);
       setDeviceSelected(selected);
+      setNameInput(selected.name || '');
     } else {
       sessionStorage.removeItem(sessionDeviceSelected);
       setDeviceIdSelected(0);
       setDeviceSelected(undefined);
+      setNameInput('');
     }
   };
 
+  const debouncedSave = useCallback(
+    debounce((updatedDevice: Devices) => {
+      store.updateDevice(updatedDevice.deviceId, updatedDevice);
+    }, 2000),
+    [store]
+  );
+
   const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newName = event.target.value;
+    setNameInput(newName);
+
     if (deviceSelected) {
-      const updatedDevice: Devices = { ...deviceSelected, name: newName };
-      setDeviceSelected(updatedDevice);
-      store.updateDevice(updatedDevice.deviceId, updatedDevice);
+      const updatedDevice = { ...deviceSelected, name: newName };
+      debouncedSave(updatedDevice);
     }
   };
 
   if (store.isLoadingDevices) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", paddingTop: "3rem" }}>
-        <span>Loading...</span>
-      </div>
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%" pt={6}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
+    <Box display="flex" flexDirection="column" p={2}>
       {store.error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {store.error}
-        </div>
+        </Alert>
       )}
 
-      <div style={{ display: "flex", flexDirection: "row", marginBottom: "1rem" }}>
-        <select value={deviceIdSelected} onChange={handleDeviceChange} style={{ marginRight: "1rem", padding: "0.5rem" }}>
-          <option value={0}>Select Device</option>
-          {store.devices.map((device) => (
-            <option key={device.deviceId} value={device.deviceId}>
-              {device.deviceId}: {device.name}
-            </option>
-          ))}
-        </select>
+      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} mb={2} gap={2}>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="device-select-label">Select Device</InputLabel>
+          <Select
+            labelId="device-select-label"
+            value={deviceIdSelected}
+            onChange={handleDeviceChange}
+            label="Select Device"
+          >
+            <MenuItem value={0}>
+              <em>Select Device</em>
+            </MenuItem>
+            {store.devices.map((device) => (
+              <MenuItem key={device.deviceId} value={device.deviceId}>
+                {device.deviceId}: {device.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         {deviceSelected && (
-          <input
-            type="text"
-            value={deviceSelected.name || ''}
+          <TextField
+            fullWidth
+            label="Device Name"
+            variant="outlined"
+            value={nameInput}
             onChange={handleNameChange}
-            placeholder="Device Name"
-            style={{ padding: "0.5rem", flex: 1 }}
           />
         )}
-      </div>
+      </Box>
 
       {deviceSelected && (
-        <div style={{ overflow: "auto" }}>
+        <Box overflow="auto">
           <DeviceIoPortEditor device={deviceSelected} />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 });
 

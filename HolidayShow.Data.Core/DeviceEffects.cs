@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace HolidayShow.Data.Core
 {
@@ -20,8 +21,11 @@ namespace HolidayShow.Data.Core
         public int EffectInstructionId { get; set; }
         public string TimeOn { get; set; }
         public string TimeOff { get; set; }
-    
+
+        [JsonIgnore]
         public virtual EffectInstructionsAvailable EffectInstructionsAvailable { get; set; }
+
+        [JsonIgnore]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SetSequences> SetSequences { get; set; }
     }

@@ -1,14 +1,25 @@
 // src/components/EditPattern.tsx
 
-import React, { useEffect, useState, useRef, ChangeEvent } from 'react';
+import React, { useEffect, useState, useCallback, useRef, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AppStoreContextItem } from '../Stores/AppStore';
 import { DevicePatternSequences } from '../Clients/Api';
-import { TextField, IconButton, Tooltip } from '@mui/material';
+import {
+    TextField,
+    IconButton,
+    Tooltip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button
+} from '@mui/material';
 import FindReplaceIcon from '@mui/icons-material/FindReplace';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ComboSelect from 'react-select';
 import { ApiStoreContextItem } from '../Stores/ApiStore';
+import debounce from 'lodash/debounce';
 
 interface EditPatternProps {
     sequence: DevicePatternSequences;
@@ -26,7 +37,31 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
     const [onAt, setOnAt] = useState<string>(sequence.onAt.toString());
     const [duration, setDuration] = useState<string>(sequence.duration?.toString() || '0');
 
-    const timerRef = useRef<number | null>(null);
+    // Refs to hold latest state values
+    const onAtRef = useRef(onAt);
+    const durationRef = useRef(duration);
+    const audioRef = useRef(audio);
+    const portRef = useRef(port);
+
+    // Update refs when state changes
+    useEffect(() => {
+        onAtRef.current = onAt;
+    }, [onAt]);
+
+    useEffect(() => {
+        durationRef.current = duration;
+    }, [duration]);
+
+    useEffect(() => {
+        audioRef.current = audio;
+    }, [audio]);
+
+    useEffect(() => {
+        portRef.current = port;
+    }, [port]);
+
+    // State for the confirmation dialog
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const selectedAudioItem = audioOptions.find(a => a.audioId === sequence.audioId);
@@ -39,41 +74,57 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sequence, audioOptions, portOptions]);
 
-    const handleDelaySave = () => {
-        if (timerRef.current !== null) {
-            clearTimeout(timerRef.current);
-        }
+    // Debounced handleSave using lodash/debounce with stable function
+    const debouncedHandleSave = useCallback(
+        debounce(async () => {
+            try {
+                const updatedSequence: DevicePatternSequences = {
+                    ...sequence,
+                    onAt: Number(onAtRef.current),
+                    duration: Number(durationRef.current),
+                    audioId: audioRef.current ? audioRef.current.value : 1,
+                    deviceIoPortId: portRef.current ? portRef.current.value : sequence.deviceIoPortId,
+                };
+                await store.updateDevicePatternSequence(updatedSequence.devicePatternSeqenceId, updatedSequence);
+                store.clearError();
+            } catch (error: any) {
+                store.setError(`Failed to save sequence: ${error.message}`);
+            }
+        }, 2000), // 2000ms debounce delay
+        [sequence, store] // Ensure these are stable or manage dependencies accordingly
+    );
 
-        timerRef.current = window.setTimeout(() => {
-            handleSave();
-        }, 1000);
-    };
-
-    const handleSave = async () => {
-        try {
-            const updatedSequence: DevicePatternSequences = {
-                ...sequence,
-                onAt: Number(onAt),
-                duration: Number(duration),
-                audioId: audio ? audio.value : 1,
-                deviceIoPortId: port ? port.value : sequence.deviceIoPortId,
-            };
-            await store.updateDevicePatternSequence(updatedSequence.devicePatternSeqenceId, updatedSequence); // Ensure this method exists in AppStore
-            store.clearError();
-        } catch (error: any) {
-            store.setError(`Failed to save sequence: ${error.message}`);
-        }
-    };
+    // Cleanup the debounced function on component unmount
+    useEffect(() => {
+        return () => {
+            console.log('cleanup debouncedHandleSave');
+            debouncedHandleSave.cancel();
+        };
+    }, [debouncedHandleSave]);
 
     const handleIoPortDetect = async () => {
         try {
             if (sequence.deviceIoPortId) {
-                await apiStore.getApi().deviceIoPortsPutDeviceIoPortIdentifyUpdate(sequence.deviceIoPortId); // Ensure this method exists in AppStore
+                await apiStore.getApi().deviceIoPortsPutDeviceIoPortIdentifyUpdate(sequence.deviceIoPortId);
             }
             store.clearError();
         } catch (error: any) {
             store.setError(`Failed to detect IO port: ${error.message}`);
         }
+    };
+
+    // Handlers for the confirmation dialog
+    const handleDeleteClick = () => {
+        setIsDialogOpen(true);
+    };
+
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+    };
+
+    const handleConfirmDelete = () => {
+        onDelete(sequence);
+        setIsDialogOpen(false);
     };
 
     return (
@@ -83,7 +134,7 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 value={onAt}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                     setOnAt(e.target.value);
-                    handleDelaySave();
+                    debouncedHandleSave();
                 }}
                 margin="normal"
                 style={{ marginRight: '1rem', flex: 1 }}
@@ -94,7 +145,7 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 value={duration}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                     setDuration(e.target.value);
-                    handleDelaySave();
+                    debouncedHandleSave();
                 }}
                 margin="normal"
                 style={{ marginRight: '1rem', flex: 1 }}
@@ -105,7 +156,7 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 options={portOptions}
                 onChange={(selectedOption) => {
                     setPort(selectedOption);
-                    handleDelaySave();
+                    debouncedHandleSave();
                 }}
                 value={port}
                 placeholder="Select GPIO Port"
@@ -117,7 +168,7 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 options={audioOptions.map(a => ({ label: a.displayName ?? "na", value: a.audioId }))}
                 onChange={(selectedOption) => {
                     setAudio(selectedOption);
-                    handleDelaySave();
+                    debouncedHandleSave();
                 }}
                 value={audio}
                 placeholder="Select Audio File"
@@ -131,10 +182,33 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
             </Tooltip>
 
             <Tooltip title="Delete Sequence">
-                <IconButton onClick={() => onDelete(sequence)}>
+                <IconButton onClick={handleDeleteClick}>
                     <DeleteIcon />
                 </IconButton>
             </Tooltip>
+
+            {/* Confirmation Dialog */}
+            <Dialog
+                open={isDialogOpen}
+                onClose={handleDialogClose}
+                aria-labelledby="confirm-delete-dialog-title"
+                aria-describedby="confirm-delete-dialog-description"
+            >
+                <DialogTitle id="confirm-delete-dialog-title">Confirm Delete</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="confirm-delete-dialog-description">
+                        Are you sure you want to delete this sequence?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirmDelete} color="secondary" autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 });

@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import ComboSelect from 'react-select';
+import debounce from 'lodash/debounce';
 
 interface SetSequenceEditProps {
   sequence: SetSequences;
@@ -21,142 +22,161 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
   ({ sequence, onDelete }) => {
     const store = AppStoreContextItem.useStore();
 
-    // State declarations
     const [devicePattern, setDevicePattern] = useState<{ label: string; value: number } | null>(null);
     const [effect, setEffect] = useState<{ label: string; value: number } | null>(null);
     const [onAt, setOnAt] = useState<string>(sequence.onAt.toString());
 
-    // State to control when to save
-    const [shouldSave, setShouldSave] = useState<boolean>(false);
-
-    // Ref to track initial mount
     const isInitialMount = useRef(true);
 
-    // Initialize the state based on the incoming sequence
+    // Refs to hold the latest state values
+    const onAtRef = useRef(onAt);
+    const devicePatternRef = useRef(devicePattern);
+    const effectRef = useRef(effect);
+
+    // Update refs whenever state changes
     useEffect(() => {
-      const selectedPattern = store.devicePatterns.find((p) => p.devicePatternId === sequence.devicePatternId) || null;
-      const selectedEffect = store.deviceEffects.find((e) => e.effectId === sequence.effectId) || null;
+      onAtRef.current = onAt;
+    }, [onAt]);
 
-      // Only set state if the incoming sequence differs from current state
-      if (
-        (selectedPattern ? selectedPattern.devicePatternId : null) !== (devicePattern ? devicePattern.value : null)
-      ) {
-        setDevicePattern(selectedPattern ? { label: selectedPattern.patternName ?? '', value: selectedPattern.devicePatternId } : null);
-      }
+    useEffect(() => {
+      devicePatternRef.current = devicePattern;
+    }, [devicePattern]);
 
-      if (
-        (selectedEffect ? selectedEffect.effectId : null) !== (effect ? effect.value : null)
-      ) {
-        setEffect(selectedEffect ? { label: selectedEffect.effectName ?? '', value: selectedEffect.effectId } : null);
-      }
+    useEffect(() => {
+      effectRef.current = effect;
+    }, [effect]);
 
-      const newOnAt = sequence.onAt.toString();
-      if (newOnAt !== onAt) {
-        setOnAt(newOnAt);
-      }
+    // Initialize state when sequence prop changes
+    useEffect(() => {
+      const selectedPattern = store.devicePatterns.find(p => p.devicePatternId === sequence.devicePatternId) || null;
+      const selectedEffect = store.deviceEffects.find(e => e.effectId === sequence.effectId) || null;
 
-      // Prevent initial mount from triggering a save
+      setDevicePattern(selectedPattern ? { label: selectedPattern.patternName || '', value: selectedPattern.devicePatternId } : null);
+      setEffect(selectedEffect ? { label: selectedEffect.effectName || '', value: selectedEffect.effectId } : null);
+      setOnAt(sequence.onAt.toString());
+
       if (isInitialMount.current) {
         isInitialMount.current = false;
       }
-    }, [
-      sequence.devicePatternId,
-      sequence.effectId,
-      sequence.onAt,
-      store.devicePatterns,
-      store.deviceEffects,
-      devicePattern,
-      effect,
-      onAt
-    ]);
+    }, [sequence, store.devicePatterns, store.deviceEffects]);
 
-    // Define handleSave inside useCallback to ensure stability
+    // Save function
     const handleSave = useCallback(async () => {
       try {
-        console.log('Saving Sequence...');
-        console.log('Current State:');
-        console.log('  onAt:', onAt);
-        console.log('  devicePattern:', devicePattern);
-        console.log('  effect:', effect);
+        console.log('Saving sequence...');
+        console.log('onAt:', onAtRef.current);
+        console.log('devicePattern:', devicePatternRef.current);
+        console.log('effect:', effectRef.current);
 
         const updatedSequence: SetSequences = {
           ...sequence,
-          onAt: Number(onAt),
-          devicePatternId: devicePattern ? devicePattern.value : null,
-          effectId: effect ? effect.value : null,
+          onAt: Number(onAtRef.current),
+          devicePatternId: devicePatternRef.current ? devicePatternRef.current.value : null,
+          effectId: effectRef.current ? effectRef.current.value : null,
           setSequenceId: sequence.setSequenceId,
         };
 
-        await store.updateSetSequence(updatedSequence.setSequenceId, updatedSequence); // Ensure this method exists
+        await store.updateSetSequence(updatedSequence.setSequenceId, updatedSequence);
         store.clearError();
-        console.log('Sequence saved successfully.');
       } catch (error: any) {
         store.setError(`Failed to save sequence: ${error.message}`);
-        console.error('Error saving sequence:', error);
       }
-    }, [sequence, onAt, devicePattern, effect, store]);
+    }, [sequence, store]);
 
-    // useEffect to handle save when shouldSave is true
+    // Ref to store the latest handleSave
+    const handleSaveRef = useRef(handleSave);
+
+    // Update the ref whenever handleSave changes
     useEffect(() => {
-      if (shouldSave) {
-        handleSave();
-        setShouldSave(false);
+      handleSaveRef.current = handleSave;
+    }, [handleSave]);
+
+    // Debounced save function that calls the latest handleSave
+    const debouncedSave = useRef(
+      debounce(() => {
+        handleSaveRef.current();
+      }, 500)
+    ).current;
+
+    // Cleanup debounce on unmount
+    useEffect(() => {
+      return () => {
+        console.log('cancel save');
+        debouncedSave.cancel();
+      };
+    }, [debouncedSave]);
+
+    // Handlers
+    const handleOnAtChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+      console.log('handleOnAtChange:', e.target.value);
+      setOnAt(e.target.value);
+      if (!isInitialMount.current) {
+        debouncedSave();
       }
-    }, [shouldSave, handleSave]);
+    }, [debouncedSave]);
+
+    const handleDevicePatternChange = useCallback((selectedOption: { label: string; value: number } | null) => {
+      console.log('handleDevicePatternChange:', selectedOption);
+      setDevicePattern(selectedOption);
+      if (!isInitialMount.current) {
+        debouncedSave();
+      }
+    }, [debouncedSave]);
+
+    const handleEffectChange = useCallback((selectedOption: { label: string; value: number } | null) => {
+      console.log('handleEffectChange:', selectedOption);
+      setEffect(selectedOption);
+      if (!isInitialMount.current) {
+        debouncedSave();
+      }
+    }, [debouncedSave]);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '1rem' }}>
-        {/* On At Field */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
         <TextField
           label="On At"
           value={onAt}
           type="number"
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            setOnAt(e.target.value);
-            setShouldSave(true); // Trigger save after state update
-          }}
-          margin="normal"
-          style={{ marginRight: '1rem', flex: 1, width: '30rem' }}
+          onChange={handleOnAtChange}
+          margin="dense"
+          size="small"
+          style={{ marginRight: '0.25rem', flex: 1, width: '30rem' }}
         />
 
-        {/* Device Pattern ComboBox */}
         <ComboSelect
           isClearable={false}
-          options={store.devicePatterns.map((p) => ({
-            label: p.patternName ?? '',
-            value: p.devicePatternId,
-          }))}
-          onChange={(selectedOption) => {
-            console.log('Selected Device Pattern:', selectedOption);
-            setDevicePattern(selectedOption);
-            setShouldSave(true); // Trigger save after state update
-          }}
+          options={store.devicePatterns.map(p => ({ label: p.patternName || '', value: p.devicePatternId }))}
+          onChange={handleDevicePatternChange}
           value={devicePattern}
           placeholder="Select Device Pattern"
-          styles={{ container: (provided) => ({ ...provided, flex: 3, marginRight: '1rem' }) }}
+          styles={{
+            container: (provided) => ({ ...provided, flex: 3, marginRight: '0.25rem', minWidth: '150px' }),
+            control: (provided) => ({ ...provided, minHeight: '30px' }),
+            indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
+            input: (provided) => ({ ...provided, margin: '0px' }),
+          }}
         />
 
-        {/* Effect ComboBox */}
         <ComboSelect
           isClearable={false}
-          options={store.deviceEffects.map((e) => ({
-            label: e.effectName ?? '',
-            value: e.effectId,
-          }))}
-          onChange={(selectedOption) => {
-            console.log('Selected Effect:', selectedOption);
-            setEffect(selectedOption);
-            setShouldSave(true); // Trigger save after state update
-          }}
+          options={store.deviceEffects.map(e => ({ label: e.effectName || '', value: e.effectId }))}
+          onChange={handleEffectChange}
           value={effect}
           placeholder="Select Effect"
-          styles={{ container: (provided) => ({ ...provided, flex: 3, marginRight: '1rem' }) }}
+          styles={{
+            container: (provided) => ({ ...provided, flex: 3, marginRight: '0.25rem', minWidth: '150px' }),
+            control: (provided) => ({ ...provided, minHeight: '30px' }),
+            indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
+            input: (provided) => ({ ...provided, margin: '0px' }),
+          }}
         />
 
-        {/* Delete Button */}
         <Tooltip title="Delete Sequence">
-          <IconButton onClick={() => onDelete(sequence)}>
-            <DeleteIcon />
+          <IconButton
+            onClick={() => onDelete(sequence)}
+            size="small"
+          >
+            <DeleteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </div>

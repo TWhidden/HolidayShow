@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace HolidayShow.Data.Core
 {
@@ -23,6 +24,8 @@ namespace HolidayShow.Data.Core
     
         public virtual Devices Devices { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+
+        [JsonIgnore]
         public virtual ICollection<DevicePatternSequences> DevicePatternSequences { get; set; }
     }
 }

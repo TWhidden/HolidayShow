@@ -1,6 +1,6 @@
 // src/components/EffectsEditor.tsx
 
-import React, { useEffect, useState, useRef, ChangeEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { AppStoreContextItem } from '../Stores/AppStore';
 import {
@@ -13,38 +13,31 @@ import {
     Tooltip,
     Typography,
     Box,
-    Checkbox,
-    FormControlLabel,
     Grid,
     SelectChangeEvent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
     Add as AddIcon,
 } from '@mui/icons-material';
 
-import { Label } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
-import ComboSelect from 'react-select';
+//import ComboSelect from 'react-select';
+import { v4 as uuidv4 } from 'uuid';
 import { DeviceEffects, DeviceIoPorts } from '../Clients/Api';
 
-// Import @dnd-kit components
-import {
-    DndContext,
-    closestCenter,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    DragEndEvent,
-} from '@dnd-kit/core';
-import {
-    arrayMove,
-    SortableContext,
-    verticalListSortingStrategy,
-    useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { DragOverlay } from '@dnd-kit/core'; // Import DragOverlay
+// Import the new DragDropPins component
+import DragDropPins from './DragDropPins';
+
+import debounce from 'lodash/debounce';
 
 // Define TypeScript interfaces based on your API
 interface PinOrdering {
@@ -61,51 +54,6 @@ interface InstructionField {
     options?: { label: string; value: string | number }[];
 }
 
-// Define sortable item component
-const SortableItem: React.FC<{
-    id: string;
-    content: string;
-    isDanger: boolean;
-    onRemove?: () => void;
-}> = ({ id, content, isDanger, onRemove }) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id });
-
-    const style: React.CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        margin: '4px 0',
-        cursor: 'grab',
-        // Remove any overflow-related styles to prevent clipping
-    };
-
-    return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <Label
-                size="large"
-                color={isDanger ? 'red' : 'yellow'}
-                content={content}
-                style={{ flex: 1 }}
-            />
-            {onRemove && (
-                <IconButton size="small" onClick={onRemove}>
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            )}
-        </div>
-    );
-};
-
 const EffectsEditor: React.FC = observer(() => {
     const store = AppStoreContextItem.useStore();
 
@@ -114,13 +62,10 @@ const EffectsEditor: React.FC = observer(() => {
     const [effectInstructionSelectedId, setEffectInstructionSelectedId] = useState<number>(0);
     const [metaDataMap, setMetaDataMap] = useState<Map<string, string>>(new Map());
     const [ioPortsAvailable, setIoPortsAvailable] = useState<Map<string, DeviceIoPorts>>(new Map());
-    const [pinsAvailable, setPinsAvailable] = useState<Array<{ content: string; id: string; pinData: DeviceIoPorts }>>([]);
     const [pinOrdering, setPinOrdering] = useState<Array<PinOrdering>>([]);
 
-    const currentPinId = useRef<number>(1);
-
-    // Track the currently dragged item for DragOverlay
-    const [activeId, setActiveId] = useState<string | null>(null);
+    // State for delete confirmation dialog for effects
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
     // Define instruction fields based on EffectInstructionId
     const instructionFieldsMap: Record<number, InstructionField[]> = {
@@ -158,27 +103,16 @@ const EffectsEditor: React.FC = observer(() => {
     useEffect(() => {
         const initialize = async () => {
             try {
-                // Fetch all effects
-                await getAllEffects();
-
-                // Create a map for IO ports
+                // Set up ioPortsAvailable and pinsAvailable
                 const ioPortsMap = new Map<string, DeviceIoPorts>();
                 store.deviceIoPorts.forEach((pin) => {
                     ioPortsMap.set(`${pin.deviceId}:${pin.commandPin}`, pin);
                 });
 
-                // Filter out pins with commandPin === -1 and map them
-                const filteredPins = store.deviceIoPorts
-                    .filter((pin) => pin.commandPin !== -1)
-                    .map((pin) => ({
-                        content: `${pin.deviceId}:${pin.commandPin} ${pin.description}`,
-                        id: `${currentPinId.current++}`, // Unique string ID
-                        pinData: pin,
-                    }))
-                    .sort((a, b) => a.content.localeCompare(b.content));
-
                 setIoPortsAvailable(ioPortsMap);
-                setPinsAvailable(filteredPins);
+
+                // Fetch and set all effects
+                await getAllEffects();
             } catch (error: any) {
                 store.setError(error.message);
             }
@@ -222,7 +156,6 @@ const EffectsEditor: React.FC = observer(() => {
         const selected = store.deviceEffects.find((effect) => effect.effectId === effectId);
         if (!selected) return;
 
-        console.log(`Setting selectedEffectId: ${effectId}`);
         sessionStorage.setItem('selectedEffectId', effectId.toString());
 
         setEffectSelected(selected);
@@ -309,16 +242,22 @@ const EffectsEditor: React.FC = observer(() => {
             return;
         }
 
-        const pins = ordering.split(',').filter((devPin) => devPin.trim() !== '');
+        const pins = ordering.split(',').filter((devPin) => devPin.trim() !== '')
 
         const newPinOrdering: PinOrdering[] = [];
 
         pins.forEach((devPin) => {
             const pin = ioPortsAvailable.get(devPin);
+
             if (pin) {
+
+                if(pin?.commandPin === -1){
+                    return;
+                }
+
                 newPinOrdering.push({
                     content: `${pin.deviceId}:${pin.commandPin} ${pin.description}`,
-                    id: `${currentPinId.current++}`,
+                    id: `exec-${uuidv4()}`, // Assign unique UUID with 'exec-' prefix
                     pinData: pin,
                 });
             }
@@ -328,16 +267,59 @@ const EffectsEditor: React.FC = observer(() => {
     };
 
     // Update metaDataMap with new pin ordering and save metadata
-    const setPinOrderingInMap = (newOrdering: PinOrdering[]) => {
+    const handlePinOrderChange = (newOrder: DeviceIoPorts[]) => {
         try {
-            const devPins = newOrdering.map((pin) => `${pin.pinData.deviceId}:${pin.pinData.commandPin}`).join(',');
+            const devPins = newOrder.map((pin) => `${pin.deviceId}:${pin.commandPin}`).join(',');
             const newMap = new Map(metaDataMap);
             newMap.set('DEVPINS', devPins);
             setMetaDataMap(newMap);
             setMetaData(newMap);
+            buildPinOrdering(newMap);
         } catch (error: any) {
             store.setError(`Failed to set pin ordering: ${error.message}`);
         }
+    };
+
+    // Update instructionMetaData and save effect with debounce
+    const handleEffectSave = useCallback(
+        debounce(async (effect: DeviceEffects) => {
+            try {
+                await store.updateDeviceEffect(effect.effectId, effect);
+            } catch (error: any) {
+                store.setError(`Failed to save effect: ${error.message}`);
+            }
+        }, 2000),
+        [store]
+    );
+
+    // Handle effect name change
+    const handleEffectNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!effectSelected) return;
+
+        const newName = event.target.value;
+        const updatedEffect: DeviceEffects = { ...effectSelected, effectName: newName };
+        setEffectSelected(updatedEffect);
+        handleEffectSave(updatedEffect);
+    };
+
+    // Define instruction fields based on EffectInstructionId
+    const getInstructionFields = (instructionId: number): InstructionField[] => {
+        return instructionFieldsMap[instructionId] || [];
+    };
+
+    // Handle changes in dynamic instruction fields
+    const handleInstructionFieldChange = (
+        key: string,
+        value: string | number | boolean
+    ) => {
+        const updatedMap = new Map(metaDataMap);
+        if (typeof value === 'boolean') {
+            updatedMap.set(key, value ? '1' : '0');
+        } else {
+            updatedMap.set(key, value.toString());
+        }
+        setMetaDataMap(updatedMap);
+        setMetaData(updatedMap);
     };
 
     // Update instructionMetaData and save effect
@@ -362,109 +344,12 @@ const EffectsEditor: React.FC = observer(() => {
         }
     };
 
-    // Handle effect name change
-    const handleEffectNameChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        if (!effectSelected) return;
-
-        const newName = event.target.value;
-        const updatedEffect: DeviceEffects = { ...effectSelected, effectName: newName };
-        setEffectSelected(updatedEffect);
-        handleEffectSave(updatedEffect);
-    };
-
-    // Handle effect save
-    const handleEffectSave = async (effect: DeviceEffects) => {
-        try {
-            await store.updateDeviceEffect(effect.effectId, effect);
-        } catch (error: any) {
-            store.setError(`Failed to save effect: ${error.message}`);
-        }
-    };
-
-    // Handle removing a pin from pinOrdering
-    const handleRemoveFromMap = (id: string) => {
-        const updatedOrdering = pinOrdering.filter((pin) => pin.id !== id);
-        setPinOrdering(updatedOrdering);
-        setPinOrderingInMap(updatedOrdering);
-    };
-
-    // Define instruction fields based on EffectInstructionId
-    const getInstructionFields = (instructionId: number): InstructionField[] => {
-        return instructionFieldsMap[instructionId] || [];
-    };
-
-    // Handle changes in dynamic instruction fields
-    const handleInstructionFieldChange = (
-        key: string,
-        value: string | number | boolean
-    ) => {
-        const updatedMap = new Map(metaDataMap);
-        if (typeof value === 'boolean') {
-            updatedMap.set(key, value ? '1' : '0');
-        } else {
-            updatedMap.set(key, value.toString());
-        }
-        setMetaDataMap(updatedMap);
-        setMetaData(updatedMap);
-    };
-
-    // Setup @dnd-kit sensors
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        // You can add more sensors if needed, e.g., KeyboardSensor for accessibility
-    );
-
-    // Handle drag start to set activeId for DragOverlay
-    const handleDragStart = (event: any) => {
-        setActiveId(event.active.id);
-    };
-
-    // Handle drag end event using @dnd-kit
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-
-        setActiveId(null); // Reset activeId
-
-        if (!over) return;
-
-        const activeId = active.id;
-        const overId = over.id;
-
-        if (activeId === overId) return;
-
-        // Determine if activeId is in pinsAvailable
-        const isActiveInAvailablePins = pinsAvailable.some(pin => pin.id === activeId);
-        const isOverInExecutionOrder = pinOrdering.some(pin => pin.id === overId);
-
-        if (isActiveInAvailablePins && isOverInExecutionOrder) {
-            // Move from availablePins to executionOrder
-            const pin = pinsAvailable.find(pin => pin.id === activeId);
-            if (!pin) return;
-
-            const newExecutionOrder = [...pinOrdering, {
-                content: pin.content,
-                id: `${currentPinId.current++}`,
-                pinData: pin.pinData,
-            }];
-
-            setPinOrdering(newExecutionOrder);
-            setPinOrderingInMap(newExecutionOrder);
-
-            // Remove from availablePins
-            setPinsAvailable(pinsAvailable.filter(p => p.id !== activeId));
-        } else if (!isActiveInAvailablePins && isOverInExecutionOrder) {
-            // Reorder within executionOrder
-            const oldIndex = pinOrdering.findIndex(pin => pin.id === activeId);
-            const newIndex = pinOrdering.findIndex(pin => pin.id === overId);
-
-            if (oldIndex === -1 || newIndex === -1) return;
-
-            const reordered = arrayMove(pinOrdering, oldIndex, newIndex);
-            setPinOrdering(reordered);
-            setPinOrderingInMap(reordered);
-        }
-        // Additional conditions can be handled here if needed
-    };
+    // Cleanup debounce on unmount
+    useEffect(() => {
+        return () => {
+            handleEffectSave.cancel();
+        };
+    }, [handleEffectSave]);
 
     return (
         <div
@@ -472,8 +357,10 @@ const EffectsEditor: React.FC = observer(() => {
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '1rem',
-                alignItems: 'flex-start', // Ensures top alignment
-                width: '100%', // Ensures the component takes full width
+                alignItems: 'flex-start',
+                width: '100%',
+                maxWidth: '800px',
+                margin: '0 auto',
             }}
         >
             {store.error && (
@@ -509,7 +396,7 @@ const EffectsEditor: React.FC = observer(() => {
                 {effectSelected && (
                     <>
                         <Tooltip title="Delete Effect">
-                            <IconButton onClick={handleEffectDelete}>
+                            <IconButton onClick={() => setIsDeleteDialogOpen(true)}>
                                 <DeleteIcon />
                             </IconButton>
                         </Tooltip>
@@ -522,6 +409,34 @@ const EffectsEditor: React.FC = observer(() => {
                     </>
                 )}
             </Box>
+
+            {/* Confirmation Dialog for Effect Deletion */}
+            <Dialog
+                open={isDeleteDialogOpen}
+                onClose={() => setIsDeleteDialogOpen(false)}
+                aria-labelledby="delete-confirmation-dialog"
+            >
+                <DialogTitle id="delete-confirmation-dialog">Confirm Deletion</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete the effect "{effectSelected?.effectName}"?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsDeleteDialogOpen(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            handleEffectDelete();
+                            setIsDeleteDialogOpen(false);
+                        }}
+                        color="secondary"
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Effect Details and Configuration */}
             {effectSelected && (
@@ -546,7 +461,7 @@ const EffectsEditor: React.FC = observer(() => {
                             <TextField
                                 label="Duration (ms)"
                                 value={effectSelected.duration}
-                                onChange={async (event: ChangeEvent<HTMLInputElement>) => {
+                                onChange={(event: ChangeEvent<HTMLInputElement>) => {
                                     if (!effectSelected) return;
                                     const newDuration = Number(event.target.value);
                                     const updatedEffect: DeviceEffects = { ...effectSelected, duration: newDuration };
@@ -590,51 +505,51 @@ const EffectsEditor: React.FC = observer(() => {
                             container
                             spacing={2}
                             marginBottom="1rem"
-                        // Adjusted to wrap as needed
                         >
                             {getInstructionFields(effectInstructionSelectedId).map((field) => {
                                 switch (field.type) {
                                     case 'multi-select':
                                         // Prepare options for react-select
-                                        const availablePinsOptions = Array.from(ioPortsAvailable.values()).map((pin) => ({
-                                            label: `${pin.deviceId}:${pin.commandPin} ${pin.description}`,
-                                            value: `${pin.deviceId}:${pin.commandPin}`,
-                                        }));
-                                        const selectedPins = metaDataMap.get('DEVPINS')?.split(',').map((pin) => ({
-                                            label: `${pin} ${ioPortsAvailable.get(pin)?.description || ''}`,
-                                            value: pin,
-                                        })) || [];
+                                        // const availablePinsOptions = Array.from(ioPortsAvailable.values()).map((pin) => ({
+                                        //     label: `${pin.deviceId}:${pin.commandPin} ${pin.description}`,
+                                        //     value: `${pin.deviceId}:${pin.commandPin}`,
+                                        // }));
+                                        // const selectedPins = metaDataMap.get('DEVPINS')?.split(',').map((pin) => ({
+                                        //     label: `${pin} ${ioPortsAvailable.get(pin)?.description || ''}`,
+                                        //     value: pin,
+                                        // })) || [];
 
                                         return (
-                                            <Grid
-                                                item
-                                                xs={12} // Spans the whole grid
-                                                key={field.key}
-                                            >
-                                                <Typography variant="subtitle1" gutterBottom>
-                                                    {field.label}
-                                                </Typography>
-                                                <ComboSelect
-                                                    isMulti
-                                                    options={availablePinsOptions}
-                                                    value={selectedPins}
-                                                    onChange={(selectedOptions) => {
-                                                        if (!selectedOptions) {
-                                                            handleInstructionFieldChange(field.key, '');
-                                                            return;
-                                                        }
-                                                        const selectedValues = selectedOptions.map((option) => option.value);
-                                                        handleInstructionFieldChange(field.key, selectedValues.join(','));
-                                                    }}
-                                                    placeholder={`Select ${field.label}`}
-                                                />
-                                            </Grid>
+                                            <></>
+                                            // <Grid
+                                            //     item
+                                            //     xs={12}
+                                            //     key={field.key}
+                                            // >
+                                            //     <Typography variant="subtitle1" gutterBottom>
+                                            //         {field.label}
+                                            //     </Typography>
+                                            //     <ComboSelect
+                                            //         isMulti
+                                            //         options={availablePinsOptions}
+                                            //         value={selectedPins}
+                                            //         onChange={(selectedOptions) => {
+                                            //             if (!selectedOptions) {
+                                            //                 handleInstructionFieldChange(field.key, '');
+                                            //                 return;
+                                            //             }
+                                            //             const selectedValues = selectedOptions.map((option) => option.value);
+                                            //             handleInstructionFieldChange(field.key, selectedValues.join(','));
+                                            //         }}
+                                            //         placeholder={`Select ${field.label}`}
+                                            //     />
+                                            // </Grid>
                                         );
                                     case 'number':
                                         return (
                                             <Grid
                                                 item
-                                                xs={12} sm={6} md={4} // Adjusted for horizontal layout
+                                                xs={12} sm={6} md={4}
                                                 key={field.key}
                                             >
                                                 <TextField
@@ -653,7 +568,7 @@ const EffectsEditor: React.FC = observer(() => {
                                         return (
                                             <Grid
                                                 item
-                                                xs={12} sm={6} md={4} // Adjusted for horizontal layout
+                                                xs={12} sm={6} md={4}
                                                 key={field.key}
                                             >
                                                 <FormControlLabel
@@ -666,7 +581,7 @@ const EffectsEditor: React.FC = observer(() => {
                                                         />
                                                     }
                                                     label={field.label}
-                                                    style={{ marginTop: '1.5rem' }} // Adjusted for alignment
+                                                    style={{ marginTop: '1.5rem' }}
                                                 />
                                             </Grid>
                                         );
@@ -677,118 +592,38 @@ const EffectsEditor: React.FC = observer(() => {
                         </Grid>
 
                         {/* Drag and Drop Configuration */}
-                        <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragStart={handleDragStart} // Handle drag start for DragOverlay
-                            onDragEnd={handleDragEnd}
-                        >
-                            <SortableContext
-                                items={[...pinsAvailable.map(pin => pin.id), ...pinOrdering.map(pin => pin.id)]}
-                                strategy={verticalListSortingStrategy}
-                            >
-                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} width="100%">
-                                    {/* Source Pins */}
-                                    <Box
-                                        style={{
-                                            flex: 1,
-                                            minHeight: '200px',
-                                            maxHeight: '400px',
-                                            overflowY: 'auto',
-                                            padding: '1rem',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                        }}
-                                    >
-                                        <Typography variant="h6" gutterBottom>
-                                            Source Pins:
-                                        </Typography>
-                                        {pinsAvailable.map((item) => (
-                                            <SortableItem
-                                                key={item.id}
-                                                id={item.id}
-                                                content={item.content}
-                                                isDanger={item.pinData.isDanger}
-                                            />
-                                        ))}
-                                    </Box>
+                        <DragDropPins
+                            availablePins={ioPortsAvailableToArray(ioPortsAvailable)}
+                            initialOrder={pinOrdering.filter(p => p.pinData.commandPin !== -1).map(pin => pin.pinData)}
+                            onOrderChange={handlePinOrderChange}
+                        />
 
-                                    {/* Execution Order Pins */}
-                                    <Box
-                                        style={{
-                                            flex: 1,
-                                            minHeight: '200px',
-                                            maxHeight: '400px',
-                                            overflowY: 'auto',
-                                            padding: '1rem',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                        }}
-                                    >
-                                        <Typography variant="h6" gutterBottom>
-                                            Execution Order:
-                                        </Typography>
-                                        {pinOrdering.map((item) => (
-                                            <SortableItem
-                                                key={item.id}
-                                                id={item.id}
-                                                content={item.content}
-                                                isDanger={item.pinData.isDanger}
-                                                onRemove={() => handleRemoveFromMap(item.id)}
-                                            />
-                                        ))}
-                                    </Box>
-                                </Box>
-                            </SortableContext>
-
-                            {/* Drag Overlay to prevent clipping */}
-                            <DragOverlay>
-                                {activeId ? (
-                                    <div
-                                        style={{
-                                            padding: '4px 8px',
-                                            backgroundColor: '#fff',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                                        }}
-                                    >
-                                        {pinsAvailable.find(pin => pin.id === activeId)?.content ||
-                                            pinOrdering.find(pin => pin.id === activeId)?.content ||
-                                            ''}
-                                    </div>
-                                ) : null}
-                            </DragOverlay>
-
-
-                            {/* Effects Configuration - Single Line */}
-                            <Box mt={2} width="100%">
-                                <Typography variant="subtitle1" gutterBottom>
-                                    Effects Configuration:
-                                </Typography>
-                                <TextField
-                                    value={effectSelected.instructionMetaData}
-                                    margin="normal"
-                                    style={{ width: '100%' }}
-                                    // Remove multiline and set single line
-                                    // multiline
-                                    // rows={2}
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    variant="outlined"
-                                />
-                            </Box>
-
-                        </DndContext>
-
+                        {/* Effects Configuration - Single Line */}
+                        <Box mt={2} width="100%">
+                            <Typography variant="subtitle1" gutterBottom>
+                                Effects Configuration:
+                            </Typography>
+                            <TextField
+                                value={effectSelected.instructionMetaData}
+                                margin="normal"
+                                style={{ width: '100%' }}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                variant="outlined"
+                            />
+                        </Box>
 
                     </Box>
                 </div>
             )}
         </div>
     );
-
 });
+
+// Helper function to convert Map to Array
+const ioPortsAvailableToArray = (map: Map<string, DeviceIoPorts>): DeviceIoPorts[] => {
+    return Array.from(map.values()).filter(p => p.commandPin !== -1);
+};
 
 export default EffectsEditor;
