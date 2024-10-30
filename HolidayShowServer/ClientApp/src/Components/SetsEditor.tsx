@@ -47,14 +47,14 @@ const SetsEditor: React.FC = observer(() => {
 
     // Fetch sets when store.sets changes
     useEffect(() => {
-        const initialize = async () => {
+        const initialize = () => {
             if (store.sets.length === 0) {
                 // If sets are not loaded yet, do nothing
                 return;
             }
 
             try {
-                await getAllSets();
+                getAllSets();
             } catch (error: any) {
                 store.setError(`Initialization failed: ${error.message}`);
             } finally {
@@ -66,7 +66,7 @@ const SetsEditor: React.FC = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [store.sets]); // Run this effect whenever store.sets changes
 
-    const getAllSets = async () => {
+    const getAllSets = () => {
         try {
             let selectedSet: Sets | undefined = store.sets[0];
             const lastSelectedId = sessionStorage.getItem(sessionSetSelected);
@@ -83,7 +83,7 @@ const SetsEditor: React.FC = observer(() => {
                 setSetIdSelected(selectedSet.setId);
                 setSetSelected(selectedSet);
                 sessionStorage.setItem(sessionSetSelected, selectedSet.setId.toString());
-                await handleSetChange(selectedSet.setId);
+                handleSetChange(selectedSet.setId);
             }
         } catch (error: any) {
             store.setError(`Failed to fetch sets: ${error.message}`);
@@ -304,6 +304,7 @@ const SetsEditor: React.FC = observer(() => {
                         </div>
 
                         {store.setSequences
+                            .filter((sequence) => sequence.setId === setSelected.setId)
                             .slice() // Creates a shallow copy to avoid mutating the original array
                             .sort((a, b) => a.onAt - b.onAt) // Sorts by onAt in ascending order
                             .map((sequence) => (

@@ -24,16 +24,18 @@ const Home: React.FC = observer(() => {
   }, [store]);
 
   const executeSet = useCallback(async (set: number) => {
-    await store.getApi().settingsPlaybackOptionUpdate(set);
+    console.log('setting set to', set);
+    await store.getApi().settingsCurrentSetUpdate(set);
+    await store.getApi().settingsPlaybackOptionUpdate(2);
     await store.getApi().settingsRestartExecutionUpdate();
   }, [store]);
 
-  const executeStart = useCallback(() => {
-    store.getApi().settingsPlaybackOptionUpdate(2);
+  const executeStart = useCallback(async () => {
+    await store.getApi().settingsPlaybackOptionUpdate(2);
   }, [store]);
 
-  const executeRandom = useCallback(() => {
-    store.getApi().settingsPlaybackOptionUpdate(1);
+  const executeRandom = useCallback(async () => {
+    await store.getApi().settingsPlaybackOptionUpdate(1);
   }, [store]);
 
   // Define static buttons

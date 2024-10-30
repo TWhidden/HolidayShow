@@ -22,8 +22,8 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
   ({ sequence, onDelete }) => {
     const store = AppStoreContextItem.useStore();
 
-    const [devicePattern, setDevicePattern] = useState<{ label: string; value: number } | null>(null);
-    const [effect, setEffect] = useState<{ label: string; value: number } | null>(null);
+    const [devicePattern, setDevicePattern] = useState<{ label: string; value: number | null } | null>(null);
+    const [effect, setEffect] = useState<{ label: string; value: number | null } | null>(null);
     const [onAt, setOnAt] = useState<string>(sequence.onAt.toString());
 
     const isInitialMount = useRef(true);
@@ -76,6 +76,8 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
           setSequenceId: sequence.setSequenceId,
         };
 
+        console.log('updatedSequence:', updatedSequence);
+
         await store.updateSetSequence(updatedSequence.setSequenceId, updatedSequence);
         store.clearError();
       } catch (error: any) {
@@ -115,16 +117,14 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
       }
     }, [debouncedSave]);
 
-    const handleDevicePatternChange = useCallback((selectedOption: { label: string; value: number } | null) => {
-      console.log('handleDevicePatternChange:', selectedOption);
+    const handleDevicePatternChange = useCallback((selectedOption: { label: string; value: number | null } | null) => {
       setDevicePattern(selectedOption);
       if (!isInitialMount.current) {
         debouncedSave();
       }
     }, [debouncedSave]);
 
-    const handleEffectChange = useCallback((selectedOption: { label: string; value: number } | null) => {
-      console.log('handleEffectChange:', selectedOption);
+    const handleEffectChange = useCallback((selectedOption: { label: string; value: number | null } | null) => {
       setEffect(selectedOption);
       if (!isInitialMount.current) {
         debouncedSave();
@@ -145,7 +145,10 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
 
         <ComboSelect
           isClearable={false}
-          options={store.devicePatterns.map(p => ({ label: p.patternName || '', value: p.devicePatternId }))}
+          options={[
+            { label: 'None', value: null },
+            ...store.devicePatterns.map(p => ({ label: p.patternName || '', value: p.devicePatternId }))
+          ]}
           onChange={handleDevicePatternChange}
           value={devicePattern}
           placeholder="Select Device Pattern"
@@ -159,7 +162,10 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
 
         <ComboSelect
           isClearable={false}
-          options={store.deviceEffects.map(e => ({ label: e.effectName || '', value: e.effectId }))}
+          options={[
+            { label: 'None', value: null },
+            ...store.deviceEffects.map(e => ({ label: e.effectName || '', value: e.effectId }))
+          ]}
           onChange={handleEffectChange}
           value={effect}
           placeholder="Select Effect"

@@ -64,14 +64,12 @@ public class TcpBackgroundService : BackgroundService
 
                     _logger.LogInformation($"Client connected: {remoteClient.RemoteAddress}");
 
-
                     _ = remoteClient.ProcessAsync(stoppingToken).ContinueWith(t =>
                     {
                         if (t.Exception != null)
                             _logger.LogError(t.Exception, $"Error processing client {remoteClient.RemoteAddress}");
 
                         _clients.TryRemove(tcpClient, out _);
-
 
                         // Hook for Pub/Sub: Client Disconnected
                         OnClientDisconnected(remoteClient);
@@ -237,16 +235,10 @@ public class TcpBackgroundService : BackgroundService
                                     settings.FirstOrDefault(x => x.SettingName == SettingKeys.CurrentSet);
                                 if (currentSet == null)
                                 {
-                                    _logger.LogWarning("Current set is not set. Setting to random");
-                                    db.Settings.Add(new Settings
-                                    {
-                                        SettingName = SettingKeys.CurrentSet,
-                                        ValueDouble = (int)SetPlaybackOptionEnum.PlaybackRandom,
-                                        ValueString = string.Empty
-                                    });
-                                    await db.SaveChangesAsync(stoppingToken).ConfigureAwait(false);
+                                    _logger.LogWarning("Current set is not set.");
                                     _setExecuting = false;
-                                    break;
+                                    await Task.Delay(1000, stoppingToken).ConfigureAwait(false);
+                                        break;
                                 }
 
                                 var set = await db.Sets
@@ -256,13 +248,10 @@ public class TcpBackgroundService : BackgroundService
                                 if (set == null)
                                 {
                                     _logger.LogWarning(
-                                        "Current set references a set that does not exist. Setting to random.");
+                                        "Current set references a set that does not exist.");
 
-                                    currentSet.ValueDouble = (int)SetPlaybackOptionEnum.PlaybackRandom;
-                                    currentSet.ValueString = string.Empty;
-
-                                    await db.SaveChangesAsync(stoppingToken).ConfigureAwait(false);
-                                    _setExecuting = false;
+                                    await Task.Delay(1000, stoppingToken).ConfigureAwait(false);
+                                        _setExecuting = false;
                                     break;
                                 }
 
@@ -355,12 +344,18 @@ public class TcpBackgroundService : BackgroundService
 
                         // Load the set data
                         var setData = await db.Sets
+                            .AsSplitQuery() // Opt-in to split query behavior
                             .Include(s => s.SetSequences)
                             .ThenInclude(ss => ss.DevicePatterns)
+                            
                             .ThenInclude(dp => dp.DevicePatternSequences)
+                            .ThenInclude(d => d.AudioOptions)
+                            .ThenInclude(dp => dp.DevicePatternSequences)
+                            .ThenInclude(d => d.DeviceIoPorts)
+                            
                             .Include(s => s.SetSequences)
-                            .ThenInclude(ss => ss.DeviceEffects)                 // Include DeviceEffects
-                            .ThenInclude(de => de.EffectInstructionsAvailable)   // Include EffectInstructionsAvailable under DeviceEffects
+                            .ThenInclude(ss => ss.DeviceEffects)
+                            .ThenInclude(de => de.EffectInstructionsAvailable)
                             .FirstOrDefaultAsync(x => x.SetId == setId, stoppingToken)
                             .ConfigureAwait(false);
 

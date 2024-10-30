@@ -86,7 +86,7 @@ public class SetsController(EfHolidayContext context) : ControllerBase
 
     // DELETE: api/Sets/5
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteSets([FromRoute] int id)
+    public async Task<ActionResult> DeleteSets([FromRoute] int id)
     {
         if (!ModelState.IsValid)
         {
@@ -102,7 +102,7 @@ public class SetsController(EfHolidayContext context) : ControllerBase
         context.Sets.Remove(sets);
         await context.SaveChangesAsync();
 
-        return Ok(sets);
+        return Ok();
     }
 
     private bool SetsExists(int id)

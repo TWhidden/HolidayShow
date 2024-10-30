@@ -1163,6 +1163,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Settings
+     * @name SettingsCurrentSetUpdate
+     * @request PUT:/api/Settings/CurrentSet/{setId}
+     */
+    settingsCurrentSetUpdate: (setId: number, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/Settings/CurrentSet/${setId}`,
+        method: "PUT",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Settings
      * @name SettingsRestartExecutionUpdate
      * @request PUT:/api/Settings/RestartExecution
      */

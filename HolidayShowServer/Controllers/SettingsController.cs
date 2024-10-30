@@ -69,6 +69,27 @@ public class SettingsController(EfHolidayContext context) : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("CurrentSet/{setId}")]
+    public async Task<ActionResult> SetCurrentSet([FromRoute] int setId)
+    {
+        var setting = await context.Settings.Where(x => x.SettingName == SettingKeys.CurrentSet).FirstOrDefaultAsync();
+
+        if (setting == null)
+        {
+            setting = new Settings
+            {
+                SettingName = SettingKeys.CurrentSet,
+            };
+            context.Settings.Add(setting);
+        }
+
+        setting.ValueDouble = setId;
+
+        await context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     // PUT: api/Settings/5
     [HttpPut("RestartExecution")]
     public async Task<IActionResult> RestartExecution()
