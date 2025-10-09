@@ -4,11 +4,12 @@
 
 This is a distributed IoT holiday light/fire show system with a TCP-based client-server architecture:
 
-- **HolidayShowServer.Core**: Console TCP server that orchestrates GPIO control and audio file distribution
+- **HolidayShowServer**: ASP.NET Core web API server with integrated TCP server (BackgroundService) that orchestrates GPIO control and audio file distribution
 - **HolidayShowClient.Core**: IoT client (Raspberry Pi/Windows IoT) that connects via TCP and controls hardware
-- **HolidayShowWeb**: ASP.NET Core web app with React frontend for show management
+- **HolidayShowWeb**: Vite-based React frontend for show management (proxies to HolidayShowServer)
 - **HolidayShow.Data.Core**: Entity Framework Core data layer with SQL Server backend
 - **HolidayShowLib.Core/Shared.Core**: Protocol definitions and shared utilities
+- **HolidayShow.ConsoleTestClient**: Console application for testing TCP protocol communication
 
 ## Key Architectural Patterns
 
@@ -16,7 +17,8 @@ This is a distributed IoT holiday light/fire show system with a TCP-based client
 - Custom message protocol defined in `ProtocolMessage.cs` with enum-based message types (`MessageTypeIdEnum`)
 - Key message constants: `PINID`, `DEVID`, `DURATION`, `PINON`, `AUDIOFILE`, `FILEDOWNLOAD`
 - Server maintains client connections in `RemoteClient` objects, handles keep-alive and GPIO commands
-- Async TCP handling in `TcpServer.cs` with event-driven client management
+- TCP server implemented as `TcpBackgroundService` (BackgroundService) within ASP.NET Core host
+- Async TCP handling with event-driven client management and SignalR integration for real-time updates
 
 ### Data Layer Conventions
 - Entity models use partial classes (e.g., `AudioOptions.Partial.cs`, `DevicePatterns.Partial.cs`)
@@ -54,8 +56,8 @@ npm run docker-run-shell
 ## Configuration Patterns
 
 ### Connection Strings
-- Server: Uses `ConfigurationManager.ConnectionStrings["EfHolidayContext"]`
-- Web: Configured via `appsettings.json` with EF in `Startup.cs`
+- Server: Uses `appsettings.json` with connection string key `"DefaultConnection"`
+- Web: Configured via Vite proxy to ASP.NET Core backend
 - Default development: SQL Server on port 1401 with dev/dev123 credentials
 
 ### Cross-Platform Support
@@ -66,8 +68,10 @@ npm run docker-run-shell
 ## Important File Locations
 
 ### Critical Config Files
-- `HolidayShowServer.Core/Program.cs`: Main server logic, client management, set execution
+- `HolidayShowServer/Program.cs`: Main server logic, client management, set execution
+- `HolidayShowServer/Services/TcpBackgroundService.cs`: TCP server implementation as BackgroundService
 - `HolidayShowClient.Core/Program.cs`: IoT client TCP connection and GPIO control
+- `HolidayShow.ConsoleTestClient/Program.cs`: Console test client for TCP protocol testing
 - `HolidayShow.Data.Core/EfHolidayContext.cs`: EF model configuration
 - `package.json`: Build script orchestration
 
@@ -76,17 +80,18 @@ npm run docker-run-shell
 - `HolidayShowLib.Core/ProtocolMessage.cs`: Message structure and constants
 
 ### Web Interface
-- `HolidayShowWeb/Startup.cs`: ASP.NET Core configuration with React SPA
-- Web controllers in `HolidayShowWeb/Controllers/`
-- React frontend in `HolidayShowWeb/ClientApp/`
-
-### React Frontend Patterns
-- **MobX State Management**: Single `appStore.js` with `@observable`, `@action`, `@computed` decorators
+- `HolidayShowServer/Program.cs`: ASP.NET Core configuration with SignalR and SPA routing
+- `HolidayShowWeb/vite.config.ts`: Vite proxy configuration to ASP.NET Core backend
+- Web controllers in `HolidayShowServer/Controllers/`
+- React frontend in `HolidayShowWeb/src/`
+- **MobX State Management**: Single `AppStore.tsx` with `makeObservable`, `@observable`, `@action`, `@computed` decorators
 - **Service Layer**: Dedicated services for each domain (SetServices, DeviceServices, AudioServices, etc.)
 - **Component Structure**: `@inject("appStore")` and `@observer` decorators for MobX integration
 - **UI Framework**: Material-UI with Semantic UI React components
 - **Data Querying**: LINQ-ES5 for client-side data manipulation and filtering
 - **Global Patterns**: Centralized busy state management with delayed loading indicators
+- **API Integration**: OpenAPI-generated TypeScript clients for backend communication
+- **SignalR**: Real-time device status updates via WebSocket connections
 
 ## Common Gotchas
 
@@ -96,8 +101,8 @@ npm run docker-run-shell
 - **Connection Handling**: TCP clients auto-reconnect, server maintains connection state
 - **Database**: Auto-applies migrations on server startup
 - **Configuration**: Multiple project types use different config patterns (app.config vs appsettings.json)
-- **MobX Decorators**: Requires `@babel/plugin-proposal-decorators` for `@observable/@action` syntax
-- **React Build**: Uses CRACO for custom configuration, copies build to `../wwwroot/react/`
+- **MobX Decorators**: Uses `makeObservable` instead of decorator syntax in newer MobX version
+- **React Build**: Uses Vite for fast development builds, outputs to `dist/` directory
 - **LINQ Client-Side**: Heavy use of `linq-es5` for data transformations in React components
 
 ## Project-Specific Notes
@@ -106,3 +111,4 @@ npm run docker-run-shell
 - Originally evolved from 2013 Mono/Raspberry Pi project to current .NET Core/Docker stack
 - Heavy use of timers for show sequencing and GPIO timing control
 - Custom protocol over TCP rather than HTTP/REST for real-time GPIO control performance
+- **Recent Architecture Changes**: HolidayShowServer.Core merged into HolidayShowServer as BackgroundService; HolidayShowWeb converted from ASP.NET Core to pure Vite React app
