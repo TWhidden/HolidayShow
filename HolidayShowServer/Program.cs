@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<DeviceStatusService>();
 builder.Services.AddHostedService<TcpBackgroundService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -26,10 +28,23 @@ if (app.Environment.IsDevelopment())
 // Serve static files (Vite build output should be in wwwroot)
 app.UseStaticFiles();
 
+// Configure SPA routing
+app.UseSpa(spa =>
+{
+    spa.Options.SourcePath = Path.Join(app.Environment.ContentRootPath, "../HolidayShowWeb");
+
+    if (app.Environment.IsDevelopment())
+    {
+        // Set longer timeout for Vite startup
+        spa.Options.StartupTimeout = TimeSpan.FromSeconds(120);
+    }
+});
+
 // Configure the HTTP request pipeline.
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<DeviceStatusHub>("/websocket/deviceStatusHub");
 
 // Fallback route for client-side routing
 app.MapFallbackToFile("index.html");

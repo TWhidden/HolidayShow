@@ -18,16 +18,19 @@ public class TcpBackgroundService : BackgroundService
     private readonly ILoggerFactory _loggerFactory;
     private readonly ConcurrentQueue<string> _logMessages = new();
     private readonly ConcurrentDictionary<Timer, bool> _queuedTimers = new();
+    private readonly DeviceStatusService _deviceStatusService;
     private readonly IServiceProvider _serviceProvider;
     private readonly int _port;
     private bool _running = true;
     private bool _setExecuting;
 
     public TcpBackgroundService(IServiceProvider serviceProvider, IConfiguration configuration,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory, DeviceStatusService deviceStatusService)
     {
         _serviceProvider = serviceProvider;
         _configuration = configuration;
+        _loggerFactory = loggerFactory;
+        _deviceStatusService = deviceStatusService;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger("TcpServer");
         _port = _configuration.GetValue<int>("ServerSettings:Port");
@@ -1055,12 +1058,13 @@ public class TcpBackgroundService : BackgroundService
 
     private void OnClientConnected(RemoteClient client)
     {
-        // Implement Pub/Sub publish logic for client connection if needed
+        // Don't update device status here - wait for DeviceId message
+        // _deviceStatusService.UpdateDeviceConnected(client);
     }
 
     private void OnClientDisconnected(RemoteClient client)
     {
-        // Implement Pub/Sub publish logic for client disconnection if needed
+        _deviceStatusService.UpdateDeviceDisconnected(client);
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

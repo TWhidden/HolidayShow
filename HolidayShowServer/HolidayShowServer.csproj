@@ -1,26 +1,49 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>Latest</LangVersion>
+
+		<!-- Vite Integration -->
+		<SpaRoot>../HolidayShowWeb/</SpaRoot>
+		<SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+		<SpaProxyServerUrl>http://localhost:5173</SpaProxyServerUrl>
+		<DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.9" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
 	</ItemGroup>
 
+	<!-- Vite SPA Integration -->
+	<ItemGroup>
+		<None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+	</ItemGroup>
+
+	<!-- Include wwwroot in publish -->
+	<ItemGroup>
+		<Content Include="wwwroot\**" CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\HolidayShow.Data.Core\HolidayShow.Data.Core.csproj" />
 		<ProjectReference Include="..\HolidayShowLib.Core\HolidayShowLib.Core.csproj" />
+		<ProjectReference Include="..\HolidayShowWeb\HolidayShowWeb.esproj">
+			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+		</ProjectReference>
 	</ItemGroup>
 
-	<Target Name="ViteBuild" AfterTargets="Build">
-		<Exec WorkingDirectory="$(ProjectDir)ClientApp" Command="npm install" />
-		<Exec WorkingDirectory="$(ProjectDir)ClientApp" Command="npm run build" />
-	</Target>
+	<ItemGroup>
+	  <Folder Include="wwwroot\" />
+	</ItemGroup>
+
+
 
 </Project>

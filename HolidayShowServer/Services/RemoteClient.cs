@@ -115,6 +115,13 @@ public class RemoteClient
 
             await UpdateDeviceAsync(DeviceId).ConfigureAwait(false);
 
+            // Notify web clients that this device has connected
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var deviceStatusService = scope.ServiceProvider.GetRequiredService<DeviceStatusService>();
+                deviceStatusService.UpdateDeviceConnected(this);
+            }
+
             if (message.MessageParts.TryGetValue(ProtocolMessage.PINSAVAIL, out var pinsAvailStr) &&
                 int.TryParse(pinsAvailStr, out var pinsAvail))
             {
