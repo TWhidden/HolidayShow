@@ -3,13 +3,11 @@
 arch="all"
 model=""
 label=""
-buildReact="0"
 
-while getopts "a:l:s:u:d:" opt; do
+while getopts "a:l:u:d:" opt; do
   case ${opt} in
     a ) arch=${OPTARG};;
     l ) label=${OPTARG};;
-    s ) buildReact=${OPTARG};;
     d ) model=${OPTARG}
   esac
 done
@@ -38,12 +36,6 @@ blue='\033[0;34m'
 green='\033[0;32m'
 yellow='\033[1;33m'
 nc='\033[0m' # No color
-
-echo -e "\n✔︎ ${yellow}Build React: ${buildReact}...${nc}"
-if [ "${buildReact}" == "1" ]; then
-  export NODE_OPTIONS=--openssl-legacy-provider
-  . ../buildreact.sh
-fi
 
 image="${name}"
 # Form image name
