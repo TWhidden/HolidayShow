@@ -120,7 +120,8 @@ public class TcpBackgroundService : BackgroundService
                         SettingKeys.CurrentSet,
                         SettingKeys.DetectDevicePin,
                         SettingKeys.IsAudioEnabled,
-                        SettingKeys.IsDangerEnabled
+                        SettingKeys.IsDangerEnabled,
+                        SettingKeys.AllPinsOnOff
                     };
 
                     var settings = await db.Settings
@@ -154,6 +155,15 @@ public class TcpBackgroundService : BackgroundService
                         InitiateReset();
                         _setExecuting = false;
                         _logger.LogInformation("Reset called and executed");
+                    }
+
+                    var allPinsOnOff = settings.FirstOrDefault(x => x.SettingName == SettingKeys.AllPinsOnOff);
+                    if (allPinsOnOff != null)
+                    {
+                        db.Settings.Remove(allPinsOnOff);
+                        await db.SaveChangesAsync(stoppingToken).ConfigureAwait(false);
+                        await HandleAllPinsOnOffAsync((int)allPinsOnOff.ValueDouble, db, stoppingToken).ConfigureAwait(false);
+                        _logger.LogInformation($"All pins turned {(allPinsOnOff.ValueDouble == 1 ? "ON" : "OFF")}");
                     }
 
                     if (!_setExecuting)
@@ -351,11 +361,13 @@ public class TcpBackgroundService : BackgroundService
                             .Include(s => s.SetSequences)
                             .ThenInclude(ss => ss.DevicePatterns)
                             
+
                             .ThenInclude(dp => dp.DevicePatternSequences)
                             .ThenInclude(d => d.AudioOptions)
                             .ThenInclude(dp => dp.DevicePatternSequences)
                             .ThenInclude(d => d.DeviceIoPorts)
                             
+
                             .Include(s => s.SetSequences)
                             .ThenInclude(ss => ss.DeviceEffects)
                             .ThenInclude(de => de.EffectInstructionsAvailable)
@@ -1065,6 +1077,65 @@ public class TcpBackgroundService : BackgroundService
     private void OnClientDisconnected(RemoteClient client)
     {
         _deviceStatusService.UpdateDeviceDisconnected(client);
+    }
+
+    private async Task HandleAllPinsOnOffAsync(int state, EfHolidayContext db, CancellationToken stoppingToken)
+    {
+        // Set playback option to Off to stop any current pattern execution
+        var playbackOptionSetting = await db.Settings
+            .Where(x => x.SettingName == SettingKeys.SetPlaybackOption)
+            .FirstOrDefaultAsync(stoppingToken)
+            .ConfigureAwait(false);
+
+        if (playbackOptionSetting == null)
+        {
+            playbackOptionSetting = new Settings
+            {
+                SettingName = SettingKeys.SetPlaybackOption,
+            };
+            db.Settings.Add(playbackOptionSetting);
+        }
+
+        playbackOptionSetting.ValueDouble = (int)SetPlaybackOptionEnum.Off;
+        await db.SaveChangesAsync(stoppingToken).ConfigureAwait(false);
+
+        // Get IsDangerEnabled setting
+        var isDangerEnabled = await db.Settings
+            .Where(x => x.SettingName == SettingKeys.IsDangerEnabled)
+            .Select(x => x.ValueDouble)
+            .FirstOrDefaultAsync(stoppingToken)
+            .ConfigureAwait(false);
+
+        // Get all device IO ports, filtering out danger pins if danger is not enabled
+        var deviceIoPorts = await db.DeviceIoPorts
+            .Where(x => !x.IsNotVisable && (isDangerEnabled == 1 || !x.IsDanger))
+            .ToListAsync(stoppingToken)
+            .ConfigureAwait(false);
+
+        // Group by device
+        var pinsByDevice = deviceIoPorts
+            .GroupBy(x => x.DeviceId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        // Send commands to each device
+        foreach (var devicePins in pinsByDevice)
+        {
+            var client = _clients.Where(x => x.Value.DeviceId == devicePins.Key).Select(x => x.Value).FirstOrDefault();
+            if (client == null) continue;
+
+            foreach (var pin in devicePins.Value)
+            {
+                var dic = new Dictionary<string, string>
+                {
+                    { ProtocolMessage.PINON, state.ToString() },
+                    { ProtocolMessage.DURATION, "0" }, // Instant on/off
+                    { ProtocolMessage.PINID, pin.CommandPin.ToString() }
+                };
+
+                var message = new ProtocolMessage(MessageTypeIdEnum.EventControl, dic);
+                await client.SendMessageAsync(message).ConfigureAwait(false);
+            }
+        }
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

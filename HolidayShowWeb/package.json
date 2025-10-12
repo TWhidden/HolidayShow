@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate-client": "npx swagger-typescript-api -p http://localhost:5000/swagger/v1/swagger.json -o ./src/Clients --unwrap-response-data -n Api.ts"
+    "generate-client": "npx swagger-typescript-api generate -p http://localhost:5000/swagger/v1/swagger.json -o ./src/Clients --unwrap-response-data -n Api.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

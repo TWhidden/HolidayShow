@@ -143,6 +143,32 @@ public class SettingsController(EfHolidayContext context) : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("AllPinsOnOff/{state}")]
+    public async Task<IActionResult> SetAllPinsOnOff([FromRoute] int state)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var setting = await context.Settings.Where(x => x.SettingName == SettingKeys.AllPinsOnOff).FirstOrDefaultAsync();
+
+        if (setting == null)
+        {
+            setting = new Settings
+            {
+                SettingName = SettingKeys.AllPinsOnOff,
+            };
+            context.Settings.Add(setting);
+        }
+
+        setting.ValueDouble = state;
+
+        await context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     // POST: api/Settings
     [HttpPost]
     public async Task<IActionResult> PostSettings([FromBody] Settings settings)

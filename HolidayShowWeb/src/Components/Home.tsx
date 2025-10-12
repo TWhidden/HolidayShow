@@ -39,12 +39,22 @@ const Home: React.FC = observer(() => {
     await store.getApi().settingsPlaybackOptionUpdate(1);
   }, [store]);
 
+  const executeAllOn = useCallback(async () => {
+    await store.getApi().settingsAllPinsOnOffUpdate(1);
+  }, [store]);
+
+  const executeAllOff = useCallback(async () => {
+    await store.getApi().settingsAllPinsOnOffUpdate(0);
+  }, [store]);
+
   // Define static buttons
   const staticButtons: ButtonConfig[] = [
     { key: 'restart', text: 'RESTART SHOW', color: 'primary', onClick: restart },
     { key: 'stop', text: 'STOP EXECUTION', color: 'secondary', onClick: () => executeSet(0) },
     { key: 'start', text: 'START EXECUTION', color: 'success', onClick: executeStart },
     { key: 'random', text: 'START RANDOM', color: 'warning', onClick: executeRandom },
+    { key: 'all-on', text: 'ALL ON', color: 'success', onClick: executeAllOn },
+    { key: 'all-off', text: 'ALL OFF', color: 'error', onClick: executeAllOff },
   ];
 
   // Define dynamic buttons based on sets

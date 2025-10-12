@@ -16,6 +16,7 @@
         public const string FileBasePath = "FileBasePath";
         public const string Refresh = "Refresh";
         public const string DetectDevicePin = "DetectDevicePin";
+        public const string AllPinsOnOff = "AllPinsOnOff";
     }
 
     public enum SetPlaybackOptionEnum
