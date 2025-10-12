@@ -129,7 +129,7 @@ const DeviceStatus: React.FC = observer(() => {
                       size="small"
                       sx={{ mr: 1 }}
                     />
-                    {device?.isConnected && device?.ipAddress && (
+                    {device?.ipAddress && (
                       <Typography variant="body2" color="textSecondary">
                         {device.ipAddress}
                       </Typography>
