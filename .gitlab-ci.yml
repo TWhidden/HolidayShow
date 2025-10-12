@@ -18,6 +18,7 @@ beta_server:
     changes:
       - gitlab-ci.yml
       - HolidayShowServer/**/* # Match any changes within the folder
+      - HolidayShowWeb/**/* # Match any changes within the folder
   except:
     - tags
   script:
