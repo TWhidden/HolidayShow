@@ -13,7 +13,8 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
-    Button
+    Button,
+    useTheme,
 } from '@mui/material';
 import FindReplaceIcon from '@mui/icons-material/FindReplace';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,6 +31,7 @@ interface EditPatternProps {
 const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOptions, onDelete }) => {
     const store = AppStoreContextItem.useStore();
     const apiStore = ApiStoreContextItem.useStore();
+    const theme = useTheme();
     const { audioOptions } = store;
 
     const [port, setPort] = useState<{ label: string; value: number } | null>(null);
@@ -128,7 +130,7 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", alignItems: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: 'center', marginBottom: '0.5rem', gap: '0.25rem', flexWrap: 'wrap', maxWidth: '100%' }}>
             <TextField
                 label="On At"
                 value={onAt}
@@ -136,8 +138,9 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                     setOnAt(e.target.value);
                     debouncedHandleSave();
                 }}
-                margin="normal"
-                style={{ marginRight: '1rem', flex: 1 }}
+                margin="dense"
+                size="small"
+                style={{ flex: '1 1 80px', minWidth: '80px', maxWidth: '100%' }}
             />
 
             <TextField
@@ -147,8 +150,9 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                     setDuration(e.target.value);
                     debouncedHandleSave();
                 }}
-                margin="normal"
-                style={{ marginRight: '1rem', flex: 1 }}
+                margin="dense"
+                size="small"
+                style={{ flex: '1 1 80px', minWidth: '80px', maxWidth: '100%' }}
             />
 
             <ComboSelect
@@ -160,7 +164,39 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 }}
                 value={port}
                 placeholder="Select GPIO Port"
-                styles={{ container: (provided) => ({ ...provided, flex: 3, marginRight: '1rem' }) }}
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                styles={{ 
+                    container: (provided) => ({ ...provided, flex: 3, minWidth: '120px', maxWidth: '100%' }),
+                    control: (provided) => ({ 
+                        ...provided, 
+                        minHeight: '30px',
+                        backgroundColor: theme.palette.background.paper,
+                        borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
+                    }),
+                    menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+                    menu: (provided) => ({ 
+                        ...provided, 
+                        backgroundColor: theme.palette.background.paper,
+                    }),
+                    option: (provided, state) => ({
+                        ...provided,
+                        backgroundColor: state.isFocused 
+                            ? theme.palette.action.hover 
+                            : theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                    }),
+                    singleValue: (provided) => ({
+                        ...provided,
+                        color: theme.palette.text.primary,
+                    }),
+                    input: (provided) => ({ 
+                        ...provided, 
+                        margin: '0px',
+                        color: theme.palette.text.primary,
+                    }),
+                    indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
+                }}
             />
 
             <ComboSelect
@@ -172,18 +208,50 @@ const EditPattern: React.FC<EditPatternProps> = observer(({ sequence, portOption
                 }}
                 value={audio}
                 placeholder="Select Audio File"
-                styles={{ container: (provided) => ({ ...provided, flex: 3, marginRight: '1rem' }) }}
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                styles={{ 
+                    container: (provided) => ({ ...provided, flex: 3, minWidth: '120px', maxWidth: '100%' }),
+                    control: (provided) => ({ 
+                        ...provided, 
+                        minHeight: '30px',
+                        backgroundColor: theme.palette.background.paper,
+                        borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
+                    }),
+                    menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+                    menu: (provided) => ({ 
+                        ...provided, 
+                        backgroundColor: theme.palette.background.paper,
+                    }),
+                    option: (provided, state) => ({
+                        ...provided,
+                        backgroundColor: state.isFocused 
+                            ? theme.palette.action.hover 
+                            : theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                    }),
+                    singleValue: (provided) => ({
+                        ...provided,
+                        color: theme.palette.text.primary,
+                    }),
+                    input: (provided) => ({ 
+                        ...provided, 
+                        margin: '0px',
+                        color: theme.palette.text.primary,
+                    }),
+                    indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
+                }}
             />
 
             <Tooltip title="Detect IO Port">
-                <IconButton onClick={handleIoPortDetect}>
-                    <FindReplaceIcon />
+                <IconButton onClick={handleIoPortDetect} size="small">
+                    <FindReplaceIcon fontSize="small" />
                 </IconButton>
             </Tooltip>
 
             <Tooltip title="Delete Sequence">
-                <IconButton onClick={handleDeleteClick}>
-                    <DeleteIcon />
+                <IconButton onClick={handleDeleteClick} size="small">
+                    <DeleteIcon fontSize="small" />
                 </IconButton>
             </Tooltip>
 

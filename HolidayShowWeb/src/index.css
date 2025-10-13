@@ -28,6 +28,15 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+html {
+  overflow-x: hidden; /* Prevent horizontal scrolling at root level */
+}
+
+* {
+  box-sizing: border-box; /* Ensure all elements include padding/border in width */
 }
 
 h1 {

@@ -74,7 +74,7 @@ const Home: React.FC = observer(() => {
       <Typography variant="h5" gutterBottom align="center">
         Welcome to the Holiday Show
       </Typography>
-      <Typography variant="body1" gutterBottom align="center">
+      <Typography variant="body1" gutterBottom align="center" sx={{ px: { xs: 1, sm: 0 } }}>
         Control the pre-programmed sequences quickly and efficiently.
       </Typography>
 
@@ -87,8 +87,8 @@ const Home: React.FC = observer(() => {
             sm: 'repeat(2, 1fr)', // 2 columns on small screens
             md: 'repeat(3, 1fr)', // 3 columns on medium and larger screens
           },
-          gap: 2, // Space between buttons
-          marginTop: 3,
+          gap: { xs: 1, sm: 2 }, // Smaller gap on mobile
+          marginTop: { xs: 2, sm: 3 }, // Smaller margin on mobile
         }}
       >
         {allButtons.map((button) => (

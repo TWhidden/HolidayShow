@@ -134,14 +134,14 @@ const SettingsEditor: React.FC = observer(() => {
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box sx={{ p: 4, maxWidth: 800, margin: '0 auto', alignItems: 'flex-start' }}>
+            <Box sx={{ p: { xs: 1, sm: 2, md: 4 }, width: '100%', maxWidth: '100%', margin: '0', alignItems: 'flex-start', overflowX: 'hidden' }}>
                 <Typography variant="h4" gutterBottom>
                     Settings Editor
                 </Typography>
 
-                <Divider sx={{ mb: 4 }} />
+                <Divider sx={{ mb: { xs: 2, sm: 4 } }} />
 
-                <Stack spacing={3}>
+                <Stack spacing={{ xs: 2, sm: 3 }}>
                     {/* Delay Between Executions */}
                     <TextField
                         fullWidth
@@ -202,7 +202,7 @@ const SettingsEditor: React.FC = observer(() => {
                         <Typography variant="h6" gutterBottom>
                             Schedule Settings
                         </Typography>
-                        <Stack direction="row" spacing={2}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                             <TimePicker
                                 label="Schedule On"
                                 value={convertToDayjs(state.onAt)}
@@ -252,7 +252,7 @@ const SettingsEditor: React.FC = observer(() => {
                         <Typography variant="h6" gutterBottom>
                             Audio Schedule Settings
                         </Typography>
-                        <Stack direction="row" spacing={2}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                             <TimePicker
                                 label="Audio On"
                                 value={convertToDayjs(state.audioOnAt)}

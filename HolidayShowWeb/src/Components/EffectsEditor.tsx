@@ -356,26 +356,28 @@ const EffectsEditor: React.FC = observer(() => {
             style={{
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '1rem',
+                padding: '0.5rem',
                 alignItems: 'flex-start',
                 width: '100%',
-                maxWidth: '800px',
-                margin: '0 auto',
+                maxWidth: '100%',
+                margin: '0',
+                overflowX: 'hidden',
             }}
         >
             {store.error && (
-                <div style={{ color: 'red', marginBottom: '1rem' }}>{store.error}</div>
+                <div style={{ color: 'red', marginBottom: '0.5rem', width: '100%' }}>{store.error}</div>
             )}
 
             {/* Effect Selection and Controls */}
             <Box
                 display="flex"
-                flexDirection="row"
-                marginBottom="1rem"
+                flexDirection={{ xs: 'column', sm: 'row' }}
+                marginBottom="0.5rem"
                 alignItems="center"
                 width="100%"
+                gap={1}
             >
-                <FormControl style={{ minWidth: 200, marginRight: '1rem' }}>
+                <FormControl style={{ minWidth: 200, flex: 1 }}>
                     <InputLabel id="effects-label">Effects</InputLabel>
                     <Select
                         labelId="effects-label"
@@ -442,20 +444,21 @@ const EffectsEditor: React.FC = observer(() => {
             {effectSelected && (
                 <div style={{ width: '100%' }}>
                     {/* Effect Details */}
-                    <Box display="flex" flexDirection="column" marginBottom="1rem" width="100%">
+                    <Box display="flex" flexDirection="column" marginBottom="0.5rem" width="100%">
                         <Box
                             display="flex"
                             flexDirection="row"
                             alignItems="center"
-                            marginBottom="1rem"
+                            marginBottom="0.5rem"
                             flexWrap="wrap"
+                            gap={1}
                         >
                             <TextField
                                 label="Effect Name"
                                 value={effectSelected.effectName}
                                 onChange={handleEffectNameChange}
                                 margin="normal"
-                                style={{ marginRight: '1rem', flex: 1, minWidth: '200px' }}
+                                style={{ flex: 1, minWidth: '200px' }}
                             />
 
                             <TextField
@@ -469,11 +472,11 @@ const EffectsEditor: React.FC = observer(() => {
                                     handleEffectSave(updatedEffect);
                                 }}
                                 margin="normal"
-                                style={{ width: '150px', marginRight: '1rem' }}
+                                style={{ width: '120px', minWidth: '120px' }}
                                 type="number"
                             />
 
-                            <FormControl style={{ minWidth: 200, marginRight: '1rem' }} margin="normal">
+                            <FormControl style={{ minWidth: 200, flex: 1 }} margin="normal">
                                 <InputLabel id="instructionsAvailable-label">Effect Instructions</InputLabel>
                                 <Select
                                     labelId="instructionsAvailable-label"

@@ -66,7 +66,7 @@ const Main = styled('main', {
   shouldForwardProp: (prop) => prop !== 'open' && prop !== 'isMobile',
 })<{ open: boolean; isMobile: boolean }>(({ theme, open, isMobile }) => ({
   flexGrow: 1,
-  padding: theme.spacing(1), // Adds padding around the content
+  padding: isMobile ? theme.spacing(0.5) : theme.spacing(1), // Reduced padding on mobile
   transition: theme.transitions.create(['margin', 'width'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -74,6 +74,8 @@ const Main = styled('main', {
   marginLeft: isMobile ? 0 : open ? drawerWidth : miniDrawerWidth,
   boxSizing: 'border-box',
   overflow: 'auto', // Enables scrolling within Main
+  maxWidth: '100vw', // Never exceed viewport width
+  width: '100%',
 }));
 
 const Layout: FC<LayoutProps> = observer(({ children, toggleTheme, currentMode }) => {
@@ -98,7 +100,7 @@ const Layout: FC<LayoutProps> = observer(({ children, toggleTheme, currentMode }
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}> {/* Prevent outer scrollbar */}
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', maxWidth: '100vw' }}> {/* Prevent outer scrollbar */}
       <CssBaseline />
       {/* AppBar */}
       <StyledAppBar position="fixed" open={open} isMobile={isMobile}>

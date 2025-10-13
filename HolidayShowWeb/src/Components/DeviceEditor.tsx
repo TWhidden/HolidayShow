@@ -92,14 +92,14 @@ const DeviceManager: React.FC = observer(() => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" p={2}>
+    <Box display="flex" flexDirection="column" p={{ xs: 0.5, sm: 2 }} gap={{ xs: 1, sm: 2 }}>
       {store.error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: { xs: 1, sm: 2 }, mx: { xs: 0.5, sm: 0 } }}>
           {store.error}
         </Alert>
       )}
 
-      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} mb={2} gap={2}>
+      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} mb={{ xs: 1, sm: 2 }} gap={{ xs: 1, sm: 2 }} px={{ xs: 0.5, sm: 0 }}>
         <FormControl fullWidth variant="outlined">
           <InputLabel id="device-select-label">Select Device</InputLabel>
           <Select
@@ -131,7 +131,7 @@ const DeviceManager: React.FC = observer(() => {
       </Box>
 
       {deviceSelected && (
-        <Box overflow="auto">
+        <Box overflow="auto" sx={{ mt: { xs: 1, sm: 0 } }}>
           <DeviceIoPortEditor device={deviceSelected} />
         </Box>
       )}

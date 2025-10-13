@@ -25,6 +25,9 @@ import {
     IconButton,
     useTheme,
     alpha,
+    useMediaQuery,
+    Tabs,
+    Tab,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -110,11 +113,8 @@ const DraggableItem: React.FC<{
             {...attributes}
             {...listeners}
             sx={{
-                '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark'
-                        ? alpha(theme.palette.background.paper, 0.9)
-                        : alpha(theme.palette.background.paper, 0.8),
-                },
+                minHeight: { xs: '48px', md: 'auto' },
+                padding: { xs: theme.spacing(1.5), md: theme.spacing(1) },
             }}
         >
             <PinContent item={item} />
@@ -161,7 +161,7 @@ const SortableItem: React.FC<{
     };
 
     return (
-        <ListItem ref={setNodeRef} style={style}>
+        <ListItem ref={setNodeRef} style={style} sx={{ minHeight: { xs: '48px', md: 'auto' } }}>
             <Box
                 {...attributes}
                 {...listeners}
@@ -207,8 +207,10 @@ const DragDropPins: React.FC<DragDropPinsProps> = ({
     onOrderChange,
 }) => {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [executionOrder, setExecutionOrder] = useState<ExecutionItem[]>([]);
     const [activeItem, setActiveItem] = useState<DeviceIoPorts | ExecutionItem | null>(null);
+    const [mobileTab, setMobileTab] = useState(0); // 0 = Available Pins, 1 = Execution Order
 
     useEffect(() => {
         const hydratedOrder = initialOrder.map((item) => ({
@@ -218,7 +220,17 @@ const DragDropPins: React.FC<DragDropPinsProps> = ({
         setExecutionOrder(hydratedOrder);
     }, [initialOrder]);
 
-    const sensors = useSensors(useSensor(PointerSensor));
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // Require 8px of movement before drag starts (helps prevent scrolling)
+            },
+        })
+    );
+
+    const handleMobileTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+        setMobileTab(newValue);
+    };
 
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
@@ -300,72 +312,100 @@ const DragDropPins: React.FC<DragDropPinsProps> = ({
         >
             <Box
                 display="flex"
-                justifyContent="space-between"
-                height="300px"
-                padding={theme.spacing(2)}
+                flexDirection="column"
+                padding={theme.spacing(1)}
                 boxSizing="border-box"
+                gap={1}
+                sx={{
+                    [theme.breakpoints.up('md')]: {
+                        padding: theme.spacing(2),
+                    },
+                    touchAction: 'none', // Prevent scrolling during drag on mobile
+                }}
             >
-                {/* Source Pins */}
-                <Paper
-                    elevation={3}
-                    sx={{
-                        width: '45%',
-                        padding: theme.spacing(2),
-                        overflowY: 'auto',
-                        backgroundColor: theme.palette.background.paper,
-                    }}
-                >
-                    <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{ color: theme.palette.text.primary }}
-                    >
-                        Available Pins
-                    </Typography>
-                    <SortableContext
-                        items={availablePins.map(pin => `source-${pin.deviceIoPortId}`)}
-                        strategy={verticalListSortingStrategy}
-                    >
-                        <List>
-                            {availablePins.map((pin) => (
-                                <DraggableItem key={pin.deviceIoPortId} item={pin} />
-                            ))}
-                        </List>
-                    </SortableContext>
-                </Paper>
+                {/* Mobile Tabs */}
+                {isMobile && (
+                    <Tabs value={mobileTab} onChange={handleMobileTabChange} centered>
+                        <Tab label="Available Pins" />
+                        <Tab label={`Execution Order (${executionOrder.length})`} />
+                    </Tabs>
+                )}
 
-                {/* Execution Order */}
-                <Paper
-                    elevation={3}
-                    sx={{
-                        width: '45%',
-                        padding: theme.spacing(2),
-                        overflowY: 'auto',
-                        backgroundColor: theme.palette.background.paper,
-                    }}
+                {/* Desktop or Mobile view based on tab */}
+                <Box
+                    display="flex"
+                    flexDirection={{ xs: 'column', md: 'row' }}
+                    height={{ xs: 'auto', md: '300px' }}
+                    gap={1}
                 >
-                    <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{ color: theme.palette.text.primary }}
-                    >
-                        Execution Order
-                    </Typography>
-                    <SortableContext
-                        items={executionOrder.map((item) => item.uniqueId)}
-                        strategy={verticalListSortingStrategy}
-                    >
-                        <List>
-                            {executionOrder.map((item) => (
-                                <SortableItem
-                                    key={item.uniqueId}
-                                    item={item}
-                                    onDelete={handleDelete}
-                                />
-                            ))}
-                        </List>
-                    </SortableContext>
-                </Paper>
+                    {/* Source Pins */}
+                    {(!isMobile || mobileTab === 0) && (
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                width: { xs: '100%', md: '48%' },
+                                padding: theme.spacing(1),
+                                overflowY: 'auto',
+                                backgroundColor: theme.palette.background.paper,
+                                maxHeight: { xs: '400px', md: 'none' },
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{ color: theme.palette.text.primary }}
+                            >
+                                Available Pins
+                            </Typography>
+                            <SortableContext
+                                items={availablePins.map(pin => `source-${pin.deviceIoPortId}`)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <List>
+                                    {availablePins.map((pin) => (
+                                        <DraggableItem key={pin.deviceIoPortId} item={pin} />
+                                    ))}
+                                </List>
+                            </SortableContext>
+                        </Paper>
+                    )}
+
+                    {/* Execution Order */}
+                    {(!isMobile || mobileTab === 1) && (
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                width: { xs: '100%', md: '48%' },
+                                padding: theme.spacing(1),
+                                overflowY: 'auto',
+                                backgroundColor: theme.palette.background.paper,
+                                maxHeight: { xs: '400px', md: 'none' },
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{ color: theme.palette.text.primary }}
+                            >
+                                Execution Order
+                            </Typography>
+                            <SortableContext
+                                items={executionOrder.map((item) => item.uniqueId)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <List>
+                                    {executionOrder.map((item) => (
+                                        <SortableItem
+                                            key={item.uniqueId}
+                                            item={item}
+                                            onDelete={handleDelete}
+                                        />
+                                    ))}
+                                </List>
+                            </SortableContext>
+                        </Paper>
+                    )}
+                </Box>
             </Box>
 
             <DragOverlay>

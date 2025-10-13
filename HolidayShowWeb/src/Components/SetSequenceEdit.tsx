@@ -8,6 +8,7 @@ import {
   TextField,
   IconButton,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import ComboSelect from 'react-select';
@@ -21,6 +22,7 @@ interface SetSequenceEditProps {
 const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
   ({ sequence, onDelete }) => {
     const store = AppStoreContextItem.useStore();
+    const theme = useTheme();
 
     const [devicePattern, setDevicePattern] = useState<{ label: string; value: number | null } | null>(null);
     const [effect, setEffect] = useState<{ label: string; value: number | null } | null>(null);
@@ -132,7 +134,7 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
     }, [debouncedSave]);
 
     return (
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem', gap: '0.25rem', flexWrap: 'wrap', maxWidth: '100%' }}>
         <TextField
           label="On At"
           value={onAt}
@@ -140,7 +142,7 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
           onChange={handleOnAtChange}
           margin="dense"
           size="small"
-          style={{ marginRight: '0.25rem', flex: 1, width: '30rem' }}
+          style={{ flex: '1 1 80px', minWidth: '80px', maxWidth: '100%' }}
         />
 
         <ComboSelect
@@ -152,11 +154,41 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
           onChange={handleDevicePatternChange}
           value={devicePattern}
           placeholder="Select Device Pattern"
+          menuPortalTarget={document.body}
+          menuPosition="fixed"
           styles={{
-            container: (provided) => ({ ...provided, flex: 3, marginRight: '0.25rem', minWidth: '150px' }),
-            control: (provided) => ({ ...provided, minHeight: '30px' }),
+            container: (provided) => ({ ...provided, flex: 3, minWidth: '120px', maxWidth: '100%' }),
+            control: (provided) => ({ 
+              ...provided, 
+              minHeight: '30px',
+              backgroundColor: theme.palette.background.paper,
+              borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
+            }),
+            menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+            menu: (provided) => ({ 
+              ...provided, 
+              backgroundColor: theme.palette.background.paper,
+            }),
+            option: (provided, state) => ({
+              ...provided,
+              backgroundColor: state.isFocused 
+                ? theme.palette.action.hover 
+                : theme.palette.background.paper,
+              color: theme.palette.text.primary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }),
+            singleValue: (provided) => ({
+              ...provided,
+              color: theme.palette.text.primary,
+            }),
+            input: (provided) => ({ 
+              ...provided, 
+              margin: '0px',
+              color: theme.palette.text.primary,
+            }),
             indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
-            input: (provided) => ({ ...provided, margin: '0px' }),
           }}
         />
 
@@ -169,11 +201,41 @@ const SetSequenceEdit: React.FC<SetSequenceEditProps> = observer(
           onChange={handleEffectChange}
           value={effect}
           placeholder="Select Effect"
+          menuPortalTarget={document.body}
+          menuPosition="fixed"
           styles={{
-            container: (provided) => ({ ...provided, flex: 3, marginRight: '0.25rem', minWidth: '150px' }),
-            control: (provided) => ({ ...provided, minHeight: '30px' }),
+            container: (provided) => ({ ...provided, flex: 3, minWidth: '120px', maxWidth: '100%' }),
+            control: (provided) => ({ 
+              ...provided, 
+              minHeight: '30px',
+              backgroundColor: theme.palette.background.paper,
+              borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
+            }),
+            menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+            menu: (provided) => ({ 
+              ...provided, 
+              backgroundColor: theme.palette.background.paper,
+            }),
+            option: (provided, state) => ({
+              ...provided,
+              backgroundColor: state.isFocused 
+                ? theme.palette.action.hover 
+                : theme.palette.background.paper,
+              color: theme.palette.text.primary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }),
+            singleValue: (provided) => ({
+              ...provided,
+              color: theme.palette.text.primary,
+            }),
+            input: (provided) => ({ 
+              ...provided, 
+              margin: '0px',
+              color: theme.palette.text.primary,
+            }),
             indicatorsContainer: (provided) => ({ ...provided, height: '30px' }),
-            input: (provided) => ({ ...provided, margin: '0px' }),
           }}
         />
 

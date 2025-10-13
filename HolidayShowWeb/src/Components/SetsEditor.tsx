@@ -213,13 +213,13 @@ const SetsEditor: React.FC = observer(() => {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', maxWidth: '100%', overflowX: 'hidden' }}>
             {store.error && (
-                <div style={{ color: 'red', marginBottom: '1rem' }}>{store.error}</div>
+                <div style={{ color: 'red', marginBottom: '0.5rem' }}>{store.error}</div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '1rem' }}>
-                <FormControl style={{ minWidth: 120, marginRight: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <FormControl style={{ minWidth: 120, flex: 1 }}>
                     <InputLabel id="sets-label">Sets</InputLabel>
                     <Select
                         labelId="sets-label"
@@ -254,8 +254,8 @@ const SetsEditor: React.FC = observer(() => {
 
             {setSelected && (
                 <div>
-                    <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <TextField
                                 label="Set Name"
                                 value={setSelected.setName}
@@ -265,7 +265,7 @@ const SetsEditor: React.FC = observer(() => {
                                     handleSetSave(updatedSet);
                                 }}
                                 margin="normal"
-                                style={{ marginRight: '1rem', flex: 1 }}
+                                style={{ flex: 1, minWidth: '200px' }}
                             />
 
                             <Tooltip title={setSelected.isDisabled ? "Enable Set" : "Disable Set"}>
@@ -288,17 +288,17 @@ const SetsEditor: React.FC = observer(() => {
                             </Tooltip>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '0.5rem' }}>
-                            <Typography variant="body2" style={{ flex: '1 1 75px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '0.25rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <Typography variant="body2" style={{ flex: '1 1 60px', minWidth: '60px' }}>
                                 On At:
                             </Typography>
-                            <Typography variant="body2" style={{ flex: '3 1 300px' }}>
+                            <Typography variant="body2" style={{ flex: '3 1 200px', minWidth: '150px' }}>
                                 Device Pattern:
                             </Typography>
-                            <Typography variant="body2" style={{ flex: '3 1 300px' }}>
+                            <Typography variant="body2" style={{ flex: '3 1 200px', minWidth: '150px' }}>
                                 Effect:
                             </Typography>
-                            <Typography variant="body2" style={{ flex: '1 1 75px' }}>
+                            <Typography variant="body2" style={{ flex: '1 1 60px', minWidth: '60px' }}>
                                 Delete:
                             </Typography>
                         </div>

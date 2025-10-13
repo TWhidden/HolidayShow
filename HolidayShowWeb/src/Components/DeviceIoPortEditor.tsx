@@ -128,7 +128,7 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
   }, [debouncedProcessUpdates, processPendingUpdates]);
 
   return (
-    <div style={{ padding: '0.5rem' }}>
+    <div style={{ padding: '0.25rem' }}>
       {store.error && (
         <Typography color="error" style={{ marginBottom: '0.5rem' }}>
           {store.error}
@@ -139,17 +139,17 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
           Loading IO Ports...
         </Typography>
       ) : (
-        <Grid container direction="column" spacing={0.5}>
+        <Grid container direction="column" spacing={{ xs: 0.25, sm: 0.5 }}>
           {ports.length === 0 ? (
             <Typography>No IO Ports Available</Typography>
           ) : (
             ports.map((ioPort) => (
               <Grid item key={ioPort.deviceIoPortId}>
-                <Grid container alignItems="center" spacing={1}>
-                  <Grid item xs={1}>
+                <Grid container alignItems="center" spacing={{ xs: 0.5, sm: 1 }}>
+                  <Grid item xs={12} sm={1}>
                     <Typography variant="body2">PIN {ioPort.commandPin}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       label="Description"
                       value={ioPort.description || ''}
@@ -158,9 +158,10 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
                       }
                       fullWidth
                       margin="dense"
+                      size="small"
                     />
                   </Grid>
-                  <Grid item xs={2}>
+                  <Grid item xs={6} sm={2}>
                     <Tooltip title="Danger Pin">
                     <Switch
                       checked={ioPort.isDanger}
@@ -172,13 +173,15 @@ const DeviceIoPortEditor: React.FC<DeviceIoPortEditorProps> = observer(({ device
                     />
                     </Tooltip>
                   </Grid>
-                  <Grid item xs={3}>
+                  <Grid item xs={6} sm={3}>
                     <Button
                       onClick={() => handleIoPortDetect(ioPort.deviceIoPortId)}
                       variant="contained"
                       color="primary"
                       size="small"
                       startIcon={<FindReplaceIcon />}
+                      fullWidth
+                      sx={{ minWidth: 'auto' }}
                     >
                       Detect
                     </Button>
