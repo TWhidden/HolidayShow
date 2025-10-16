@@ -87,6 +87,9 @@ export class AppStore extends DisposableBase implements IInitializable {
       error: observable,
       setError: action,
       clearError: action,
+
+      // All Pins Actions
+      createAllPinsOnSet: action,
     });
   }
 
@@ -844,6 +847,116 @@ export class AppStore extends DisposableBase implements IInitializable {
     } catch (error: any) {
       this.setError("Failed to update playback option: " + error.message);
       console.error("Failed to update playback option:", error);
+    }
+  }
+
+  // ===========================
+  // All Pins On Set Creation
+  // ===========================
+
+  async createAllPinsOnSet(): Promise<number> {
+    try {
+      // Get IsDangerEnabled setting
+      const isDangerEnabled = this.settings.find(s => s.settingName === 'IsDangerEnabled')?.valueDouble === 1;
+
+      // Filter eligible pins: not hidden, respect danger setting
+      const eligiblePins = this.deviceIoPorts.filter(pin => 
+        !pin.isNotVisable && (isDangerEnabled || !pin.isDanger)
+      );
+
+      if (eligiblePins.length === 0) {
+        throw new Error('No eligible pins found for All Pins On');
+      }
+
+      // Build DEVPINS metadata
+      const devPinsList = eligiblePins.map(p => `${p.deviceId}:${p.commandPin}`).join(',');
+      const instructionMetaData = `DEVPINS=${devPinsList};DUR=3600000`; // 1 hour = 3,600,000 ms
+
+      // Step 1: Find or Create DeviceEffect
+      let effect = this.deviceEffects.find(e => 
+        e.effectName === 'All Pins On' && 
+        e.effectInstructionId === 1
+      );
+
+      if (effect) {
+        // Update existing effect
+        const updatedEffect = {
+          ...effect,
+          instructionMetaData: instructionMetaData,
+          duration: 3600000
+        };
+        await this._apiStore.getApi().deviceEffectsUpdate(effect.effectId, updatedEffect);
+        effect = updatedEffect;
+      } else {
+        // Create new effect
+        const newEffect = {
+          effectId: 0,
+          effectName: 'All Pins On',
+          instructionMetaData: instructionMetaData,
+          duration: 3600000,
+          effectInstructionId: 1,
+          timeOn: null,
+          timeOff: null
+        };
+        effect = await this._apiStore.getApi().deviceEffectsCreate(newEffect);
+      }
+
+      // Step 2: Find or Create Set
+      let set = this.sets.find(s => s.setName === 'All Pins On');
+
+      if (!set) {
+        // Create new set
+        const newSet = {
+          setId: 0,
+          setName: 'All Pins On',
+          isDisabled: false
+        };
+        set = await this._apiStore.getApi().setsCreate(newSet);
+      }
+
+      // Step 3: Find or Create SetSequence
+      let setSeq = this.setSequences.find(ss => 
+        ss.setId === set!.setId && 
+        ss.effectId === effect!.effectId
+      );
+
+      if (!setSeq) {
+        // Check if there's any sequence for this set
+        const existingSeq = this.setSequences.find(ss => ss.setId === set!.setId);
+        
+        if (existingSeq) {
+          // Update existing sequence to point to our effect
+          const updatedSeq = {
+            ...existingSeq,
+            effectId: effect!.effectId,
+            devicePatternId: null,
+            onAt: 0
+          };
+          await this._apiStore.getApi().setSequencesUpdate(existingSeq.setSequenceId, updatedSeq);
+        } else {
+          // Create new sequence
+          const newSeq = {
+            setSequenceId: 0,
+            setId: set!.setId,
+            onAt: 0,
+            devicePatternId: null,
+            effectId: effect!.effectId
+          };
+          await this._apiStore.getApi().setSequencesCreate(newSeq);
+        }
+      }
+
+      // Step 4: Refresh store data
+      await this.fetchDeviceEffects();
+      await this.fetchSets();
+      await this.fetchSetSequences();
+
+      this.clearError();
+      return set!.setId;
+    } catch (error: any) {
+      this.setError("Failed to create All Pins On set: " + error.message);
+      console.error("Failed to create All Pins On set:", error);
+      throw error;
     }
   }
 }

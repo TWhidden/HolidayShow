@@ -47,6 +47,17 @@ const Home: React.FC = observer(() => {
     await store.getApi().settingsAllPinsOnOffUpdate(0);
   }, [store]);
 
+  const createAndExecuteAllOnSet = useCallback(async () => {
+    try {
+      const setId = await appStore.createAllPinsOnSet();
+      await store.getApi().settingsCurrentSetUpdate(setId);
+      await store.getApi().settingsPlaybackOptionUpdate(2); // PlaybackCurrentOnly
+      await store.getApi().settingsRestartExecutionUpdate();
+    } catch (error) {
+      console.error('Failed to create and execute All On Set:', error);
+    }
+  }, [store, appStore]);
+
   // Define static buttons
   const staticButtons: ButtonConfig[] = [
     { key: 'restart', text: 'RESTART SHOW', color: 'primary', onClick: restart },
@@ -55,6 +66,7 @@ const Home: React.FC = observer(() => {
     { key: 'random', text: 'START RANDOM', color: 'warning', onClick: executeRandom },
     { key: 'all-on', text: 'ALL ON', color: 'success', onClick: executeAllOn },
     { key: 'all-off', text: 'ALL OFF', color: 'error', onClick: executeAllOff },
+    { key: 'create-all-on-set', text: 'CREATE ALL ON SET', color: 'info', onClick: createAndExecuteAllOnSet },
   ];
 
   // Define dynamic buttons based on sets
