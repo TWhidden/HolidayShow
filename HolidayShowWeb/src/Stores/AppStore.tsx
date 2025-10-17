@@ -870,12 +870,12 @@ export class AppStore extends DisposableBase implements IInitializable {
 
       // Build DEVPINS metadata
       const devPinsList = eligiblePins.map(p => `${p.deviceId}:${p.commandPin}`).join(',');
-      const instructionMetaData = `DEVPINS=${devPinsList};DUR=3600000`; // 1 hour = 3,600,000 ms
+      const instructionMetaData = `DEVPINS=${devPinsList}`; // GPIO On (ID 3) doesn't use DUR
 
       // Step 1: Find or Create DeviceEffect
       let effect = this.deviceEffects.find(e => 
         e.effectName === 'All Pins On' && 
-        e.effectInstructionId === 1
+        e.effectInstructionId === 3
       );
 
       if (effect) {
@@ -894,7 +894,7 @@ export class AppStore extends DisposableBase implements IInitializable {
           effectName: 'All Pins On',
           instructionMetaData: instructionMetaData,
           duration: 3600000,
-          effectInstructionId: 1,
+          effectInstructionId: 3,
           timeOn: null,
           timeOff: null
         };
